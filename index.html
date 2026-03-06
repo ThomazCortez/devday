@@ -97,15 +97,16 @@
     .seg-clock {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 2px;
       line-height: 0;
     }
 
     .seg-clock svg { display: block; }
 
-    /* ── Weather Widget ── */
+    /* ── Weather Widget — Nothing OS style ── */
     .weather-wrap {
-      padding: 14px 14px 12px;
+      padding: 14px 14px 16px;
       border-bottom: 1px solid var(--border-soft);
     }
 
@@ -113,31 +114,119 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 9px;
       font-weight: 700;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--text-faint);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
-    .weather-code-block {
+    .weather-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    #weatherCanvas {
+      flex-shrink: 0;
+      image-rendering: pixelated;
+    }
+
+    .weather-temp-block { flex: 1; }
+
+    .weather-temp {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      line-height: 1.85;
-      color: var(--text-faint);
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .weather-desc {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .weather-badges {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    .weather-badge {
       background: var(--bg-3);
       border: 1px solid var(--border-soft);
-      border-radius: 6px;
-      padding: 8px 10px;
+      border-radius: 50px;
+      padding: 7px 4px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
     }
 
-    .weather-code-block .w-key   { color: var(--blue); }
-    .weather-code-block .w-val   { color: var(--green); }
-    .weather-code-block .w-num   { color: var(--orange); }
-    .weather-code-block .w-str   { color: var(--yellow); }
-    .weather-code-block .w-cmt   { color: var(--text-faint); font-style: italic; }
-    .weather-code-block .w-punc  { color: var(--text-faint); }
-    .weather-code-block .w-icon  { color: var(--claude); }
-    .weather-code-block .w-warn  { color: var(--red); }
+    .badge-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .badge-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    .weather-badge.highlight {
+      background: var(--claude);
+      border-color: var(--claude);
+    }
+
+    .weather-badge.highlight .badge-val,
+    .weather-badge.highlight .badge-label { color: white; }
+
+    .weather-forecast {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .forecast-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3px 2px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .forecast-row:last-child { border-bottom: none; }
+
+    .forecast-day {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      width: 30px;
+    }
+
+    .forecast-dots { flex: 1; display: flex; justify-content: center; }
+
+    .forecast-temps {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .forecast-temps .hi { color: var(--text); }
 
     .weather-loading {
       font-family: 'JetBrains Mono', monospace;
@@ -482,10 +571,19 @@
     </div>
 
     <!-- Weather Widget -->
-    <div class="weather-wrap">
-      <div class="weather-header">// weather.json</div>
-      <div class="weather-code-block" id="weatherBlock">
-        <div class="weather-loading">fetching data...</div>
+    <div class="weather-wrap" id="weatherWrap">
+      <div class="weather-header">// weather.live</div>
+      <div class="weather-loading" id="weatherLoading">fetching data...</div>
+      <div id="weatherWidget" style="display:none">
+        <div class="weather-top">
+          <canvas id="weatherCanvas" width="64" height="64"></canvas>
+          <div class="weather-temp-block">
+            <div class="weather-temp" id="wTemp">--°</div>
+            <div class="weather-desc" id="wDesc">--</div>
+          </div>
+        </div>
+        <div class="weather-badges" id="wBadges"></div>
+        <div class="weather-forecast" id="wForecast"></div>
       </div>
     </div>
 
@@ -696,79 +794,217 @@
     setInterval(renderAsciiClock, 1000);
   }
 
-  // ── Weather ──
-  const WX_ICONS = {
-    0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
-    45:'🌫️', 48:'🌫️',
-    51:'🌦️', 53:'🌦️', 55:'🌧️',
-    61:'🌧️', 63:'🌧️', 65:'🌧️',
-    71:'❄️', 73:'❄️', 75:'❄️',
-    80:'🌦️', 81:'🌦️', 82:'⛈️',
-    95:'⛈️', 96:'⛈️', 99:'⛈️',
+  // ── Nothing OS dot-matrix weather icons ──
+  // Each icon is a 9×9 bit grid (1=dot, 0=empty)
+  const DOT_ICONS = {
+    clear: [
+      [0,0,0,1,0,0,0,0,0],
+      [0,0,0,0,0,1,0,0,0],
+      [0,1,0,0,0,0,0,1,0],
+      [0,0,0,1,1,1,0,0,0],
+      [1,0,1,1,1,1,1,0,1],
+      [0,0,0,1,1,1,0,0,0],
+      [0,1,0,0,0,0,0,1,0],
+      [0,0,0,0,0,1,0,0,0],
+      [0,0,0,1,0,0,0,0,0],
+    ],
+    partly_cloudy: [
+      [0,0,0,1,0,0,0,0,0],
+      [0,0,0,0,1,0,0,0,0],
+      [0,0,0,1,1,1,0,0,0],
+      [0,0,1,1,1,1,1,0,0],
+      [0,1,0,0,0,0,0,1,0],
+      [0,0,1,1,1,1,1,1,0],
+      [0,1,1,1,1,1,1,1,1],
+      [0,0,1,1,1,1,1,1,0],
+      [0,0,0,0,0,0,0,0,0],
+    ],
+    cloudy: [
+      [0,0,0,0,0,0,0,0,0],
+      [0,0,1,1,0,0,0,0,0],
+      [0,1,1,1,1,0,0,0,0],
+      [1,1,1,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,1,0],
+      [1,1,1,1,1,1,1,1,1],
+      [0,1,1,1,1,1,1,1,0],
+      [0,0,1,1,1,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0],
+    ],
+    rain: [
+      [0,0,1,1,1,0,0,0,0],
+      [0,1,1,1,1,1,0,0,0],
+      [1,1,1,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,1,0],
+      [0,0,0,0,0,0,0,0,0],
+      [0,1,0,1,0,1,0,1,0],
+      [1,0,1,0,1,0,1,0,1],
+      [0,1,0,1,0,1,0,1,0],
+      [0,0,1,0,1,0,1,0,0],
+    ],
+    snow: [
+      [0,0,0,1,0,1,0,0,0],
+      [0,0,0,0,1,0,0,0,0],
+      [0,0,0,1,0,1,0,0,0],
+      [1,0,1,0,0,0,1,0,1],
+      [0,1,0,0,0,0,0,1,0],
+      [1,0,1,0,0,0,1,0,1],
+      [0,0,0,1,0,1,0,0,0],
+      [0,0,0,0,1,0,0,0,0],
+      [0,0,0,1,0,1,0,0,0],
+    ],
+    storm: [
+      [0,1,1,1,1,1,0,0,0],
+      [1,1,1,1,1,1,1,0,0],
+      [1,1,1,1,1,1,1,1,0],
+      [0,0,0,0,0,0,0,0,0],
+      [0,0,1,1,0,0,0,0,0],
+      [0,1,1,0,0,0,0,0,0],
+      [0,1,1,1,1,0,0,0,0],
+      [0,0,0,1,0,0,0,0,0],
+      [0,0,0,1,0,0,0,0,0],
+    ],
+    fog: [
+      [0,0,0,0,0,0,0,0,0],
+      [1,1,1,1,1,1,1,1,1],
+      [0,0,0,0,0,0,0,0,0],
+      [1,1,1,1,1,1,1,1,1],
+      [0,0,0,0,0,0,0,0,0],
+      [1,1,1,1,1,1,1,1,1],
+      [0,0,0,0,0,0,0,0,0],
+      [1,1,1,1,1,1,1,1,1],
+      [0,0,0,0,0,0,0,0,0],
+    ],
   };
+
+  function drawWeatherDots(canvasEl, iconKey) {
+    const grid = DOT_ICONS[iconKey] || DOT_ICONS.clear;
+    const ctx  = canvasEl.getContext('2d');
+    const size = 64;
+    const rows = 9, cols = 9;
+    const dotR = 2.8;
+    const cellW = size / cols;
+    const cellH = size / rows;
+
+    ctx.clearRect(0, 0, size, size);
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const on = grid[r][c] === 1;
+        const x  = c * cellW + cellW / 2;
+        const y  = r * cellH + cellH / 2;
+
+        ctx.beginPath();
+        ctx.arc(x, y, dotR, 0, Math.PI * 2);
+
+        if (on) {
+          ctx.fillStyle = '#DA7756';
+          ctx.shadowColor = 'rgba(218,119,86,0.7)';
+          ctx.shadowBlur  = 5;
+        } else {
+          ctx.fillStyle = '#21262D';
+          ctx.shadowBlur = 0;
+        }
+        ctx.fill();
+      }
+    }
+  }
+
+  function codeToIcon(code) {
+    if (code === 0)               return 'clear';
+    if (code <= 2)                return 'partly_cloudy';
+    if (code === 3)               return 'cloudy';
+    if (code <= 48)               return 'fog';
+    if (code <= 67 || code <= 82) return 'rain';
+    if (code <= 77)               return 'snow';
+    return 'storm';
+  }
 
   const WX_DESC = {
     0:'clear_sky', 1:'mainly_clear', 2:'partly_cloudy', 3:'overcast',
-    45:'fog', 48:'rime_fog',
-    51:'drizzle_light', 53:'drizzle', 55:'drizzle_heavy',
-    61:'rain_light', 63:'rain', 65:'rain_heavy',
+    45:'fog', 48:'rime_fog', 51:'drizzle_light', 53:'drizzle',
+    55:'drizzle_heavy', 61:'rain_light', 63:'rain', 65:'rain_heavy',
     71:'snow_light', 73:'snow', 75:'snow_heavy',
     80:'showers_light', 81:'showers', 82:'showers_violent',
     95:'thunderstorm', 96:'thunderstorm_hail', 99:'thunderstorm_hail',
   };
 
   async function fetchWeather() {
-    const block = document.getElementById('weatherBlock');
     try {
-      // Use browser geolocation if available, else default to Lisbon
-      const coords = await new Promise((res) => {
-        if (!navigator.geolocation) return res({ lat: 38.7169, lon: -9.1399, city: 'Lisbon' });
+      const coords = await new Promise(res => {
+        if (!navigator.geolocation) return res({ lat: 38.7169, lon: -9.1399 });
         navigator.geolocation.getCurrentPosition(
-          p => res({ lat: p.coords.latitude, lon: p.coords.longitude, city: null }),
-          () => res({ lat: 38.7169, lon: -9.1399, city: 'Lisbon' })
-        , { timeout: 4000 });
+          p => res({ lat: p.coords.latitude, lon: p.coords.longitude }),
+          () => res({ lat: 38.7169, lon: -9.1399 }),
+          { timeout: 4000 }
+        );
       });
 
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}` +
-        `&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m` +
-        `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
+        `&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m,precipitation` +
+        `&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max` +
         `&timezone=auto&forecast_days=4&wind_speed_unit=kmh&temperature_unit=celsius`;
 
-      const res  = await fetch(url);
-      const data = await res.json();
+      const data = await (await fetch(url)).json();
       const cur  = data.current;
       const daily = data.daily;
 
       const code = cur.weather_code;
-      const icon = WX_ICONS[code] || '🌡️';
-      const desc = WX_DESC[code]  || 'unknown';
+      const iconKey = codeToIcon(code);
+      const desc = (WX_DESC[code] || 'unknown').replace(/_/g,' ');
       const temp = Math.round(cur.temperature_2m);
       const wind = Math.round(cur.wind_speed_10m);
       const hum  = cur.relative_humidity_2m;
+      const precip = cur.precipitation ?? 0;
 
-      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-      const forecast = daily.time.slice(1,4).map((t, i) => {
-        const d = new Date(t);
-        const dayLabel = days[d.getDay()];
+      // Draw dot canvas
+      drawWeatherDots(document.getElementById('weatherCanvas'), iconKey);
+
+      document.getElementById('wTemp').textContent = `${temp}°`;
+      document.getElementById('wDesc').textContent = desc;
+
+      // Badges
+      const badges = [
+        { val: `${hum}%`,   label: 'HUMID',  hi: false },
+        { val: `${wind}`,   label: 'KM/H',   hi: false },
+        { val: `${precip}`, label: 'MM',      hi: precip > 0 },
+      ];
+      document.getElementById('wBadges').innerHTML = badges.map(b => `
+        <div class="weather-badge ${b.hi ? 'highlight' : ''}">
+          <span class="badge-val">${b.val}</span>
+          <span class="badge-label">${b.label}</span>
+        </div>
+      `).join('');
+
+      // Forecast
+      const fdays = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+      document.getElementById('wForecast').innerHTML = daily.time.slice(1,4).map((t, i) => {
+        const d = new Date(t + 'T12:00:00');
+        const dayLabel = fdays[d.getDay()];
         const hi = Math.round(daily.temperature_2m_max[i+1]);
         const lo = Math.round(daily.temperature_2m_min[i+1]);
-        const rain = daily.precipitation_probability_max[i+1];
-        const fc = WX_ICONS[0]; // simplified
-        return `<div><span class="w-key">${dayLabel}</span><span class="w-punc">:</span> <span class="w-num">${hi}°</span><span class="w-cmt">/${lo}°</span> <span class="w-cmt">💧${rain}%</span></div>`;
+        const fCode = daily.weather_code[i+1];
+        const fIcon = codeToIcon(fCode);
+        // Mini inline canvas for forecast icon
+        const id = `fc-${i}`;
+        setTimeout(() => {
+          const el = document.getElementById(id);
+          if (el) drawWeatherDots(el, fIcon);
+        }, 50);
+        return `
+          <div class="forecast-row">
+            <span class="forecast-day">${dayLabel}</span>
+            <div class="forecast-dots">
+              <canvas id="${id}" width="24" height="24" style="image-rendering:pixelated"></canvas>
+            </div>
+            <span class="forecast-temps"><span class="hi">${hi}°</span> / ${lo}°</span>
+          </div>`;
       }).join('');
 
-      block.innerHTML = `
-        <div><span class="w-punc">{</span></div>
-        <div>&nbsp;&nbsp;<span class="w-key">"icon"</span><span class="w-punc">:</span> <span class="w-icon">"${icon}"</span><span class="w-punc">,</span></div>
-        <div>&nbsp;&nbsp;<span class="w-key">"status"</span><span class="w-punc">:</span> <span class="w-val">"${desc}"</span><span class="w-punc">,</span></div>
-        <div>&nbsp;&nbsp;<span class="w-key">"temp"</span><span class="w-punc">:</span> <span class="w-num">${temp}</span><span class="w-cmt"> // °C</span><span class="w-punc">,</span></div>
-        <div>&nbsp;&nbsp;<span class="w-key">"wind"</span><span class="w-punc">:</span> <span class="w-num">${wind}</span><span class="w-cmt"> // km/h</span><span class="w-punc">,</span></div>
-        <div>&nbsp;&nbsp;<span class="w-key">"humidity"</span><span class="w-punc">:</span> <span class="w-num">${hum}</span><span class="w-cmt"> // %</span></div>
-        <div><span class="w-punc">}</span></div>
-        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border-soft)">${forecast}</div>
-      `;
+      document.getElementById('weatherLoading').style.display = 'none';
+      document.getElementById('weatherWidget').style.display  = 'block';
+
     } catch(e) {
-      block.innerHTML = `<div class="w-warn">// fetch failed</div><div class="w-cmt">// check connection</div>`;
+      document.getElementById('weatherLoading').textContent = '// fetch failed';
     }
   }
 
