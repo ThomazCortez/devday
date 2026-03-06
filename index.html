@@ -897,11 +897,11 @@
 
     <!-- Weather Widget -->
     <div class="weather-wrap" id="weatherWrap">
-      <div class="weather-header">// weather.live</div>
+      <div class="weather-header">// <span id="weatherLocation">weather.live</span></div>
       <div class="weather-loading" id="weatherLoading">fetching data...</div>
       <div id="weatherWidget" style="display:none">
         <div class="weather-top">
-          <canvas id="weatherCanvas" width="64" height="64"></canvas>
+          <canvas id="weatherCanvas" width="90" height="90"></canvas>
           <div class="weather-temp-block">
             <div class="weather-temp" id="wTemp">--°</div>
             <div class="weather-desc" id="wDesc">--</div>
@@ -1253,27 +1253,28 @@
   function drawWeatherDots(canvasEl, iconKey) {
     const grid = DOT_ICONS[iconKey] || DOT_ICONS.clear;
     const ctx  = canvasEl.getContext('2d');
-    const size = 64;
+    const size = canvasEl.width;
     const rows = 9, cols = 9;
-    const dotR = 2.8;
-    const cellW = size / cols;
-    const cellH = size / rows;
+    const padding = size * 0.06;
+    const cellW = (size - padding * 2) / cols;
+    const cellH = (size - padding * 2) / rows;
+    const dotR  = cellW * 0.38;
 
     ctx.clearRect(0, 0, size, size);
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const on = grid[r][c] === 1;
-        const x  = c * cellW + cellW / 2;
-        const y  = r * cellH + cellH / 2;
+        const x  = padding + c * cellW + cellW / 2;
+        const y  = padding + r * cellH + cellH / 2;
 
         ctx.beginPath();
         ctx.arc(x, y, dotR, 0, Math.PI * 2);
 
         if (on) {
           ctx.fillStyle = '#DA7756';
-          ctx.shadowColor = 'rgba(218,119,86,0.7)';
-          ctx.shadowBlur  = 5;
+          ctx.shadowColor = 'rgba(218,119,86,0.9)';
+          ctx.shadowBlur  = size > 50 ? 7 : 4;
         } else {
           ctx.fillStyle = '#21262D';
           ctx.shadowBlur = 0;
@@ -1319,6 +1320,15 @@
         `&timezone=auto&forecast_days=4&wind_speed_unit=kmh&temperature_unit=celsius`;
 
       const data = await (await fetch(url)).json();
+
+      // Reverse geocode city name
+      try {
+        const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lon}&format=json`);
+        const geoData = await geo.json();
+        const city    = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.county || '';
+        const country = geoData.address?.country_code?.toUpperCase() || '';
+        if (city) document.getElementById('weatherLocation').textContent = `${city}, ${country}`;
+      } catch(_) { /* keep default */ }
       const cur  = data.current;
       const daily = data.daily;
 
@@ -1368,7 +1378,7 @@
           <div class="forecast-row">
             <span class="forecast-day">${dayLabel}</span>
             <div class="forecast-dots">
-              <canvas id="${id}" width="24" height="24" style="image-rendering:pixelated"></canvas>
+              <canvas id="${id}" width="36" height="36" style="image-rendering:pixelated"></canvas>
             </div>
             <span class="forecast-temps"><span class="hi">${hi}°</span> / ${lo}°</span>
           </div>`;
