@@ -312,6 +312,201 @@
       width: 0%;
     }
 
+    /* ── View Toggle ── */
+    .view-toggle {
+      display: flex;
+      gap: 2px;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px;
+    }
+
+    .view-btn {
+      background: none;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-faint);
+      transition: all 0.15s;
+    }
+
+    .view-btn:hover { color: var(--text-muted); }
+    .view-btn.active { background: var(--bg-2); color: var(--claude); }
+    .view-btn svg { flex-shrink: 0; }
+
+    /* ── Kanban Board ── */
+    #kanbanView { display: none; }
+    #kanbanView.visible { display: flex; gap: 16px; padding: 0 4px 24px; }
+
+    .kb-col {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .kb-col-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      position: sticky;
+      top: 46px;
+      z-index: 10;
+    }
+
+    .kb-col-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .kb-col-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .kb-col[data-status="todo"]  .kb-col-dot { background: var(--text-faint); }
+    .kb-col[data-status="doing"] .kb-col-dot { background: var(--yellow); box-shadow: 0 0 6px rgba(227,179,65,0.5); }
+    .kb-col[data-status="done"]  .kb-col-dot { background: var(--green);  box-shadow: 0 0 6px rgba(63,185,80,0.5); }
+
+    .kb-col[data-status="todo"]  .kb-col-title { color: var(--text-muted); }
+    .kb-col[data-status="doing"] .kb-col-title { color: var(--yellow); }
+    .kb-col[data-status="done"]  .kb-col-title { color: var(--green); }
+
+    .kb-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-faint);
+      background: var(--bg-3);
+      padding: 1px 7px;
+      border-radius: 10px;
+    }
+
+    .kb-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 60px;
+      padding: 4px 0;
+      transition: background 0.15s;
+      border-radius: 8px;
+    }
+
+    .kb-cards.drag-over {
+      background: var(--claude-dim);
+      outline: 1px dashed var(--claude);
+      outline-offset: -2px;
+    }
+
+    .kb-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 13px;
+      cursor: grab;
+      transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
+      animation: fadeSlide 0.22s ease both;
+      position: relative;
+    }
+
+    .kb-card:hover {
+      border-color: var(--text-faint);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .kb-card.dragging {
+      opacity: 0.4;
+      cursor: grabbing;
+      transform: scale(0.97);
+    }
+
+    .kb-card-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .kb-col[data-status="done"] .kb-card-text {
+      text-decoration: line-through;
+      color: var(--text-faint);
+    }
+
+    .kb-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+
+    .kb-card-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .kb-card-tag.work     { background: var(--tag-work-bg);     color: var(--tag-work-ink); }
+    .kb-card-tag.personal { background: var(--tag-personal-bg); color: var(--tag-personal-ink); }
+    .kb-card-tag.health   { background: var(--tag-health-bg);   color: var(--tag-health-ink); }
+
+    .kb-card-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .kb-card:hover .kb-card-actions { opacity: 1; }
+
+    .kb-action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      transition: all 0.12s;
+    }
+
+    .kb-action-btn.move-btn { color: var(--text-faint); }
+    .kb-action-btn.move-btn:hover { background: var(--bg-3); color: var(--claude); }
+    .kb-action-btn.del-btn  { color: var(--text-faint); }
+    .kb-action-btn.del-btn:hover  { background: rgba(255,123,114,0.12); color: var(--red); }
+
+    .kb-col-empty {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-faint);
+      font-style: italic;
+      padding: 16px 12px;
+      text-align: center;
+      border: 1px dashed var(--border-soft);
+      border-radius: 8px;
+    }
+
     /* ── Main ── */
     .main { flex: 1; padding: 36px 48px; min-width: 0; }
 
@@ -545,6 +740,118 @@
 
     .status-left, .status-right { display: flex; align-items: center; gap: 16px; }
     .status-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.85); }
+    /* ── Celebration Popup ── */
+    .celebrate-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .celebrate-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .celebrate-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 40px 32px;
+      max-width: 380px;
+      width: 90%;
+      text-align: center;
+      transform: translateY(24px) scale(0.95);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
+    }
+
+    .celebrate-overlay.show .celebrate-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .celebrate-ascii {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--claude);
+      text-shadow: 0 0 20px rgba(218,119,86,0.4);
+      white-space: pre;
+      margin-bottom: 20px;
+    }
+
+    .celebrate-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .celebrate-title span { color: var(--claude); }
+
+    .celebrate-msg {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+
+    .celebrate-msg .highlight { color: var(--green); }
+
+    .celebrate-btn {
+      background: var(--claude);
+      border: none;
+      border-radius: 8px;
+      padding: 12px 28px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.04em;
+    }
+
+    .celebrate-btn:hover {
+      opacity: 0.85;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(218,119,86,0.35);
+    }
+
+    .celebrate-btn:active { transform: translateY(0); }
+
+    .celebrate-task-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .celebrate-task-name span { color: var(--green); }
+
+    @keyframes confetti-drop {
+      0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(60px) rotate(360deg); opacity: 0; }
+    }
+
+    .confetti-dot {
+      position: absolute;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      animation: confetti-drop 0.9s ease-out both;
+    }
   </style>
 </head>
 <body>
@@ -558,6 +865,24 @@
         <div class="dot green"></div>
       </div>
       <div class="titlebar-title">tasks<span>.md</span> — devday</div>
+    </div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="btnList" onclick="switchView('list')">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect x="0" y="1" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect x="0" y="5" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect x="0" y="9" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+        </svg>
+        list
+      </button>
+      <button class="view-btn" id="btnKanban" onclick="switchView('kanban')">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect x="0"  y="0" width="3.2" height="12" rx="1" fill="currentColor"/>
+          <rect x="4.4" y="0" width="3.2" height="8"  rx="1" fill="currentColor"/>
+          <rect x="8.8" y="0" width="3.2" height="10" rx="1" fill="currentColor"/>
+        </svg>
+        kanban
+      </button>
     </div>
   </div>
 
@@ -664,6 +989,7 @@
       </div>
 
       <!-- Input -->
+      <div id="inputArea">
       <div class="input-block">
         <div class="input-topbar">
           <span class="input-topbar-label">
@@ -682,7 +1008,10 @@
           <button class="tag-btn" data-tag="health"   onclick="toggleTag(this)">#health</button>
         </div>
       </div>
+      </div><!-- /inputArea -->
 
+      <!-- List View -->
+      <div id="listView">
       <!-- Tasks -->
       <div class="task-list" id="taskList"></div>
 
@@ -693,6 +1022,32 @@
           <div><span class="kw">while</span> (tasks.<span class="fn">length</span> === 0) {</div>
           <div>&nbsp;&nbsp;tasks.<span class="fn">push</span>(<span class="str">"your first task"</span>);</div>
           <div>}</div>
+        </div>
+      </div>
+      </div><!-- /listView -->
+
+      <!-- Kanban Board -->
+      <div id="kanbanView">
+        <div class="kb-col" data-status="todo" ondragover="onDragOver(event)" ondrop="onDrop(event,'todo')" ondragleave="onDragLeave(event)">
+          <div class="kb-col-header">
+            <div class="kb-col-title"><span class="kb-col-dot"></span>TODO</div>
+            <span class="kb-count" id="kb-count-todo">0</span>
+          </div>
+          <div class="kb-cards" id="kb-todo"></div>
+        </div>
+        <div class="kb-col" data-status="doing" ondragover="onDragOver(event)" ondrop="onDrop(event,'doing')" ondragleave="onDragLeave(event)">
+          <div class="kb-col-header">
+            <div class="kb-col-title"><span class="kb-col-dot"></span>DOING</div>
+            <span class="kb-count" id="kb-count-doing">0</span>
+          </div>
+          <div class="kb-cards" id="kb-doing"></div>
+        </div>
+        <div class="kb-col" data-status="done" ondragover="onDragOver(event)" ondrop="onDrop(event,'done')" ondragleave="onDragLeave(event)">
+          <div class="kb-col-header">
+            <div class="kb-col-title"><span class="kb-col-dot"></span>DONE</div>
+            <span class="kb-count" id="kb-count-done">0</span>
+          </div>
+          <div class="kb-cards" id="kb-done"></div>
         </div>
       </div>
 
@@ -712,10 +1067,29 @@
     </div>
   </div>
 
+  <!-- Celebration Popup -->
+  <div class="celebrate-overlay" id="celebrateOverlay" onclick="closeCelebration(event)">
+    <div class="celebrate-card" id="celebrateCard">
+      <div class="celebrate-ascii" id="celebrateAscii"></div>
+      <div class="celebrate-title" id="celebrateTitle"></div>
+      <div class="celebrate-msg" id="celebrateMsg"></div>
+      <button class="celebrate-btn" onclick="closeCelebration()">I got this! 🚀</button>
+      <div class="celebrate-task-name" id="celebrateTask"></div>
+    </div>
+  </div>
+
 <script>
   let tasks = JSON.parse(localStorage.getItem('devday-tasks') || '[]');
   let selectedTag = null;
   let currentFilter = 'all';
+  let currentView = 'list';
+  let dragId = null;
+
+  // Migrate old tasks: add status field based on done boolean
+  tasks = tasks.map(t => ({
+    ...t,
+    status: t.status || (t.done ? 'done' : 'todo')
+  }));
 
   function init() {
     setDate();
@@ -1014,22 +1388,28 @@
     const input = document.getElementById('taskInput');
     const text  = input.value.trim();
     if (!text) return;
-    tasks.unshift({ id: Date.now(), text, tag: selectedTag, done: false });
+    tasks.unshift({ id: Date.now(), text, tag: selectedTag, done: false, status: 'todo' });
     save();
     input.value = '';
     renderTasks();
+    if (currentView === 'kanban') renderKanban();
   }
 
   function toggleDone(id) {
     const t = tasks.find(t => t.id === id);
-    if (t) { t.done = !t.done; save(); renderTasks(); }
+    if (t) {
+      t.done = !t.done;
+      t.status = t.done ? 'done' : 'todo';
+      save(); renderTasks();
+      if (t.done) showCelebration(t.text);
+    }
   }
 
   function deleteTask(id) {
     const el = document.querySelector(`[data-id="${id}"]`);
     if (el) {
       el.classList.add('removing');
-      setTimeout(() => { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); }, 260);
+      setTimeout(() => { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); if (currentView === 'kanban') renderKanban(); }, 260);
     }
   }
 
@@ -1102,6 +1482,181 @@
 
   function escHtml(s) {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Celebration Popup ──
+  const CELEBRATIONS = [
+    {
+      ascii: "  \\o/\n   |\n  / \\",
+      title: "Task <span>crushed!</span>",
+      msg: "You're on fire 🔥\nTake a deep breath and enjoy\nthe moment — you earned it."
+    },
+    {
+      ascii: "  (^_^)\n  /||\\\n   /\\",
+      title: "That's a <span>W!</span>",
+      msg: "Seriously, great work.\nMaybe grab a coffee ☕\nor stretch for 2 minutes?"
+    },
+    {
+      ascii: "  ★ ★ ★\n \\(•‿•)/\n  _|_|_",
+      title: "<span>Ship</span>ped!",
+      msg: "One step closer to done.\nYou're building momentum —\nkeep that energy going 💪"
+    },
+    {
+      ascii: "  d(^_^)b\n   ||||\n   d  b",
+      title: "<span>Boom.</span> Done.",
+      msg: "Locked in and delivering.\nGo hydrate 💧 — your brain\ndeserves it after that focus."
+    },
+    {
+      ascii: "  \\(^o^)/\n   _|_\n  /   \\",
+      title: "Level <span>up!</span>",
+      msg: "Every task done is progress.\nTreat yourself — even 5 mins\nof something you love counts 🎮"
+    },
+    {
+      ascii: "   .+*+.\n  (>‿<)\n   /|\\",
+      title: "<span>Clean</span> commit!",
+      msg: "git commit -m 'nailed it'\nTake a little break, breathe,\nyou're doing amazing 🌟"
+    },
+  ];
+
+  function showCelebration(taskText) {
+    const c = CELEBRATIONS[Math.floor(Math.random() * CELEBRATIONS.length)];
+    document.getElementById('celebrateAscii').textContent = c.ascii;
+    document.getElementById('celebrateTitle').innerHTML   = c.title;
+    document.getElementById('celebrateMsg').innerHTML     = c.msg.replace(/\n/g, '<br>');
+    document.getElementById('celebrateTask').innerHTML    = `✓ <span>"${escHtml(taskText)}"</span>`;
+
+    const overlay = document.getElementById('celebrateOverlay');
+    const card    = document.getElementById('celebrateCard');
+    overlay.classList.add('show');
+
+    // confetti dots
+    const colors = ['#DA7756','#3FB950','#58A6FF','#BC8CFF','#E3B341'];
+    for (let i = 0; i < 12; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'confetti-dot';
+      dot.style.cssText = `
+        left: ${20 + Math.random() * 60}%;
+        top: ${10 + Math.random() * 30}%;
+        background: ${colors[i % colors.length]};
+        animation-delay: ${Math.random() * 0.4}s;
+        animation-duration: ${0.7 + Math.random() * 0.5}s;
+      `;
+      card.appendChild(dot);
+      setTimeout(() => dot.remove(), 1500);
+    }
+  }
+
+  function closeCelebration(e) {
+    if (e && e.target !== document.getElementById('celebrateOverlay')) return;
+    document.getElementById('celebrateOverlay').classList.remove('show');
+  }
+  function switchView(view) {
+    currentView = view;
+    const listEl   = document.getElementById('listView');
+    const kanbanEl = document.getElementById('kanbanView');
+    const inputEl  = document.getElementById('inputArea');
+    document.getElementById('btnList').classList.toggle('active', view === 'list');
+    document.getElementById('btnKanban').classList.toggle('active', view === 'kanban');
+    if (view === 'list') {
+      listEl.style.display   = '';
+      inputEl.style.display  = '';
+      kanbanEl.classList.remove('visible');
+      renderTasks();
+    } else {
+      listEl.style.display   = 'none';
+      inputEl.style.display  = 'none';
+      kanbanEl.classList.add('visible');
+      renderKanban();
+    }
+  }
+
+  // ── Kanban Render ──
+  function renderKanban() {
+    const cols = ['todo','doing','done'];
+    cols.forEach(status => {
+      const col   = document.getElementById(`kb-${status}`);
+      const count = document.getElementById(`kb-count-${status}`);
+      const items = tasks.filter(t => t.status === status);
+      count.textContent = items.length;
+
+      if (items.length === 0) {
+        col.innerHTML = `<div class="kb-col-empty">// empty</div>`;
+        return;
+      }
+
+      const nextStatus = { todo: 'doing', doing: 'done', done: null };
+      const prevStatus = { todo: null, doing: 'todo', done: 'doing' };
+
+      col.innerHTML = items.map(t => `
+        <div class="kb-card" data-id="${t.id}" draggable="true"
+          ondragstart="onDragStart(event,${t.id})"
+          ondragend="onDragEnd(event)">
+          <div class="kb-card-text">${escHtml(t.text)}</div>
+          <div class="kb-card-footer">
+            <span>${t.tag ? `<span class="kb-card-tag ${t.tag}">#${t.tag}</span>` : ''}</span>
+            <div class="kb-card-actions">
+              ${prevStatus[status] ? `<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${prevStatus[status]}')">← back</button>` : ''}
+              ${nextStatus[status] ? `<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${nextStatus[status]}')">next →</button>` : ''}
+              <button class="kb-action-btn del-btn" onclick="deleteKbCard(${t.id})">✕</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    });
+    updateCounts();
+  }
+
+  function moveCard(id, newStatus) {
+    const t = tasks.find(t => t.id === id);
+    if (!t) return;
+    const wasDone = t.status === 'done';
+    t.status = newStatus;
+    t.done   = newStatus === 'done';
+    save();
+    renderKanban();
+    if (newStatus === 'done' && !wasDone) showCelebration(t.text);
+  }
+
+  function deleteKbCard(id) {
+    tasks = tasks.filter(t => t.id !== id);
+    save();
+    renderKanban();
+    updateCounts();
+  }
+
+  // ── Drag & Drop ──
+  function onDragStart(e, id) {
+    dragId = id;
+    setTimeout(() => {
+      const el = document.querySelector(`.kb-card[data-id="${id}"]`);
+      if (el) el.classList.add('dragging');
+    }, 0);
+  }
+
+  function onDragEnd(e) {
+    document.querySelectorAll('.kb-card').forEach(el => el.classList.remove('dragging'));
+    document.querySelectorAll('.kb-cards').forEach(el => el.classList.remove('drag-over'));
+  }
+
+  function onDragOver(e) {
+    e.preventDefault();
+    const cards = e.currentTarget.querySelector('.kb-cards');
+    if (cards) cards.classList.add('drag-over');
+  }
+
+  function onDragLeave(e) {
+    const cards = e.currentTarget.querySelector('.kb-cards');
+    if (cards) cards.classList.remove('drag-over');
+  }
+
+  function onDrop(e, status) {
+    e.preventDefault();
+    const cards = e.currentTarget.querySelector('.kb-cards');
+    if (cards) cards.classList.remove('drag-over');
+    if (dragId !== null) {
+      moveCard(dragId, status);
+      dragId = null;
+    }
   }
 
   init();
