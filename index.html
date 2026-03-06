@@ -852,9 +852,191 @@
       border-radius: 50%;
       animation: confetti-drop 0.9s ease-out both;
     }
+    /* ── Intro / Boot Screen ── */
+    #introScreen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      transition: opacity 0.7s ease;
+    }
+
+    #introScreen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .intro-window {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: min(640px, 90vw);
+      overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+    }
+
+    .intro-titlebar {
+      background: var(--bg-3);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .intro-dots { display: flex; gap: 6px; }
+    .intro-dot  { width: 11px; height: 11px; border-radius: 50%; }
+    .intro-dot.r { background: #FF5F57; }
+    .intro-dot.y { background: #FFBD2E; }
+    .intro-dot.g { background: #28C840; }
+
+    .intro-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 4px 4px 0 0;
+      border-bottom: none;
+      padding: 3px 12px;
+      margin-left: 4px;
+    }
+
+    .intro-tab span { color: var(--claude); }
+
+    .intro-code {
+      padding: 24px 28px 20px;
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .intro-line {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 2;
+      white-space: pre;
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .intro-line.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .intro-lnum {
+      color: var(--text-faint);
+      user-select: none;
+      width: 20px;
+      text-align: right;
+      flex-shrink: 0;
+      font-size: 12px;
+    }
+
+    .intro-line .kw  { color: var(--purple); }
+    .intro-line .fn  { color: var(--yellow); }
+    .intro-line .str { color: var(--green); }
+    .intro-line .cmt { color: var(--text-faint); font-style: italic; }
+    .intro-line .cls { color: var(--blue); }
+    .intro-line .num { color: var(--orange); }
+    .intro-line .acc { color: var(--claude); }
+    .intro-line .op  { color: var(--text-muted); }
+
+    .intro-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--claude);
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: blink 0.8s step-end infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    .intro-footer {
+      padding: 0 28px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .intro-loader {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .intro-spinner {
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--claude);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .intro-loader-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+
+    .intro-loader-text span { color: var(--claude); }
+
+    .intro-tagline {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-faint);
+      letter-spacing: 0.06em;
+    }
+
+    .app-wrapper {
+      opacity: 0;
+      transition: opacity 0.7s ease;
+    }
+
+    .app-wrapper.visible { opacity: 1; }
   </style>
 </head>
 <body>
+
+  <!-- ── Intro Boot Screen ── -->
+  <div id="introScreen">
+    <div class="intro-window">
+      <div class="intro-titlebar">
+        <div class="intro-dots">
+          <div class="intro-dot r"></div>
+          <div class="intro-dot y"></div>
+          <div class="intro-dot g"></div>
+        </div>
+        <div class="intro-tab">devday<span>.init</span></div>
+      </div>
+      <div class="intro-code" id="introCode"></div>
+      <div class="intro-footer">
+        <div class="intro-loader" id="introLoader" style="opacity:0;transition:opacity 0.4s">
+          <div class="intro-spinner"></div>
+          <div class="intro-loader-text">booting <span>devday</span>...</div>
+        </div>
+        <div class="intro-tagline" id="introTagline" style="opacity:0;transition:opacity 0.4s"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── App ── -->
+  <div class="app-wrapper" id="appWrapper">
 
   <!-- Title Bar -->
   <div class="titlebar">
@@ -1066,6 +1248,8 @@
       <div class="status-item">Markdown</div>
     </div>
   </div>
+
+  </div><!-- /app-wrapper -->
 
   <!-- Celebration Popup -->
   <div class="celebrate-overlay" id="celebrateOverlay" onclick="closeCelebration(event)">
@@ -1667,6 +1851,85 @@
       moveCard(dragId, status);
       dragId = null;
     }
+  }
+
+  // ── Intro Boot Screen ──
+  // Only show if it's been more than 30 minutes since last visit
+  const INTRO_COOLDOWN_MS = 30 * 60 * 1000;
+
+  function shouldShowIntro() {
+    const last = localStorage.getItem('devday-last-visit');
+    const now  = Date.now();
+    localStorage.setItem('devday-last-visit', now);
+    if (!last) return true;
+    return (now - parseInt(last)) > INTRO_COOLDOWN_MS;
+  }
+  const INTRO_LINES = [
+    { text: `<span class="kw">import</span> { focus, clarity, flow } <span class="kw">from</span> <span class="str">'devday'</span>`,           delay: 0   },
+    { text: ``,                                                                                                                   delay: 180 },
+    { text: `<span class="cmt">// initializing your productivity environment...</span>`,                                          delay: 240 },
+    { text: `<span class="kw">const</span> day <span class="op">=</span> <span class="kw">new</span> <span class="cls">Day</span><span class="op">(</span>{ mode: <span class="str">'focused'</span>, distractions: <span class="num">0</span> }<span class="op">)</span>`, delay: 460 },
+    { text: ``,                                                                                                                   delay: 640 },
+    { text: `<span class="fn">day</span><span class="op">.</span><span class="fn">tasks</span><span class="op">.</span><span class="fn">load</span><span class="op">()</span>        <span class="cmt">// ✓ synced from localStorage</span>`,  delay: 720 },
+    { text: `<span class="fn">day</span><span class="op">.</span><span class="fn">weather</span><span class="op">.</span><span class="fn">fetch</span><span class="op">()</span>      <span class="cmt">// ✓ connected to open-meteo</span>`,   delay: 940 },
+    { text: `<span class="fn">day</span><span class="op">.</span><span class="fn">clock</span><span class="op">.</span><span class="fn">start</span><span class="op">()</span>        <span class="cmt">// ✓ ticking</span>`,                     delay: 1160 },
+    { text: ``,                                                                                                                   delay: 1340 },
+    { text: `<span class="kw">export default</span> <span class="acc">devday</span>   <span class="cmt">// ready. let's get it.</span>`,              delay: 1420 },
+  ];
+
+  const TAGLINES = [
+    'ship more. stress less.',
+    'your day, version controlled.',
+    'commit to your goals.',
+    'focus mode: engaged.',
+    'build the day you want.',
+  ];
+
+  function runIntro() {
+    const container = document.getElementById('introCode');
+    const loader    = document.getElementById('introLoader');
+    const tagline   = document.getElementById('introTagline');
+    const screen    = document.getElementById('introScreen');
+    const app       = document.getElementById('appWrapper');
+
+    tagline.textContent = TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
+
+    // Render line elements
+    INTRO_LINES.forEach((l, i) => {
+      const row = document.createElement('div');
+      row.className = 'intro-line';
+      row.innerHTML = `<span class="intro-lnum">${l.text ? i + 1 : ''}</span><span>${l.text}${i === INTRO_LINES.length - 1 ? '<span class="intro-cursor"></span>' : ''}</span>`;
+      container.appendChild(row);
+    });
+
+    // Stagger each line visible
+    INTRO_LINES.forEach((l, i) => {
+      setTimeout(() => {
+        container.children[i].classList.add('visible');
+      }, 300 + l.delay);
+    });
+
+    // Show loader after last line
+    const lastDelay = INTRO_LINES[INTRO_LINES.length - 1].delay;
+    setTimeout(() => {
+      loader.style.opacity  = '1';
+      tagline.style.opacity = '1';
+    }, 300 + lastDelay + 200);
+
+    // Fade out intro, fade in app
+    const totalDuration = 300 + lastDelay + 1100;
+    setTimeout(() => {
+      screen.classList.add('fade-out');
+      app.classList.add('visible');
+      setTimeout(() => screen.remove(), 800);
+    }, totalDuration);
+  }
+
+  if (shouldShowIntro()) {
+    runIntro();
+  } else {
+    document.getElementById('introScreen').remove();
+    document.getElementById('appWrapper').classList.add('visible');
   }
 
   init();
