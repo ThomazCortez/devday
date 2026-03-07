@@ -165,7 +165,108 @@
     @keyframes pomo-pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
     .pomodoro-display.running { animation: pomo-pulse 2s ease-in-out infinite; }
 
-    /* ── Sidebar ── */
+    /* ── Due Dates ── */
+    .due-btn {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 10px;
+      border-radius: 4px; border: 1px solid var(--border); background: transparent;
+      color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .due-btn:hover { border-color: var(--text-muted); color: var(--text); }
+    .due-btn.has-date { background: rgba(88,166,255,0.1); color: var(--blue); border-color: var(--blue); }
+    .due-btn svg { flex-shrink: 0; }
+
+    /* ── Custom Calendar Picker ── */
+    .cal-popup {
+      position: fixed;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(218,119,86,0.08);
+      z-index: 9999;
+      width: 234px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      display: none;
+      animation: calFadeIn 0.15s ease both;
+    }
+    .cal-popup.open { display: block; }
+    @keyframes calFadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+
+    .cal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .cal-nav {
+      background: none; border: 1px solid var(--border); border-radius: 5px;
+      color: var(--text-muted); cursor: pointer; width: 24px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; transition: all 0.12s;
+    }
+    .cal-nav:hover { border-color: var(--claude); color: var(--claude); }
+    .cal-month-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text);
+    }
+
+    .cal-weekdays {
+      display: grid; grid-template-columns: repeat(7,1fr);
+      margin-bottom: 4px;
+    }
+    .cal-wd {
+      font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-faint); text-align: center; padding: 2px 0 4px;
+    }
+
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+
+    .cal-day {
+      font-size: 11px; text-align: center; padding: 5px 2px; border-radius: 5px;
+      cursor: pointer; color: var(--text-muted); border: 1px solid transparent;
+      transition: all 0.1s; line-height: 1;
+    }
+    .cal-day:hover:not(.cal-past):not(.cal-empty) {
+      background: var(--bg-3); border-color: var(--border); color: var(--text);
+    }
+    .cal-day.cal-today {
+      border-color: rgba(218,119,86,0.4); color: var(--claude);
+    }
+    .cal-day.cal-selected {
+      background: var(--claude); border-color: var(--claude);
+      color: white; font-weight: 700;
+    }
+    .cal-day.cal-past {
+      color: var(--text-faint); cursor: not-allowed; opacity: 0.35;
+    }
+    .cal-day.cal-empty { cursor: default; }
+
+    .cal-clear {
+      margin-top: 10px; width: 100%; background: none; border: 1px solid var(--border);
+      border-radius: 5px; padding: 5px; font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: var(--text-faint); cursor: pointer; letter-spacing: 0.06em;
+      transition: all 0.12s;
+    }
+    .cal-clear:hover { border-color: var(--red); color: var(--red); }
+
+    /* due badge on tasks */
+    .due-badge {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 7px;
+      border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;
+      white-space: nowrap;
+    }
+    .due-badge.overdue  { background: rgba(255,123,114,0.15); color: var(--red);    border: 1px solid rgba(255,123,114,0.3); }
+    .due-badge.today    { background: rgba(218,119,86,0.15);  color: var(--claude); border: 1px solid rgba(218,119,86,0.3); }
+    .due-badge.soon     { background: rgba(227,179,65,0.12);  color: var(--yellow); border: 1px solid rgba(227,179,65,0.25); }
+    .due-badge.upcoming { background: rgba(88,166,255,0.10);  color: var(--blue);   border: 1px solid rgba(88,166,255,0.2); }
+
+    /* overdue task row highlight */
+    .task-item.overdue-task:not(.done) { border-color: rgba(255,123,114,0.2); }
+    .task-item.overdue-task:not(.done):hover { border-color: rgba(255,123,114,0.45); }
+
+    /* kb card overdue left border */
+    .kb-card.overdue-card:not([data-status-done]) { border-left-color: var(--red) !important; }
+
+    /* Sidebar ── */
     .sidebar { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); padding-bottom: 24px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
     .sidebar-section { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); padding: 12px 16px 4px; }
     .sidebar-item { display: flex; align-items: center; gap: 8px; padding: 6px 16px; font-size: 13px; color: var(--text-muted); cursor: pointer; border: none; border-left: 2px solid transparent; background: none; width: 100%; text-align: left; font-family: 'Inter', sans-serif; transition: all 0.15s; }
@@ -430,6 +531,10 @@
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#3FB950" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="#3FB950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Done <span class="dot-count" id="count-done">0</span>
       </button>
+      <button class="sidebar-item" onclick="setFilter(this,'overdue')">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#FF7B72" stroke-width="1.5"/><path d="M8 5v3.5l2 1.5" stroke="#FF7B72" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Overdue <span class="dot-count" id="count-overdue">0</span>
+      </button>
       <div class="sidebar-divider"></div>
       <div class="sidebar-section">Labels</div>
       <button class="sidebar-item" onclick="setFilter(this,'work')">
@@ -476,6 +581,26 @@
             <button class="tag-btn" data-tag="work"     onclick="toggleTag(this)">#work</button>
             <button class="tag-btn" data-tag="personal" onclick="toggleTag(this)">#personal</button>
             <button class="tag-btn" data-tag="health"   onclick="toggleTag(this)">#health</button>
+            <span style="width:1px;background:var(--border);align-self:stretch;margin:2px 2px;display:inline-block;flex-shrink:0;"></span>
+            <div style="position:relative;">
+              <button class="due-btn" id="dueBtnDisplay" onclick="toggleCalendar()">
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><rect x="1" y="2" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M4 1v2M8 1v2M1 5h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                <span id="dueBtnLabel">due date</span>
+              </button>
+              <div class="cal-popup" id="calPopup">
+                <div class="cal-header">
+                  <button class="cal-nav" onclick="calNav(-1)">‹</button>
+                  <span class="cal-month-label" id="calMonthLabel"></span>
+                  <button class="cal-nav" onclick="calNav(1)">›</button>
+                </div>
+                <div class="cal-weekdays">
+                  <span class="cal-wd">Su</span><span class="cal-wd">Mo</span><span class="cal-wd">Tu</span>
+                  <span class="cal-wd">We</span><span class="cal-wd">Th</span><span class="cal-wd">Fr</span><span class="cal-wd">Sa</span>
+                </div>
+                <div class="cal-grid" id="calGrid"></div>
+                <button class="cal-clear" onclick="clearDue()">✕ clear date</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -574,6 +699,7 @@
 <script>
   let tasks         = JSON.parse(localStorage.getItem('devday-tasks') || '[]');
   let selectedTag   = null;
+  let selectedDue   = null;  // 'YYYY-MM-DD'
   let currentFilter = 'all';
   let currentView   = 'list';
   let dragId        = null;
@@ -837,14 +963,131 @@
       : '<path d="M5 3l9 5-9 5V3z" fill="currentColor"/>';
   }
 
+  // ── Due Date Helpers ──
+  function todayStr() {
+    const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function dueMeta(due) {
+    if (!due) return null;
+    const today = todayStr();
+    const diff  = Math.round((new Date(due+'T00:00:00') - new Date(today+'T00:00:00')) / 86400000);
+    if (diff < 0)  return { cls:'overdue',  label:`overdue ${Math.abs(diff)}d`,  icon:'⚠' };
+    if (diff === 0) return { cls:'today',   label:'today',                        icon:'◈' };
+    if (diff === 1) return { cls:'soon',    label:'tomorrow',                     icon:'◷' };
+    if (diff <= 6)  return { cls:'soon',    label:`in ${diff}d`,                  icon:'◷' };
+    return { cls:'upcoming', label: fmtDate(due), icon:'◈' };
+  }
+
+  function fmtDate(iso) {
+    const [y,m,d] = iso.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(m)-1]} ${parseInt(d)}`;
+  }
+
+  // ── Due Date Helpers ──
+  function todayStr() {
+    const d=new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function dueMeta(due) {
+    if (!due) return null;
+    const today=todayStr();
+    const diff=Math.round((new Date(due+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
+    if (diff<0)   return {cls:'overdue',  label:`overdue ${Math.abs(diff)}d`, icon:'⚠'};
+    if (diff===0) return {cls:'today',    label:'today',                       icon:'◈'};
+    if (diff===1) return {cls:'soon',     label:'tomorrow',                    icon:'◷'};
+    if (diff<=6)  return {cls:'soon',     label:`in ${diff}d`,                 icon:'◷'};
+    return {cls:'upcoming', label:fmtDate(due), icon:'◈'};
+  }
+
+  function fmtDate(iso) {
+    const [,m,d]=iso.split('-');
+    return `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]} ${parseInt(d)}`;
+  }
+
+  function setDue(iso) {
+    selectedDue = iso||null;
+    const btn=document.getElementById('dueBtnDisplay'), lbl=document.getElementById('dueBtnLabel');
+    if (iso) { btn.classList.add('has-date'); lbl.textContent=fmtDate(iso); }
+    else     { btn.classList.remove('has-date'); lbl.textContent='due date'; }
+  }
+
+  function clearDue() { setDue(null); closeCalendar(); }
+
+  // ── Custom Calendar ──
+  let calYear=0, calMonth=0;
+
+  function toggleCalendar() {
+    const pop=document.getElementById('calPopup');
+    if (pop.classList.contains('open')) { closeCalendar(); return; }
+    const now=new Date();
+    calYear=now.getFullYear(); calMonth=now.getMonth();
+    if (selectedDue) { const [y,m]=selectedDue.split('-'); calYear=+y; calMonth=+m-1; }
+    renderCalendar();
+    // position: just above the button, aligned to its left
+    const btn=document.getElementById('dueBtnDisplay');
+    const rect=btn.getBoundingClientRect();
+    pop.style.display='block'; // briefly show to measure height
+    const popH=pop.offsetHeight;
+    pop.style.display='';
+    pop.style.left=rect.left+'px';
+    pop.style.top=(rect.top - popH - 6)+'px';
+    pop.classList.add('open');
+    setTimeout(()=>document.addEventListener('mousedown', calOutsideClick), 0);
+  }
+
+  function closeCalendar() {
+    document.getElementById('calPopup').classList.remove('open');
+    document.removeEventListener('mousedown', calOutsideClick);
+  }
+
+  function calOutsideClick(e) {
+    const pop=document.getElementById('calPopup'), btn=document.getElementById('dueBtnDisplay');
+    if (!pop.contains(e.target) && !btn.contains(e.target)) closeCalendar();
+  }
+
+  function calNav(dir) { calMonth+=dir; if(calMonth>11){calMonth=0;calYear++;} if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+
+  function renderCalendar() {
+    const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('calMonthLabel').textContent=`${months[calMonth]} ${calYear}`;
+    const today=todayStr();
+    const firstDay=new Date(calYear,calMonth,1).getDay();
+    const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+    let html='';
+    for(let i=0;i<firstDay;i++) html+=`<div class="cal-day cal-empty"></div>`;
+    for(let d=1;d<=daysInMonth;d++){
+      const iso=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isPast  = iso<today;
+      const isToday = iso===today;
+      const isSel   = iso===selectedDue;
+      const cls=[
+        'cal-day',
+        isPast  ? 'cal-past'    : '',
+        isToday ? 'cal-today'   : '',
+        isSel   ? 'cal-selected': '',
+      ].join(' ').trim();
+      const click = isPast ? '' : `onclick="pickDay('${iso}')"`;
+      html+=`<div class="${cls}" ${click}>${d}</div>`;
+    }
+    document.getElementById('calGrid').innerHTML=html;
+  }
+
+  function pickDay(iso) { setDue(iso); closeCalendar(); }
+
   // ── Tasks ──
   function save() { localStorage.setItem('devday-tasks', JSON.stringify(tasks)); }
 
   function addTask() {
     const input=document.getElementById('taskInput'), text=input.value.trim();
     if (!text) return;
-    tasks.unshift({id:Date.now(),text,tag:selectedTag,done:false,status:'todo'});
-    save(); input.value=''; renderTasks(); if(currentView==='kanban')renderKanban();
+    tasks.unshift({id:Date.now(),text,tag:selectedTag,due:selectedDue,done:false,status:'todo'});
+    save(); input.value='';
+    // reset due
+    setDue(null);
+    renderTasks(); if(currentView==='kanban')renderKanban();
   }
 
   function toggleDone(id) {
@@ -870,38 +1113,52 @@
 
   function getFiltered() {
     return tasks.filter(t=>{
-      if(currentFilter==='active')return !t.done;
-      if(currentFilter==='done')return t.done;
-      if(['work','personal','health'].includes(currentFilter))return t.tag===currentFilter;
+      if(currentFilter==='active')  return !t.done;
+      if(currentFilter==='done')    return t.done;
+      if(currentFilter==='overdue') return !t.done && t.due && t.due < todayStr();
+      if(['work','personal','health'].includes(currentFilter)) return t.tag===currentFilter;
       return true;
     });
   }
 
   function renderTasks() {
     const list=document.getElementById('taskList'), empty=document.getElementById('emptyState');
-    list.innerHTML=getFiltered().map((t,i)=>`
-      <div class="task-item ${t.done?'done':''}" data-id="${t.id}">
+    // sort: overdue first, then by due date, then no date
+    const sorted = [...getFiltered()].sort((a,b)=>{
+      const ad=a.due||'9999', bd=b.due||'9999'; return ad<bd?-1:ad>bd?1:0;
+    });
+    list.innerHTML=sorted.map((t,i)=>{
+      const dm = dueMeta(t.due);
+      const isOverdue = !t.done && dm?.cls==='overdue';
+      return `
+      <div class="task-item ${t.done?'done':''} ${isOverdue?'overdue-task':''}" data-id="${t.id}">
         <span class="line-gutter">${i+1}</span>
         <button class="check-btn" onclick="toggleDone(${t.id})">
           <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5l2.5 2.5 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="task-body">
           <div class="task-text">${escHtml(t.text)}</div>
-          ${t.tag?`<div class="task-meta"><span class="task-tag ${t.tag}">#${t.tag}</span></div>`:''}
+          ${(t.tag||dm)?`<div class="task-meta">
+            ${t.tag?`<span class="task-tag ${t.tag}">#${t.tag}</span>`:''}
+            ${dm&&!t.done?`<span class="due-badge ${dm.cls}">${dm.icon} ${dm.label}</span>`:''}
+          </div>`:''}
         </div>
         <button class="delete-btn" onclick="deleteTask(${t.id})">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#FF7B72" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     empty.classList.toggle('visible', tasks.length===0);
     updateCounts();
   }
 
   function updateCounts() {
     const all=tasks.length, done=tasks.filter(t=>t.done).length, pct=all===0?0:Math.round(done/all*100);
+    const today=todayStr();
     document.getElementById('count-all').textContent      = all;
     document.getElementById('count-active').textContent   = tasks.filter(t=>!t.done).length;
     document.getElementById('count-done').textContent     = done;
+    document.getElementById('count-overdue').textContent  = tasks.filter(t=>!t.done&&t.due&&t.due<today).length;
     document.getElementById('count-work').textContent     = tasks.filter(t=>t.tag==='work').length;
     document.getElementById('count-personal').textContent = tasks.filter(t=>t.tag==='personal').length;
     document.getElementById('count-health').textContent   = tasks.filter(t=>t.tag==='health').length;
@@ -960,9 +1217,13 @@
       count.textContent=items.length;
       if(!items.length){col.innerHTML=`<div class="kb-col-empty">// empty</div>`;return;}
       const next={todo:'doing',doing:'done',done:null}, prev={todo:null,doing:'todo',done:'doing'};
-      col.innerHTML=items.map(t=>`
-        <div class="kb-card" data-id="${t.id}" onmousedown="onCardMouseDown(event,${t.id})">
+      col.innerHTML=items.map(t=>{
+        const dm=dueMeta(t.due);
+        const isOverdue=!t.done&&dm?.cls==='overdue';
+        return `
+        <div class="kb-card ${isOverdue?'overdue-card':''}" data-id="${t.id}" onmousedown="onCardMouseDown(event,${t.id})">
           <div class="kb-card-text">${escHtml(t.text)}</div>
+          ${dm&&!t.done?`<div style="margin:5px 0 2px"><span class="due-badge ${dm.cls}">${dm.icon} ${dm.label}</span></div>`:''}
           <div class="kb-card-footer">
             <span>${t.tag?`<span class="kb-card-tag ${t.tag}">#${t.tag}</span>`:''}</span>
             <div class="kb-card-actions">
@@ -971,7 +1232,8 @@
               <button class="kb-action-btn del-btn" onclick="deleteKbCard(${t.id})">✕</button>
             </div>
           </div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
     });
     updateCounts();
   }
