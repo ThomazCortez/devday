@@ -518,12 +518,11 @@
 </div>
 
 <script>
-  let tasks = JSON.parse(localStorage.getItem('devday-tasks') || '[]');
+let tasks = JSON.parse(localStorage.getItem('devday-tasks') || '[]');
   let selectedTag = null;
   let currentFilter = 'all';
   let currentView = 'list';
   let dragId = null;
-  let _dragImageEl = null;
 
   tasks = tasks.map(t => ({ ...t, status: t.status || (t.done ? 'done' : 'todo') }));
 
@@ -546,22 +545,23 @@
     document.getElementById('bcDate').textContent   = `${months[now.getMonth()]}-${String(now.getDate()).padStart(2,'0')}`;
   }
 
-  // ── Seven-Segment Clock ──
-  const SEG_ON   = '#DA7756';
-  const SEG_OFF  = '#1C1009';
+  // ── SVG Seven-Segment Clock ──
+  const SEG_ON  = '#DA7756';
+  const SEG_OFF = '#1C1009';
   const SEG_GLOW = 'drop-shadow(0 0 4px rgba(218,119,86,0.8))';
-  const SEG_MAP  = {
-    '0':[1,1,1,1,1,1,0],'1':[0,1,1,0,0,0,0],'2':[1,1,0,1,1,0,1],
-    '3':[1,1,1,1,0,0,1],'4':[0,1,1,0,0,1,1],'5':[1,0,1,1,0,1,1],
-    '6':[1,0,1,1,1,1,1],'7':[1,1,1,0,0,0,0],'8':[1,1,1,1,1,1,1],
+
+  const SEG_MAP = {
+    '0':[1,1,1,1,1,1,0], '1':[0,1,1,0,0,0,0], '2':[1,1,0,1,1,0,1],
+    '3':[1,1,1,1,0,0,1], '4':[0,1,1,0,0,1,1], '5':[1,0,1,1,0,1,1],
+    '6':[1,0,1,1,1,1,1], '7':[1,1,1,0,0,0,0], '8':[1,1,1,1,1,1,1],
     '9':[1,1,1,1,0,1,1],
   };
 
   function digitSVG(ch) {
     const s = SEG_MAP[ch] || [0,0,0,0,0,0,0];
     const c = i => s[i] ? SEG_ON : SEG_OFF;
-    const f = s.some(x=>x) ? `filter="${SEG_GLOW}"` : '';
-    return `<svg width="26" height="44" viewBox="0 0 20 38" xmlns="http://www.w3.org/2000/svg" ${f}>
+    const filter = s.some(x=>x) ? `filter="${SEG_GLOW}"` : '';
+    return `<svg width="26" height="44" viewBox="0 0 20 38" xmlns="http://www.w3.org/2000/svg" ${filter}>
       <polygon points="3,1 17,1 15,4 5,4"           fill="${c(0)}"/>
       <polygon points="18,2 18,17 15,15 15,5"        fill="${c(1)}"/>
       <polygon points="18,21 18,36 15,33 15,23"      fill="${c(2)}"/>
@@ -591,33 +591,67 @@
     document.getElementById('statusTime').textContent = `${h}:${m}`;
   }
 
-  function startClock() { renderAsciiClock(); setInterval(renderAsciiClock, 1000); }
+  function startClock() {
+    renderAsciiClock();
+    setInterval(renderAsciiClock, 1000);
+  }
 
-  // ── Weather ──
+  // ── Nothing OS dot-matrix weather icons ──
   const DOT_ICONS = {
-    clear:         [[0,0,0,1,0,0,0,0,0],[0,0,0,0,0,1,0,0,0],[0,1,0,0,0,0,0,1,0],[0,0,0,1,1,1,0,0,0],[1,0,1,1,1,1,1,0,1],[0,0,0,1,1,1,0,0,0],[0,1,0,0,0,0,0,1,0],[0,0,0,0,0,1,0,0,0],[0,0,0,1,0,0,0,0,0]],
-    partly_cloudy: [[0,0,0,1,0,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,1,1,1,1,1,0,0],[0,1,0,0,0,0,0,1,0],[0,0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,1,1],[0,0,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0]],
-    cloudy:        [[0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,1,1,0,0,0,0],[1,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,0],[0,0,1,1,1,1,1,0,0],[0,0,0,0,0,0,0,0,0]],
-    rain:          [[0,0,1,1,1,0,0,0,0],[0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],[0,1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0,1],[0,1,0,1,0,1,0,1,0],[0,0,1,0,1,0,1,0,0]],
-    snow:          [[0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0],[1,0,1,0,0,0,1,0,1],[0,1,0,0,0,0,0,1,0],[1,0,1,0,0,0,1,0,1],[0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0]],
-    storm:         [[0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],[1,1,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,0,0,0,0,0,0],[0,1,1,1,1,0,0,0,0],[0,0,0,1,0,0,0,0,0],[0,0,0,1,0,0,0,0,0]],
-    fog:           [[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0]],
+    clear: [
+      [0,0,0,1,0,0,0,0,0],[0,0,0,0,0,1,0,0,0],[0,1,0,0,0,0,0,1,0],
+      [0,0,0,1,1,1,0,0,0],[1,0,1,1,1,1,1,0,1],[0,0,0,1,1,1,0,0,0],
+      [0,1,0,0,0,0,0,1,0],[0,0,0,0,0,1,0,0,0],[0,0,0,1,0,0,0,0,0],
+    ],
+    partly_cloudy: [
+      [0,0,0,1,0,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,1,1,0,0,0],
+      [0,0,1,1,1,1,1,0,0],[0,1,0,0,0,0,0,1,0],[0,0,1,1,1,1,1,1,0],
+      [0,1,1,1,1,1,1,1,1],[0,0,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],
+    ],
+    cloudy: [
+      [0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,1,1,0,0,0,0],
+      [1,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1],
+      [0,1,1,1,1,1,1,1,0],[0,0,1,1,1,1,1,0,0],[0,0,0,0,0,0,0,0,0],
+    ],
+    rain: [
+      [0,0,1,1,1,0,0,0,0],[0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],[0,1,0,1,0,1,0,1,0],
+      [1,0,1,0,1,0,1,0,1],[0,1,0,1,0,1,0,1,0],[0,0,1,0,1,0,1,0,0],
+    ],
+    snow: [
+      [0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0],
+      [1,0,1,0,0,0,1,0,1],[0,1,0,0,0,0,0,1,0],[1,0,1,0,0,0,1,0,1],
+      [0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0],
+    ],
+    storm: [
+      [0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],[1,1,1,1,1,1,1,1,0],
+      [0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,0,0,0,0,0,0],
+      [0,1,1,1,1,0,0,0,0],[0,0,0,1,0,0,0,0,0],[0,0,0,1,0,0,0,0,0],
+    ],
+    fog: [
+      [0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],
+      [1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],
+      [0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],
+    ],
   };
 
   function drawWeatherDots(canvasEl, iconKey) {
     const grid = DOT_ICONS[iconKey] || DOT_ICONS.clear;
     const ctx  = canvasEl.getContext('2d');
     const size = canvasEl.width;
+    const rows = 9, cols = 9;
     const padding = size * 0.06;
-    const cellW = (size - padding * 2) / 9;
-    const cellH = (size - padding * 2) / 9;
+    const cellW = (size - padding * 2) / cols;
+    const cellH = (size - padding * 2) / rows;
     const dotR  = cellW * 0.38;
     ctx.clearRect(0, 0, size, size);
-    for (let r = 0; r < 9; r++) {
-      for (let c = 0; c < 9; c++) {
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
         const on = grid[r][c] === 1;
+        const x  = padding + c * cellW + cellW / 2;
+        const y  = padding + r * cellH + cellH / 2;
         ctx.beginPath();
-        ctx.arc(padding + c * cellW + cellW / 2, padding + r * cellH + cellH / 2, dotR, 0, Math.PI * 2);
+        ctx.arc(x, y, dotR, 0, Math.PI * 2);
         if (on) { ctx.fillStyle = '#DA7756'; ctx.shadowColor = 'rgba(218,119,86,0.9)'; ctx.shadowBlur = size > 50 ? 7 : 4; }
         else    { ctx.fillStyle = '#21262D'; ctx.shadowBlur = 0; }
         ctx.fill();
@@ -625,52 +659,95 @@
     }
   }
 
-  function codeToIcon(c) {
-    if (c === 0) return 'clear';
-    if (c <= 2)  return 'partly_cloudy';
-    if (c === 3) return 'cloudy';
-    if (c <= 48) return 'fog';
-    if (c <= 67 || c <= 82) return 'rain';
-    if (c <= 77) return 'snow';
+  function codeToIcon(code) {
+    if (code === 0)               return 'clear';
+    if (code <= 2)                return 'partly_cloudy';
+    if (code === 3)               return 'cloudy';
+    if (code <= 48)               return 'fog';
+    if (code <= 67 || code <= 82) return 'rain';
+    if (code <= 77)               return 'snow';
     return 'storm';
   }
 
-  const WX_DESC = { 0:'clear_sky',1:'mainly_clear',2:'partly_cloudy',3:'overcast',45:'fog',48:'rime_fog',51:'drizzle_light',53:'drizzle',55:'drizzle_heavy',61:'rain_light',63:'rain',65:'rain_heavy',71:'snow_light',73:'snow',75:'snow_heavy',80:'showers_light',81:'showers',82:'showers_violent',95:'thunderstorm',96:'thunderstorm_hail',99:'thunderstorm_hail' };
+  const WX_DESC = {
+    0:'clear_sky', 1:'mainly_clear', 2:'partly_cloudy', 3:'overcast',
+    45:'fog', 48:'rime_fog', 51:'drizzle_light', 53:'drizzle',
+    55:'drizzle_heavy', 61:'rain_light', 63:'rain', 65:'rain_heavy',
+    71:'snow_light', 73:'snow', 75:'snow_heavy',
+    80:'showers_light', 81:'showers', 82:'showers_violent',
+    95:'thunderstorm', 96:'thunderstorm_hail', 99:'thunderstorm_hail',
+  };
 
   async function fetchWeather() {
     try {
       const coords = await new Promise(res => {
         if (!navigator.geolocation) return res({ lat: 38.7169, lon: -9.1399 });
-        navigator.geolocation.getCurrentPosition(p => res({ lat: p.coords.latitude, lon: p.coords.longitude }), () => res({ lat: 38.7169, lon: -9.1399 }), { timeout: 4000 });
+        navigator.geolocation.getCurrentPosition(
+          p => res({ lat: p.coords.latitude, lon: p.coords.longitude }),
+          () => res({ lat: 38.7169, lon: -9.1399 }),
+          { timeout: 4000 }
+        );
       });
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m,precipitation&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&timezone=auto&forecast_days=4&wind_speed_unit=kmh&temperature_unit=celsius`;
+
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}` +
+        `&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m,precipitation` +
+        `&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max` +
+        `&timezone=auto&forecast_days=4&wind_speed_unit=kmh&temperature_unit=celsius`;
+
       const data = await (await fetch(url)).json();
+
       try {
-        const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lon}&format=json`);
-        const gd  = await geo.json();
-        const city = gd.address?.city || gd.address?.town || gd.address?.village || gd.address?.county || '';
-        const cc   = gd.address?.country_code?.toUpperCase() || '';
-        if (city) document.getElementById('weatherLocation').textContent = `${city}, ${cc}`;
+        const geo     = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lon}&format=json`);
+        const geoData = await geo.json();
+        const city    = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.county || '';
+        const country = geoData.address?.country_code?.toUpperCase() || '';
+        if (city) document.getElementById('weatherLocation').textContent = `${city}, ${country}`;
       } catch(_) {}
-      const cur = data.current, daily = data.daily;
-      const code = cur.weather_code;
-      drawWeatherDots(document.getElementById('weatherCanvas'), codeToIcon(code));
-      document.getElementById('wTemp').textContent = `${Math.round(cur.temperature_2m)}°`;
-      document.getElementById('wDesc').textContent = (WX_DESC[code] || 'unknown').replace(/_/g,' ');
-      document.getElementById('wBadges').innerHTML = [
-        { val: `${cur.relative_humidity_2m}%`, label: 'HUMID', hi: false },
-        { val: `${Math.round(cur.wind_speed_10m)}`,  label: 'KM/H',  hi: false },
-        { val: `${cur.precipitation ?? 0}`,           label: 'MM',    hi: (cur.precipitation ?? 0) > 0 },
-      ].map(b => `<div class="weather-badge ${b.hi?'highlight':''}"><span class="badge-val">${b.val}</span><span class="badge-label">${b.label}</span></div>`).join('');
+
+      const cur   = data.current;
+      const daily = data.daily;
+      const code  = cur.weather_code;
+      const iconKey = codeToIcon(code);
+      const desc    = (WX_DESC[code] || 'unknown').replace(/_/g,' ');
+      const temp    = Math.round(cur.temperature_2m);
+      const wind    = Math.round(cur.wind_speed_10m);
+      const hum     = cur.relative_humidity_2m;
+      const precip  = cur.precipitation ?? 0;
+
+      drawWeatherDots(document.getElementById('weatherCanvas'), iconKey);
+      document.getElementById('wTemp').textContent = `${temp}°`;
+      document.getElementById('wDesc').textContent = desc;
+
+      const badges = [
+        { val: `${hum}%`,   label: 'HUMID', hi: false },
+        { val: `${wind}`,   label: 'KM/H',  hi: false },
+        { val: `${precip}`, label: 'MM',     hi: precip > 0 },
+      ];
+      document.getElementById('wBadges').innerHTML = badges.map(b => `
+        <div class="weather-badge ${b.hi ? 'highlight' : ''}">
+          <span class="badge-val">${b.val}</span>
+          <span class="badge-label">${b.label}</span>
+        </div>
+      `).join('');
+
       const fdays = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-      document.getElementById('wForecast').innerHTML = daily.time.slice(1,4).map((t,i) => {
-        const d = new Date(t+'T12:00:00'), id = `fc-${i}`;
-        setTimeout(() => { const el = document.getElementById(id); if(el) drawWeatherDots(el, codeToIcon(daily.weather_code[i+1])); }, 50);
-        return `<div class="forecast-row"><span class="forecast-day">${fdays[d.getDay()]}</span><div class="forecast-dots"><canvas id="${id}" width="36" height="36" style="image-rendering:pixelated"></canvas></div><span class="forecast-temps"><span class="hi">${Math.round(daily.temperature_2m_max[i+1])}°</span> / ${Math.round(daily.temperature_2m_min[i+1])}°</span></div>`;
+      document.getElementById('wForecast').innerHTML = daily.time.slice(1,4).map((t, i) => {
+        const d = new Date(t + 'T12:00:00');
+        const id = `fc-${i}`;
+        setTimeout(() => { const el = document.getElementById(id); if (el) drawWeatherDots(el, codeToIcon(daily.weather_code[i+1])); }, 50);
+        return `
+          <div class="forecast-row">
+            <span class="forecast-day">${fdays[d.getDay()]}</span>
+            <div class="forecast-dots"><canvas id="${id}" width="36" height="36" style="image-rendering:pixelated"></canvas></div>
+            <span class="forecast-temps"><span class="hi">${Math.round(daily.temperature_2m_max[i+1])}°</span> / ${Math.round(daily.temperature_2m_min[i+1])}°</span>
+          </div>`;
       }).join('');
+
       document.getElementById('weatherLoading').style.display = 'none';
       document.getElementById('weatherWidget').style.display  = 'block';
-    } catch(e) { document.getElementById('weatherLoading').textContent = '// fetch failed'; }
+    } catch(e) {
+      document.getElementById('weatherLoading').textContent = '// fetch failed';
+    }
   }
 
   function save() { localStorage.setItem('devday-tasks', JSON.stringify(tasks)); }
@@ -680,19 +757,28 @@
     const text  = input.value.trim();
     if (!text) return;
     tasks.unshift({ id: Date.now(), text, tag: selectedTag, done: false, status: 'todo' });
-    save(); input.value = '';
+    save();
+    input.value = '';
     renderTasks();
     if (currentView === 'kanban') renderKanban();
   }
 
   function toggleDone(id) {
     const t = tasks.find(t => t.id === id);
-    if (t) { t.done = !t.done; t.status = t.done ? 'done' : 'todo'; save(); renderTasks(); if (t.done) showCelebration(t.text); }
+    if (t) {
+      t.done = !t.done;
+      t.status = t.done ? 'done' : 'todo';
+      save(); renderTasks();
+      if (t.done) showCelebration(t.text);
+    }
   }
 
   function deleteTask(id) {
     const el = document.querySelector(`[data-id="${id}"]`);
-    if (el) { el.classList.add('removing'); setTimeout(() => { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); if (currentView === 'kanban') renderKanban(); }, 260); }
+    if (el) {
+      el.classList.add('removing');
+      setTimeout(() => { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); if (currentView === 'kanban') renderKanban(); }, 260);
+    }
   }
 
   function toggleTag(btn) {
@@ -704,7 +790,9 @@
 
   function setFilter(btn, filter) {
     document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active'); currentFilter = filter; renderTasks();
+    btn.classList.add('active');
+    currentFilter = filter;
+    renderTasks();
   }
 
   function getFiltered() {
@@ -717,56 +805,66 @@
   }
 
   function renderTasks() {
-    const list = document.getElementById('taskList'), empty = document.getElementById('emptyState');
+    const list     = document.getElementById('taskList');
+    const empty    = document.getElementById('emptyState');
     const filtered = getFiltered();
-    list.innerHTML = filtered.map((t,i) => `
-      <div class="task-item ${t.done?'done':''}" data-id="${t.id}">
-        <span class="line-gutter">${i+1}</span>
+    list.innerHTML = filtered.map((t, i) => `
+      <div class="task-item ${t.done ? 'done' : ''}" data-id="${t.id}">
+        <span class="line-gutter">${i + 1}</span>
         <button class="check-btn" onclick="toggleDone(${t.id})">
-          <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5l2.5 2.5 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
+            <path d="M1 3.5l2.5 2.5 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
         <div class="task-body">
           <div class="task-text">${escHtml(t.text)}</div>
           ${t.tag ? `<div class="task-meta"><span class="task-tag ${t.tag}">#${t.tag}</span></div>` : ''}
         </div>
         <button class="delete-btn" onclick="deleteTask(${t.id})">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#FF7B72" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M1 1l10 10M11 1L1 11" stroke="#FF7B72" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
         </button>
-      </div>`).join('');
+      </div>
+    `).join('');
     empty.classList.toggle('visible', tasks.length === 0);
     updateCounts();
   }
 
   function updateCounts() {
-    const all = tasks.length, done = tasks.filter(t=>t.done).length, pct = all===0?0:Math.round(done/all*100);
+    const all  = tasks.length;
+    const done = tasks.filter(t => t.done).length;
+    const pct  = all === 0 ? 0 : Math.round((done / all) * 100);
     document.getElementById('count-all').textContent      = all;
-    document.getElementById('count-active').textContent   = tasks.filter(t=>!t.done).length;
+    document.getElementById('count-active').textContent   = tasks.filter(t => !t.done).length;
     document.getElementById('count-done').textContent     = done;
-    document.getElementById('count-work').textContent     = tasks.filter(t=>t.tag==='work').length;
-    document.getElementById('count-personal').textContent = tasks.filter(t=>t.tag==='personal').length;
-    document.getElementById('count-health').textContent   = tasks.filter(t=>t.tag==='health').length;
-    document.getElementById('progressFill').style.width   = pct+'%';
-    document.getElementById('progressPct').textContent    = pct+'%';
-    document.getElementById('statusTaskCount').textContent = `${all} task${all!==1?'s':''}`;
+    document.getElementById('count-work').textContent     = tasks.filter(t => t.tag === 'work').length;
+    document.getElementById('count-personal').textContent = tasks.filter(t => t.tag === 'personal').length;
+    document.getElementById('count-health').textContent   = tasks.filter(t => t.tag === 'health').length;
+    document.getElementById('progressFill').style.width   = pct + '%';
+    document.getElementById('progressPct').textContent    = pct + '%';
+    document.getElementById('statusTaskCount').textContent = `${all} task${all !== 1 ? 's' : ''}`;
   }
 
-  function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 
-  // ── Celebration ──
+  // ── Celebration Popup ──
   const CELEBRATIONS = [
-    { ascii:"  \\o/\n   |\n  / \\",  title:"Task <span>crushed!</span>",   msg:"You're on fire 🔥\nTake a deep breath and enjoy\nthe moment — you earned it." },
-    { ascii:"  (^_^)\n  /||\\\n   /\\", title:"That's a <span>W!</span>",  msg:"Seriously, great work.\nMaybe grab a coffee ☕\nor stretch for 2 minutes?" },
-    { ascii:"  ★ ★ ★\n \\(•‿•)/\n  _|_|_", title:"<span>Ship</span>ped!", msg:"One step closer to done.\nYou're building momentum —\nkeep that energy going 💪" },
-    { ascii:"  d(^_^)b\n   ||||\n   d  b",  title:"<span>Boom.</span> Done.", msg:"Locked in and delivering.\nGo hydrate 💧 — your brain\ndeserves it after that focus." },
-    { ascii:"  \\(^o^)/\n   _|_\n  /   \\", title:"Level <span>up!</span>",  msg:"Every task done is progress.\nTreat yourself — even 5 mins\nof something you love counts 🎮" },
+    { ascii:"  \\o/\n   |\n  / \\",      title:"Task <span>crushed!</span>",    msg:"You're on fire 🔥\nTake a deep breath and enjoy\nthe moment — you earned it." },
+    { ascii:"  (^_^)\n  /||\\\n   /\\",  title:"That's a <span>W!</span>",      msg:"Seriously, great work.\nMaybe grab a coffee ☕\nor stretch for 2 minutes?" },
+    { ascii:"  ★ ★ ★\n \\(•‿•)/\n  _|_|_", title:"<span>Ship</span>ped!",     msg:"One step closer to done.\nYou're building momentum —\nkeep that energy going 💪" },
+    { ascii:"  d(^_^)b\n   ||||\n   d  b",  title:"<span>Boom.</span> Done.",   msg:"Locked in and delivering.\nGo hydrate 💧 — your brain\ndeserves it after that focus." },
+    { ascii:"  \\(^o^)/\n   _|_\n  /   \\", title:"Level <span>up!</span>",     msg:"Every task done is progress.\nTreat yourself — even 5 mins\nof something you love counts 🎮" },
     { ascii:"   .+*+.\n  (>‿<)\n   /|\\",  title:"<span>Clean</span> commit!", msg:"git commit -m 'nailed it'\nTake a little break, breathe,\nyou're doing amazing 🌟" },
   ];
 
   function showCelebration(taskText) {
-    const c = CELEBRATIONS[Math.floor(Math.random()*CELEBRATIONS.length)];
+    const c = CELEBRATIONS[Math.floor(Math.random() * CELEBRATIONS.length)];
     document.getElementById('celebrateAscii').textContent = c.ascii;
     document.getElementById('celebrateTitle').innerHTML   = c.title;
-    document.getElementById('celebrateMsg').innerHTML     = c.msg.replace(/\n/g,'<br>');
+    document.getElementById('celebrateMsg').innerHTML     = c.msg.replace(/\n/g, '<br>');
     document.getElementById('celebrateTask').innerHTML    = `✓ <span>"${escHtml(taskText)}"</span>`;
     const card = document.getElementById('celebrateCard');
     document.getElementById('celebrateOverlay').classList.add('show');
@@ -787,34 +885,54 @@
 
   function switchView(view) {
     currentView = view;
-    const listEl = document.getElementById('listView'), kanbanEl = document.getElementById('kanbanView'), inputEl = document.getElementById('inputArea');
-    document.getElementById('btnList').classList.toggle('active', view==='list');
-    document.getElementById('btnKanban').classList.toggle('active', view==='kanban');
-    if (view === 'list') { listEl.style.display=''; inputEl.style.display=''; kanbanEl.classList.remove('visible'); renderTasks(); }
-    else                 { listEl.style.display='none'; inputEl.style.display='none'; kanbanEl.classList.add('visible'); renderKanban(); }
+    const listEl   = document.getElementById('listView');
+    const kanbanEl = document.getElementById('kanbanView');
+    const inputEl  = document.getElementById('inputArea');
+    document.getElementById('btnList').classList.toggle('active', view === 'list');
+    document.getElementById('btnKanban').classList.toggle('active', view === 'kanban');
+    if (view === 'list') {
+      listEl.style.display  = '';
+      inputEl.style.display = '';
+      kanbanEl.classList.remove('visible');
+      renderTasks();
+    } else {
+      listEl.style.display  = 'none';
+      inputEl.style.display = 'none';
+      kanbanEl.classList.add('visible');
+      renderKanban();
+    }
   }
 
-  // ── Kanban ──
+  // ── Kanban Render ──
   function renderKanban() {
-    ['todo','doing','done'].forEach(status => {
-      const col = document.getElementById(`kb-${status}`), count = document.getElementById(`kb-count-${status}`);
+    const cols = ['todo','doing','done'];
+    cols.forEach(status => {
+      const col   = document.getElementById(`kb-${status}`);
+      const count = document.getElementById(`kb-count-${status}`);
       const items = tasks.filter(t => t.status === status);
       count.textContent = items.length;
-      if (items.length === 0) { col.innerHTML = `<div class="kb-col-empty">// empty</div>`; return; }
-      const next = { todo:'doing', doing:'done', done:null };
-      const prev = { todo:null, doing:'todo', done:'doing' };
+
+      if (items.length === 0) {
+        col.innerHTML = `<div class="kb-col-empty">// empty</div>`;
+        return;
+      }
+
+      const nextStatus = { todo: 'doing', doing: 'done', done: null };
+      const prevStatus = { todo: null, doing: 'todo', done: 'doing' };
+
       col.innerHTML = items.map(t => `
-        <div class="kb-card" data-id="${t.id}" draggable="true" ondragstart="onDragStart(event,${t.id})" ondragend="onDragEnd(event)">
+        <div class="kb-card" data-id="${t.id}" onmousedown="onCardMouseDown(event,${t.id})">
           <div class="kb-card-text">${escHtml(t.text)}</div>
           <div class="kb-card-footer">
-            <span>${t.tag?`<span class="kb-card-tag ${t.tag}">#${t.tag}</span>`:''}</span>
+            <span>${t.tag ? `<span class="kb-card-tag ${t.tag}">#${t.tag}</span>` : ''}</span>
             <div class="kb-card-actions">
-              ${prev[status]?`<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${prev[status]}')">← back</button>`:''}
-              ${next[status]?`<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${next[status]}')">next →</button>`:''}
+              ${prevStatus[status] ? `<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${prevStatus[status]}')">← back</button>` : ''}
+              ${nextStatus[status] ? `<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${nextStatus[status]}')">next →</button>` : ''}
               <button class="kb-action-btn del-btn" onclick="deleteKbCard(${t.id})">✕</button>
             </div>
           </div>
-        </div>`).join('');
+        </div>
+      `).join('');
     });
     updateCounts();
   }
@@ -823,73 +941,106 @@
     const t = tasks.find(t => t.id === id);
     if (!t) return;
     const wasDone = t.status === 'done';
-    t.status = newStatus; t.done = newStatus === 'done';
-    save(); renderKanban();
+    t.status = newStatus;
+    t.done   = newStatus === 'done';
+    save();
+    renderKanban();
     if (newStatus === 'done' && !wasDone) showCelebration(t.text);
   }
 
-  function deleteKbCard(id) { tasks = tasks.filter(t => t.id !== id); save(); renderKanban(); updateCounts(); }
+  function deleteKbCard(id) {
+    tasks = tasks.filter(t => t.id !== id);
+    save();
+    renderKanban();
+    updateCounts();
+  }
 
-  // ── Drag & Drop — opaque drag image ──
-  function onDragStart(e, id) {
-  dragId = id;
-  const card = e.currentTarget;
-  const rect = card.getBoundingClientRect();
-  const clone = card.cloneNode(true);
+  // ── Custom mouse-based drag (no native DnD API) ──
+  let _dragClone    = null;
+  let _dragOffsetX  = 0;
+  let _dragOffsetY  = 0;
+  let _dragOverCol  = null;
 
-  Object.assign(clone.style, {
-    position:      'fixed',
-    top:           rect.top + 'px',
-    left:          rect.left + 'px',
-    width:         rect.width + 'px',
-    margin:        '0',
-    opacity:       '1',
-    pointerEvents: 'none',
-    zIndex:        '9999',
-    background:    '#1a1f2a',
-    border:        '1px solid rgba(218,119,86,0.5)',
-    borderLeft:    '3px solid #DA7756',
-    borderRadius:  '8px',
-    padding:       '11px 13px',
-    boxShadow:     '0 10px 32px rgba(0,0,0,0.6)',
-    color:         '#E6EDF3',
-  });
+  function onCardMouseDown(e, id) {
+    if (e.target.closest('button')) return; // let button clicks through
+    e.preventDefault();
 
-  document.body.appendChild(clone);
-  e.dataTransfer.setDragImage(clone, e.clientX - rect.left, e.clientY - rect.top);
+    dragId = id;
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
 
-  requestAnimationFrame(() => {
-    document.body.removeChild(clone);
-    document.querySelector(`.kb-card[data-id="${id}"]`)?.classList.add('dragging');
-  });
-}
+    _dragOffsetX = e.clientX - rect.left;
+    _dragOffsetY = e.clientY - rect.top;
 
-  function onDragEnd() {
-    if (_dragImageEl) { document.body.removeChild(_dragImageEl); _dragImageEl = null; }
+    // Build fully opaque floating clone
+    _dragClone = card.cloneNode(true);
+    Object.assign(_dragClone.style, {
+      position:      'fixed',
+      top:           rect.top + 'px',
+      left:          rect.left + 'px',
+      width:         rect.width + 'px',
+      margin:        '0',
+      opacity:       '1',
+      pointerEvents: 'none',
+      zIndex:        '9999',
+      background:    '#1a1f2a',
+      border:        '1px solid rgba(218,119,86,0.5)',
+      borderLeft:    '3px solid #DA7756',
+      borderRadius:  '8px',
+      padding:       '11px 13px',
+      boxShadow:     '0 12px 36px rgba(0,0,0,0.7), 0 0 0 1px rgba(218,119,86,0.25)',
+      color:         '#E6EDF3',
+      transition:    'none',
+      transform:     'rotate(1.5deg) scale(1.03)',
+    });
+
+    document.body.appendChild(_dragClone);
+    card.classList.add('dragging');
+
+    document.addEventListener('mousemove', onDragMouseMove);
+    document.addEventListener('mouseup',   onDragMouseUp);
+  }
+
+  function onDragMouseMove(e) {
+    if (!_dragClone) return;
+
+    _dragClone.style.left = (e.clientX - _dragOffsetX) + 'px';
+    _dragClone.style.top  = (e.clientY - _dragOffsetY) + 'px';
+
+    // Highlight the column we're hovering over
+    document.querySelectorAll('.kb-cards').forEach(c => c.classList.remove('drag-over'));
+    const el  = document.elementFromPoint(e.clientX, e.clientY);
+    const col = el?.closest('.kb-col');
+    if (col) {
+      _dragOverCol = col.dataset.status;
+      col.querySelector('.kb-cards')?.classList.add('drag-over');
+    } else {
+      _dragOverCol = null;
+    }
+  }
+
+  function onDragMouseUp() {
+    document.removeEventListener('mousemove', onDragMouseMove);
+    document.removeEventListener('mouseup',   onDragMouseUp);
+
+    if (_dragOverCol && dragId !== null) moveCard(dragId, _dragOverCol);
+
+    if (_dragClone) { document.body.removeChild(_dragClone); _dragClone = null; }
     document.querySelectorAll('.kb-card').forEach(el => el.classList.remove('dragging'));
     document.querySelectorAll('.kb-cards').forEach(el => el.classList.remove('drag-over'));
+    dragId       = null;
+    _dragOverCol = null;
   }
 
-  function onDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    e.currentTarget.querySelector('.kb-cards')?.classList.add('drag-over');
-  }
-
-  function onDragLeave(e) { e.currentTarget.querySelector('.kb-cards')?.classList.remove('drag-over'); }
-
-  function onDrop(e, status) {
-    e.preventDefault();
-    e.currentTarget.querySelector('.kb-cards')?.classList.remove('drag-over');
-    if (dragId !== null) { moveCard(dragId, status); dragId = null; }
-  }
-
-  // ── Intro ──
+  // ── Intro Boot Screen ──
   const INTRO_COOLDOWN_MS = 30 * 60 * 1000;
+
   function shouldShowIntro() {
-    const last = localStorage.getItem('devday-last-visit'), now = Date.now();
+    const last = localStorage.getItem('devday-last-visit');
+    const now  = Date.now();
     localStorage.setItem('devday-last-visit', now);
-    return !last || (now - parseInt(last)) > INTRO_COOLDOWN_MS;
+    if (!last) return true;
+    return (now - parseInt(last)) > INTRO_COOLDOWN_MS;
   }
 
   const INTRO_LINES = [
@@ -905,32 +1056,49 @@
     { text:`<span class="kw">export default</span> <span class="acc">devday</span>   <span class="cmt">// ready. let's get it.</span>`, delay:1420 },
   ];
 
-  const TAGLINES = ['ship more. stress less.','your day, version controlled.','commit to your goals.','focus mode: engaged.','build the day you want.'];
+  const TAGLINES = [
+    'ship more. stress less.',
+    'your day, version controlled.',
+    'commit to your goals.',
+    'focus mode: engaged.',
+    'build the day you want.',
+  ];
 
   function runIntro() {
     const container = document.getElementById('introCode');
     const loader    = document.getElementById('introLoader');
     const tagline   = document.getElementById('introTagline');
     const screen    = document.getElementById('introScreen');
-    tagline.textContent = TAGLINES[Math.floor(Math.random()*TAGLINES.length)];
-    INTRO_LINES.forEach((l,i) => {
+    const app       = document.getElementById('appWrapper');
+
+    tagline.textContent = TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
+
+    INTRO_LINES.forEach((l, i) => {
       const row = document.createElement('div');
       row.className = 'intro-line';
-      row.innerHTML = `<span class="intro-lnum">${l.text?i+1:''}</span><span>${l.text}${i===INTRO_LINES.length-1?'<span class="intro-cursor"></span>':''}</span>`;
+      row.innerHTML = `<span class="intro-lnum">${l.text ? i + 1 : ''}</span><span>${l.text}${i === INTRO_LINES.length - 1 ? '<span class="intro-cursor"></span>' : ''}</span>`;
       container.appendChild(row);
     });
-    INTRO_LINES.forEach((l,i) => setTimeout(() => container.children[i].classList.add('visible'), 300+l.delay));
-    const lastDelay = INTRO_LINES[INTRO_LINES.length-1].delay;
-    setTimeout(() => { loader.style.opacity='1'; tagline.style.opacity='1'; }, 300+lastDelay+200);
+
+    INTRO_LINES.forEach((l, i) => {
+      setTimeout(() => container.children[i].classList.add('visible'), 300 + l.delay);
+    });
+
+    const lastDelay = INTRO_LINES[INTRO_LINES.length - 1].delay;
+    setTimeout(() => { loader.style.opacity = '1'; tagline.style.opacity = '1'; }, 300 + lastDelay + 200);
     setTimeout(() => {
       screen.classList.add('fade-out');
-      document.getElementById('appWrapper').classList.add('visible');
+      app.classList.add('visible');
       setTimeout(() => screen.remove(), 800);
-    }, 300+lastDelay+1100);
+    }, 300 + lastDelay + 1100);
   }
 
-  if (shouldShowIntro()) { runIntro(); }
-  else { document.getElementById('introScreen').remove(); document.getElementById('appWrapper').classList.add('visible'); }
+  if (shouldShowIntro()) {
+    runIntro();
+  } else {
+    document.getElementById('introScreen').remove();
+    document.getElementById('appWrapper').classList.add('visible');
+  }
 
   init();
 </script>
