@@ -45,7 +45,6 @@
       flex-direction: column;
     }
 
-    /* ── Title Bar ── */
     .titlebar {
       width: 100%;
       background: var(--bg-2);
@@ -61,26 +60,15 @@
     }
 
     .titlebar-left { display: flex; align-items: center; gap: 16px; }
-
     .window-dots { display: flex; gap: 6px; }
     .dot { width: 12px; height: 12px; border-radius: 50%; }
     .dot.red    { background: #FF5F57; }
     .dot.yellow { background: #FFBD2E; }
     .dot.green  { background: #28C840; }
 
-    .titlebar-title {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      color: var(--text-muted);
-    }
+    .titlebar-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); }
     .titlebar-title span { color: var(--claude); }
-    .titlebar-right {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-faint);
-    }
 
-    /* ── Layout ── */
     .layout {
       display: flex;
       width: 100%;
@@ -88,564 +76,163 @@
       padding-bottom: 24px;
     }
 
-    /* ── Seven-Segment Clock ── */
-    .ascii-clock-wrap {
-      padding: 16px 14px 14px;
-      border-bottom: 1px solid var(--border-soft);
-    }
-
-    .seg-clock {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      line-height: 0;
-    }
-
+    .ascii-clock-wrap { padding: 16px 14px 14px; border-bottom: 1px solid var(--border-soft); }
+    .seg-clock { display: flex; align-items: center; justify-content: center; gap: 2px; line-height: 0; }
     .seg-clock svg { display: block; }
 
-    /* ── Weather Widget — Nothing OS style ── */
-    .weather-wrap {
-      padding: 14px 14px 16px;
-      border-bottom: 1px solid var(--border-soft);
-    }
-
-    .weather-header {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--text-faint);
-      margin-bottom: 10px;
-    }
-
-    .weather-top {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    #weatherCanvas {
-      flex-shrink: 0;
-      image-rendering: pixelated;
-    }
-
+    .weather-wrap { padding: 14px 14px 16px; border-bottom: 1px solid var(--border-soft); }
+    .weather-header { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px; }
+    .weather-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    #weatherCanvas { flex-shrink: 0; image-rendering: pixelated; }
     .weather-temp-block { flex: 1; }
-
-    .weather-temp {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1;
-    }
-
-    .weather-desc {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    .weather-badges {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 5px;
-      margin-top: 10px;
-    }
-
-    .weather-badge {
-      background: var(--bg-3);
-      border: 1px solid var(--border-soft);
-      border-radius: 50px;
-      padding: 7px 4px 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
-
-    .badge-val {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1;
-    }
-
-    .badge-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 8px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-faint);
-    }
-
-    .weather-badge.highlight {
-      background: var(--claude);
-      border-color: var(--claude);
-    }
-
-    .weather-badge.highlight .badge-val,
-    .weather-badge.highlight .badge-label { color: white; }
-
-    .weather-forecast {
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .forecast-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 3px 2px;
-      border-bottom: 1px solid var(--border-soft);
-    }
-
+    .weather-temp { font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; color: var(--text); line-height: 1; }
+    .weather-desc { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; }
+    .weather-badges { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
+    .weather-badge { background: var(--bg-3); border: 1px solid var(--border-soft); border-radius: 50px; padding: 7px 4px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .badge-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--text); line-height: 1; }
+    .badge-label { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); }
+    .weather-badge.highlight { background: var(--claude); border-color: var(--claude); }
+    .weather-badge.highlight .badge-val, .weather-badge.highlight .badge-label { color: white; }
+    .weather-forecast { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+    .forecast-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 2px; border-bottom: 1px solid var(--border-soft); }
     .forecast-row:last-child { border-bottom: none; }
-
-    .forecast-day {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      color: var(--text-muted);
-      width: 30px;
-    }
-
+    .forecast-day { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); width: 30px; }
     .forecast-dots { flex: 1; display: flex; justify-content: center; }
-
-    .forecast-temps {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      color: var(--text-muted);
-      text-align: right;
-    }
-
+    .forecast-temps { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); text-align: right; }
     .forecast-temps .hi { color: var(--text); }
+    .weather-loading { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); font-style: italic; padding: 4px 0; }
 
-    .weather-loading {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-faint);
-      font-style: italic;
-      padding: 4px 0;
-    }
-
-    /* ── Sidebar ── */
-    .sidebar {
-      width: 260px;
-      flex-shrink: 0;
-      border-right: 1px solid var(--border);
-      padding-top: 0;
-      padding-bottom: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .sidebar-section {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-faint);
-      padding: 12px 16px 4px;
-    }
-
-    .sidebar-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 16px;
-      font-size: 13px;
-      color: var(--text-muted);
-      cursor: pointer;
-      border: none;
-      border-left: 2px solid transparent;
-      background: none;
-      width: 100%;
-      text-align: left;
-      font-family: 'Inter', sans-serif;
-      transition: all 0.15s;
-    }
-
+    .sidebar { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); padding-bottom: 24px; display: flex; flex-direction: column; gap: 2px; }
+    .sidebar-section { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); padding: 12px 16px 4px; }
+    .sidebar-item { display: flex; align-items: center; gap: 8px; padding: 6px 16px; font-size: 13px; color: var(--text-muted); cursor: pointer; border: none; border-left: 2px solid transparent; background: none; width: 100%; text-align: left; font-family: 'Inter', sans-serif; transition: all 0.15s; }
     .sidebar-item:hover { background: var(--bg-3); color: var(--text); }
     .sidebar-item.active { background: var(--claude-dim); color: var(--claude); border-left-color: var(--claude); }
-
-    .dot-count {
-      margin-left: auto;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      background: var(--bg-3);
-      color: var(--text-muted);
-      padding: 1px 6px;
-      border-radius: 10px;
-    }
-
+    .dot-count { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--bg-3); color: var(--text-muted); padding: 1px 6px; border-radius: 10px; }
     .sidebar-item.active .dot-count { background: var(--claude-dim); color: var(--claude); }
-
     .sidebar-divider { height: 1px; background: var(--border-soft); margin: 8px 16px; }
-
     .sidebar-progress { margin: 12px 16px 0; }
-    .sidebar-progress-label {
-      display: flex;
-      justify-content: space-between;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      color: var(--text-faint);
-      margin-bottom: 6px;
-    }
+    .sidebar-progress-label { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); margin-bottom: 6px; }
     .sidebar-progress-label span:last-child { color: var(--green); }
-
     .progress-track { height: 3px; background: var(--bg-3); border-radius: 2px; overflow: hidden; }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--green), var(--blue));
-      border-radius: 2px;
-      transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
-      width: 0%;
-    }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--blue)); border-radius: 2px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); width: 0%; }
 
-    /* ── View Toggle ── */
-    .view-toggle {
-      display: flex;
-      gap: 2px;
-      background: var(--bg-3);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 3px;
-    }
-
-    .view-btn {
-      background: none;
-      border: none;
-      border-radius: 4px;
-      padding: 4px 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-faint);
-      transition: all 0.15s;
-    }
-
+    .view-toggle { display: flex; gap: 2px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px; padding: 3px; }
+    .view-btn { background: none; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); transition: all 0.15s; }
     .view-btn:hover { color: var(--text-muted); }
     .view-btn.active { background: var(--bg-2); color: var(--claude); }
     .view-btn svg { flex-shrink: 0; }
 
-    /* ── Kanban Board ── */
+    /* ── Kanban ── */
     #kanbanView { display: none; }
     #kanbanView.visible { display: flex; gap: 16px; padding: 0 4px 24px; }
 
-    .kb-col {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .kb-col-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 12px;
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      position: sticky;
-      top: 46px;
-      z-index: 10;
-    }
-
-    .kb-col-title {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .kb-col-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
+    .kb-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+    .kb-col-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; position: sticky; top: 46px; z-index: 10; }
+    .kb-col-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; gap: 7px; }
+    .kb-col-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .kb-col[data-status="todo"]  .kb-col-dot { background: var(--text-faint); }
     .kb-col[data-status="doing"] .kb-col-dot { background: var(--yellow); box-shadow: 0 0 6px rgba(227,179,65,0.5); }
     .kb-col[data-status="done"]  .kb-col-dot { background: var(--green);  box-shadow: 0 0 6px rgba(63,185,80,0.5); }
-
     .kb-col[data-status="todo"]  .kb-col-title { color: var(--text-muted); }
     .kb-col[data-status="doing"] .kb-col-title { color: var(--yellow); }
     .kb-col[data-status="done"]  .kb-col-title { color: var(--green); }
+    .kb-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); background: var(--bg-3); padding: 1px 7px; border-radius: 10px; }
 
-    .kb-count {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-faint);
-      background: var(--bg-3);
-      padding: 1px 7px;
-      border-radius: 10px;
-    }
+    .kb-cards { display: flex; flex-direction: column; gap: 6px; min-height: 60px; padding: 4px 0; transition: background 0.15s; border-radius: 8px; }
+    .kb-cards.drag-over { background: var(--claude-dim); outline: 1px dashed var(--claude); outline-offset: -2px; }
 
-    .kb-cards {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-height: 60px;
-      padding: 4px 0;
-      transition: background 0.15s;
-      border-radius: 8px;
-    }
-
-    .kb-cards.drag-over {
-      background: var(--claude-dim);
-      outline: 1px dashed var(--claude);
-      outline-offset: -2px;
-    }
-
+    /* ── Kanban Card: orange hover + opaque drag ── */
     .kb-card {
       background: var(--bg-2);
       border: 1px solid var(--border);
+      border-left: 3px solid transparent;
       border-radius: 8px;
       padding: 11px 13px;
       cursor: grab;
-      transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
-      animation: fadeSlide 0.22s ease both;
       position: relative;
+      animation: fadeSlide 0.22s ease both;
+      transition:
+        border-color 0.2s ease,
+        border-left-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s cubic-bezier(0.4,0,0.2,1);
     }
 
+    /* Orange highlight on hover */
     .kb-card:hover {
-      border-color: var(--text-faint);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border-color: rgba(218,119,86,0.45);
+      border-left-color: var(--claude);
+      background: #191e27;
+      transform: translateY(-2px);
+      box-shadow:
+        0 0 0 1px rgba(218,119,86,0.18),
+        0 6px 20px rgba(218,119,86,0.13),
+        0 2px 8px rgba(0,0,0,0.4);
     }
 
+    /* Ghost placeholder in column while dragging — very faint dashed outline */
     .kb-card.dragging {
-      opacity: 0.4;
+      opacity: 0.15;
       cursor: grabbing;
       transform: scale(0.97);
+      border-style: dashed;
+      border-color: var(--claude);
+      border-left-color: var(--claude);
+      box-shadow: none;
     }
 
-    .kb-card-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      color: var(--text);
-      line-height: 1.5;
-      word-break: break-word;
-    }
-
-    .kb-col[data-status="done"] .kb-card-text {
-      text-decoration: line-through;
-      color: var(--text-faint);
-    }
-
-    .kb-card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 8px;
-    }
-
-    .kb-card-tag {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      padding: 2px 7px;
-      border-radius: 4px;
-    }
-
+    .kb-card-text { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); line-height: 1.5; word-break: break-word; }
+    .kb-col[data-status="done"] .kb-card-text { text-decoration: line-through; color: var(--text-faint); }
+    .kb-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+    .kb-card-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 4px; }
     .kb-card-tag.work     { background: var(--tag-work-bg);     color: var(--tag-work-ink); }
     .kb-card-tag.personal { background: var(--tag-personal-bg); color: var(--tag-personal-ink); }
     .kb-card-tag.health   { background: var(--tag-health-bg);   color: var(--tag-health-ink); }
-
-    .kb-card-actions {
-      display: flex;
-      gap: 4px;
-      opacity: 0;
-      transition: opacity 0.15s;
-    }
-
+    .kb-card-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
     .kb-card:hover .kb-card-actions { opacity: 1; }
-
-    .kb-action-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 2px 4px;
-      border-radius: 3px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 0.06em;
-      transition: all 0.12s;
-    }
-
+    .kb-action-btn { background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.06em; transition: all 0.12s; }
     .kb-action-btn.move-btn { color: var(--text-faint); }
     .kb-action-btn.move-btn:hover { background: var(--bg-3); color: var(--claude); }
-    .kb-action-btn.del-btn  { color: var(--text-faint); }
-    .kb-action-btn.del-btn:hover  { background: rgba(255,123,114,0.12); color: var(--red); }
+    .kb-action-btn.del-btn { color: var(--text-faint); }
+    .kb-action-btn.del-btn:hover { background: rgba(255,123,114,0.12); color: var(--red); }
+    .kb-col-empty { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); font-style: italic; padding: 16px 12px; text-align: center; border: 1px dashed var(--border-soft); border-radius: 8px; }
 
-    .kb-col-empty {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-faint);
-      font-style: italic;
-      padding: 16px 12px;
-      text-align: center;
-      border: 1px dashed var(--border-soft);
-      border-radius: 8px;
-    }
-
-    /* ── Main ── */
     .main { flex: 1; padding: 36px 48px; min-width: 0; }
-
-    .breadcrumb {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-faint);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .breadcrumb { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
     .breadcrumb span { color: var(--text-muted); }
     .breadcrumb .active { color: var(--claude); }
-
-    .page-title {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 30px;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1;
-      margin-bottom: 8px;
-    }
+    .page-title { font-family: 'JetBrains Mono', monospace; font-size: 30px; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 8px; }
     .page-title .comment { font-weight: 300; font-style: italic; color: var(--text-faint); font-size: 17px; margin-left: 12px; }
-
-    .page-meta {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 28px;
-    }
-    .page-meta .kw     { color: var(--purple); }
-    .page-meta .str    { color: var(--green); }
-    .page-meta .cmt    { color: var(--text-faint); }
+    .page-meta { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
+    .page-meta .kw { color: var(--purple); }
+    .page-meta .str { color: var(--green); }
+    .page-meta .cmt { color: var(--text-faint); }
     .page-meta .daystr { color: var(--blue); }
 
-    /* ── Input ── */
-    .input-block {
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 20px;
-      overflow: hidden;
-      transition: border-color 0.2s;
-    }
+    .input-block { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; overflow: hidden; transition: border-color 0.2s; }
     .input-block:focus-within { border-color: var(--claude); }
-
-    .input-topbar {
-      display: flex;
-      align-items: center;
-      padding: 7px 12px;
-      border-bottom: 1px solid var(--border-soft);
-      background: var(--bg-3);
-      gap: 8px;
-    }
-    .input-topbar-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-faint);
-    }
-    .input-topbar-label .fn     { color: var(--yellow); }
-    .input-topbar-label .str    { color: var(--green); }
-    .input-topbar-label .paren  { color: var(--text-faint); }
-
-    .input-row {
-      display: flex;
-      align-items: center;
-      padding: 12px 16px;
-      gap: 10px;
-    }
-    .line-num {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      color: var(--text-faint);
-      user-select: none;
-      width: 20px;
-      text-align: right;
-      flex-shrink: 0;
-    }
+    .input-topbar { display: flex; align-items: center; padding: 7px 12px; border-bottom: 1px solid var(--border-soft); background: var(--bg-3); gap: 8px; }
+    .input-topbar-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); }
+    .input-topbar-label .fn { color: var(--yellow); }
+    .input-topbar-label .str { color: var(--green); }
+    .input-topbar-label .paren { color: var(--text-faint); }
+    .input-row { display: flex; align-items: center; padding: 12px 16px; gap: 10px; }
+    .line-num { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-faint); user-select: none; width: 20px; text-align: right; flex-shrink: 0; }
     .prompt-char { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--claude); flex-shrink: 0; }
-
-    .task-input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 16px;
-      color: var(--text);
-      caret-color: var(--claude);
-    }
+    .task-input { flex: 1; background: transparent; border: none; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text); caret-color: var(--claude); }
     .task-input::placeholder { color: var(--text-faint); }
-
-    .add-btn {
-      background: var(--claude);
-      border: none;
-      border-radius: 5px;
-      padding: 5px 12px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      font-weight: 500;
-      color: white;
-      cursor: pointer;
-      transition: opacity 0.15s;
-      flex-shrink: 0;
-    }
+    .add-btn { background: var(--claude); border: none; border-radius: 5px; padding: 5px 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; color: white; cursor: pointer; transition: opacity 0.15s; flex-shrink: 0; }
     .add-btn:hover { opacity: 0.85; }
-
     .tags-row { display: flex; gap: 6px; padding: 0 16px 12px; margin-left: 42px; }
-
-    .tag-btn {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
+    .tag-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
     .tag-btn:hover { border-color: var(--text-muted); color: var(--text); }
     .tag-btn.active[data-tag="work"]     { background: var(--tag-work-bg);     color: var(--tag-work-ink);     border-color: var(--tag-work-ink); }
     .tag-btn.active[data-tag="personal"] { background: var(--tag-personal-bg); color: var(--tag-personal-ink); border-color: var(--tag-personal-ink); }
     .tag-btn.active[data-tag="health"]   { background: var(--tag-health-bg);   color: var(--tag-health-ink);   border-color: var(--tag-health-ink); }
 
-    /* ── Task List ── */
     .task-list { display: flex; flex-direction: column; gap: 1px; }
-
-    .task-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 10px 10px;
-      border-radius: 6px;
-      border: 1px solid transparent;
-      transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
-      animation: fadeSlide 0.25s ease both;
-    }
+    .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 10px; border-radius: 6px; border: 1px solid transparent; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); animation: fadeSlide 0.25s ease both; }
 
     @keyframes fadeSlide {
       from { opacity: 0; transform: translateY(-6px); }
@@ -653,297 +240,72 @@
     }
 
     .task-item:hover { background: var(--bg-2); border-color: var(--border); }
-    .task-item.done  { opacity: 0.4; }
+    .task-item.done { opacity: 0.4; }
     .task-item.removing { opacity: 0; transform: translateX(10px); max-height: 0; padding: 0; overflow: hidden; transition: all 0.25s ease; }
-
-    .line-gutter {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      color: var(--text-faint);
-      user-select: none;
-      width: 24px;
-      text-align: right;
-      flex-shrink: 0;
-      padding-top: 3px;
-    }
-
-    .check-btn {
-      width: 18px; height: 18px;
-      border-radius: 3px;
-      border: 1px solid var(--border);
-      background: transparent;
-      cursor: pointer;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s;
-      margin-top: 2px;
-    }
+    .line-gutter { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-faint); user-select: none; width: 24px; text-align: right; flex-shrink: 0; padding-top: 3px; }
+    .check-btn { width: 18px; height: 18px; border-radius: 3px; border: 1px solid var(--border); background: transparent; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; margin-top: 2px; }
     .check-btn:hover { border-color: var(--green); }
     .task-item.done .check-btn { background: var(--green); border-color: var(--green); }
     .check-btn svg { opacity: 0; transition: opacity 0.15s; }
     .task-item.done .check-btn svg { opacity: 1; }
-
     .task-body { flex: 1; min-width: 0; }
-    .task-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 15px;
-      color: var(--text);
-      line-height: 1.5;
-      word-break: break-word;
-    }
+    .task-text { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: var(--text); line-height: 1.5; word-break: break-word; }
     .task-item.done .task-text { text-decoration: line-through; color: var(--text-faint); }
-
     .task-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
     .task-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 4px; }
     .task-tag.work     { background: var(--tag-work-bg);     color: var(--tag-work-ink); }
     .task-tag.personal { background: var(--tag-personal-bg); color: var(--tag-personal-ink); }
     .task-tag.health   { background: var(--tag-health-bg);   color: var(--tag-health-ink); }
-
-    .delete-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      opacity: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 4px;
-      border-radius: 4px;
-      transition: opacity 0.15s, background 0.15s;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
+    .delete-btn { background: none; border: none; cursor: pointer; opacity: 0; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: opacity 0.15s, background 0.15s; flex-shrink: 0; margin-top: 1px; }
     .task-item:hover .delete-btn { opacity: 1; }
     .delete-btn:hover { background: rgba(255,123,114,0.12); }
 
-    /* ── Empty State ── */
     .empty-state { padding: 40px 0; display: none; }
     .empty-state.visible { display: block; }
     .empty-code { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 2.2; color: var(--text-faint); }
-    .empty-code .kw  { color: var(--purple); }
-    .empty-code .fn  { color: var(--blue); }
+    .empty-code .kw { color: var(--purple); }
+    .empty-code .fn { color: var(--blue); }
     .empty-code .str { color: var(--green); }
 
-    /* ── Status Bar ── */
-    .statusbar {
-      width: 100%;
-      height: 24px;
-      background: var(--claude);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      flex-shrink: 0;
-    }
-
+    .statusbar { width: 100%; height: 24px; background: var(--claude); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
     .status-left, .status-right { display: flex; align-items: center; gap: 16px; }
     .status-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.85); }
-    /* ── Celebration Popup ── */
-    .celebrate-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      backdrop-filter: blur(4px);
-      z-index: 999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
 
-    .celebrate-overlay.show {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .celebrate-card {
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 36px 40px 32px;
-      max-width: 380px;
-      width: 90%;
-      text-align: center;
-      transform: translateY(24px) scale(0.95);
-      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-      position: relative;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
-    }
-
-    .celebrate-overlay.show .celebrate-card {
-      transform: translateY(0) scale(1);
-    }
-
-    .celebrate-ascii {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      color: var(--claude);
-      text-shadow: 0 0 20px rgba(218,119,86,0.4);
-      white-space: pre;
-      margin-bottom: 20px;
-    }
-
-    .celebrate-title {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 8px;
-    }
-
+    .celebrate-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    .celebrate-overlay.show { opacity: 1; pointer-events: all; }
+    .celebrate-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px; padding: 36px 40px 32px; max-width: 380px; width: 90%; text-align: center; transform: translateY(24px) scale(0.95); transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--border); }
+    .celebrate-overlay.show .celebrate-card { transform: translateY(0) scale(1); }
+    .celebrate-ascii { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; color: var(--claude); text-shadow: 0 0 20px rgba(218,119,86,0.4); white-space: pre; margin-bottom: 20px; }
+    .celebrate-title { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
     .celebrate-title span { color: var(--claude); }
-
-    .celebrate-msg {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.7;
-      margin-bottom: 28px;
-    }
-
-    .celebrate-msg .highlight { color: var(--green); }
-
-    .celebrate-btn {
-      background: var(--claude);
-      border: none;
-      border-radius: 8px;
-      padding: 12px 28px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      font-weight: 700;
-      color: white;
-      cursor: pointer;
-      transition: all 0.15s;
-      letter-spacing: 0.04em;
-    }
-
-    .celebrate-btn:hover {
-      opacity: 0.85;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(218,119,86,0.35);
-    }
-
+    .celebrate-msg { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); line-height: 1.7; margin-bottom: 28px; }
+    .celebrate-btn { background: var(--claude); border: none; border-radius: 8px; padding: 12px 28px; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: white; cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em; }
+    .celebrate-btn:hover { opacity: 0.85; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(218,119,86,0.35); }
     .celebrate-btn:active { transform: translateY(0); }
-
-    .celebrate-task-name {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-faint);
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid var(--border-soft);
-    }
-
+    .celebrate-task-name { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
     .celebrate-task-name span { color: var(--green); }
 
     @keyframes confetti-drop {
       0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
       100% { transform: translateY(60px) rotate(360deg); opacity: 0; }
     }
+    .confetti-dot { position: absolute; width: 5px; height: 5px; border-radius: 50%; animation: confetti-drop 0.9s ease-out both; }
 
-    .confetti-dot {
-      position: absolute;
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      animation: confetti-drop 0.9s ease-out both;
-    }
-    /* ── Intro / Boot Screen ── */
-    #introScreen {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0;
-      transition: opacity 0.7s ease;
-    }
-
-    #introScreen.fade-out {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .intro-window {
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      width: min(640px, 90vw);
-      overflow: hidden;
-      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
-    }
-
-    .intro-titlebar {
-      background: var(--bg-3);
-      border-bottom: 1px solid var(--border);
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
+    #introScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.7s ease; }
+    #introScreen.fade-out { opacity: 0; pointer-events: none; }
+    .intro-window { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; width: min(640px, 90vw); overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
+    .intro-titlebar { background: var(--bg-3); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
     .intro-dots { display: flex; gap: 6px; }
-    .intro-dot  { width: 11px; height: 11px; border-radius: 50%; }
+    .intro-dot { width: 11px; height: 11px; border-radius: 50%; }
     .intro-dot.r { background: #FF5F57; }
     .intro-dot.y { background: #FFBD2E; }
     .intro-dot.g { background: #28C840; }
-
-    .intro-tab {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-muted);
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 4px 4px 0 0;
-      border-bottom: none;
-      padding: 3px 12px;
-      margin-left: 4px;
-    }
-
+    .intro-tab { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); background: var(--bg-2); border: 1px solid var(--border); border-radius: 4px 4px 0 0; border-bottom: none; padding: 3px 12px; margin-left: 4px; }
     .intro-tab span { color: var(--claude); }
-
-    .intro-code {
-      padding: 24px 28px 20px;
-      min-height: 260px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-
-    .intro-line {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      line-height: 2;
-      white-space: pre;
-      opacity: 0;
-      transform: translateX(-6px);
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-    }
-
-    .intro-line.visible {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    .intro-lnum {
-      color: var(--text-faint);
-      user-select: none;
-      width: 20px;
-      text-align: right;
-      flex-shrink: 0;
-      font-size: 12px;
-    }
-
+    .intro-code { padding: 24px 28px 20px; min-height: 260px; display: flex; flex-direction: column; }
+    .intro-line { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 2; white-space: pre; opacity: 0; transform: translateX(-6px); transition: opacity 0.2s ease, transform 0.2s ease; display: flex; align-items: baseline; gap: 12px; }
+    .intro-line.visible { opacity: 1; transform: translateX(0); }
+    .intro-lnum { color: var(--text-faint); user-select: none; width: 20px; text-align: right; flex-shrink: 0; font-size: 12px; }
     .intro-line .kw  { color: var(--purple); }
     .intro-line .fn  { color: var(--yellow); }
     .intro-line .str { color: var(--green); }
@@ -952,93 +314,44 @@
     .intro-line .num { color: var(--orange); }
     .intro-line .acc { color: var(--claude); }
     .intro-line .op  { color: var(--text-muted); }
-
-    .intro-cursor {
-      display: inline-block;
-      width: 8px;
-      height: 14px;
-      background: var(--claude);
-      margin-left: 2px;
-      vertical-align: middle;
-      animation: blink 0.8s step-end infinite;
-    }
-
+    .intro-cursor { display: inline-block; width: 8px; height: 14px; background: var(--claude); margin-left: 2px; vertical-align: middle; animation: blink 0.8s step-end infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-    .intro-footer {
-      padding: 0 28px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .intro-loader {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .intro-spinner {
-      width: 14px; height: 14px;
-      border: 2px solid var(--border);
-      border-top-color: var(--claude);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-
+    .intro-footer { padding: 0 28px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .intro-loader { display: flex; align-items: center; gap: 10px; }
+    .intro-spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--claude); border-radius: 50%; animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    .intro-loader-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-faint);
-    }
-
+    .intro-loader-text { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); }
     .intro-loader-text span { color: var(--claude); }
-
-    .intro-tagline {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      color: var(--text-faint);
-      letter-spacing: 0.06em;
-    }
-
-    .app-wrapper {
-      opacity: 0;
-      transition: opacity 0.7s ease;
-    }
-
+    .intro-tagline { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); letter-spacing: 0.06em; }
+    .app-wrapper { opacity: 0; transition: opacity 0.7s ease; }
     .app-wrapper.visible { opacity: 1; }
   </style>
 </head>
 <body>
 
-  <!-- ── Intro Boot Screen ── -->
-  <div id="introScreen">
-    <div class="intro-window">
-      <div class="intro-titlebar">
-        <div class="intro-dots">
-          <div class="intro-dot r"></div>
-          <div class="intro-dot y"></div>
-          <div class="intro-dot g"></div>
-        </div>
-        <div class="intro-tab">devday<span>.init</span></div>
+<div id="introScreen">
+  <div class="intro-window">
+    <div class="intro-titlebar">
+      <div class="intro-dots">
+        <div class="intro-dot r"></div>
+        <div class="intro-dot y"></div>
+        <div class="intro-dot g"></div>
       </div>
-      <div class="intro-code" id="introCode"></div>
-      <div class="intro-footer">
-        <div class="intro-loader" id="introLoader" style="opacity:0;transition:opacity 0.4s">
-          <div class="intro-spinner"></div>
-          <div class="intro-loader-text">booting <span>devday</span>...</div>
-        </div>
-        <div class="intro-tagline" id="introTagline" style="opacity:0;transition:opacity 0.4s"></div>
+      <div class="intro-tab">devday<span>.init</span></div>
+    </div>
+    <div class="intro-code" id="introCode"></div>
+    <div class="intro-footer">
+      <div class="intro-loader" id="introLoader" style="opacity:0;transition:opacity 0.4s">
+        <div class="intro-spinner"></div>
+        <div class="intro-loader-text">booting <span>devday</span>...</div>
       </div>
+      <div class="intro-tagline" id="introTagline" style="opacity:0;transition:opacity 0.4s"></div>
     </div>
   </div>
+</div>
 
-  <!-- ── App ── -->
-  <div class="app-wrapper" id="appWrapper">
+<div class="app-wrapper" id="appWrapper">
 
-  <!-- Title Bar -->
   <div class="titlebar">
     <div class="titlebar-left">
       <div class="window-dots">
@@ -1069,174 +382,118 @@
   </div>
 
   <div class="layout">
-
-    <!-- Sidebar -->
     <aside class="sidebar">
-    <!-- Seven-Segment Clock -->
-    <div class="ascii-clock-wrap">
-      <div class="seg-clock" id="segClock"></div>
-    </div>
-
-    <!-- Weather Widget -->
-    <div class="weather-wrap" id="weatherWrap">
-      <div class="weather-header">// <span id="weatherLocation">weather.live</span></div>
-      <div class="weather-loading" id="weatherLoading">fetching data...</div>
-      <div id="weatherWidget" style="display:none">
-        <div class="weather-top">
-          <canvas id="weatherCanvas" width="90" height="90"></canvas>
-          <div class="weather-temp-block">
-            <div class="weather-temp" id="wTemp">--°</div>
-            <div class="weather-desc" id="wDesc">--</div>
-          </div>
-        </div>
-        <div class="weather-badges" id="wBadges"></div>
-        <div class="weather-forecast" id="wForecast"></div>
+      <div class="ascii-clock-wrap">
+        <div class="seg-clock" id="segClock"></div>
       </div>
-    </div>
-
+      <div class="weather-wrap" id="weatherWrap">
+        <div class="weather-header">// <span id="weatherLocation">weather.live</span></div>
+        <div class="weather-loading" id="weatherLoading">fetching data...</div>
+        <div id="weatherWidget" style="display:none">
+          <div class="weather-top">
+            <canvas id="weatherCanvas" width="90" height="90"></canvas>
+            <div class="weather-temp-block">
+              <div class="weather-temp" id="wTemp">--°</div>
+              <div class="weather-desc" id="wDesc">--</div>
+            </div>
+          </div>
+          <div class="weather-badges" id="wBadges"></div>
+          <div class="weather-forecast" id="wForecast"></div>
+        </div>
+      </div>
       <div class="sidebar-section" style="margin-top:12px">Explorer</div>
-
       <button class="sidebar-item active" onclick="setFilter(this,'all')">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-          <rect x="2" y="2" width="5" height="5" rx="1" fill="#7D8590"/>
-          <rect x="9" y="2" width="5" height="5" rx="1" fill="#7D8590"/>
-          <rect x="2" y="9" width="5" height="5" rx="1" fill="#7D8590"/>
-          <rect x="9" y="9" width="5" height="5" rx="1" fill="#7D8590"/>
-        </svg>
-        All tasks
-        <span class="dot-count" id="count-all">0</span>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="#7D8590"/><rect x="9" y="2" width="5" height="5" rx="1" fill="#7D8590"/><rect x="2" y="9" width="5" height="5" rx="1" fill="#7D8590"/><rect x="9" y="9" width="5" height="5" rx="1" fill="#7D8590"/></svg>
+        All tasks <span class="dot-count" id="count-all">0</span>
       </button>
       <button class="sidebar-item" onclick="setFilter(this,'active')">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#7D8590" stroke-width="1.5"/></svg>
-        Active
-        <span class="dot-count" id="count-active">0</span>
+        Active <span class="dot-count" id="count-active">0</span>
       </button>
       <button class="sidebar-item" onclick="setFilter(this,'done')">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="5.5" stroke="#3FB950" stroke-width="1.5"/>
-          <path d="M5 8l2 2 4-4" stroke="#3FB950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Done
-        <span class="dot-count" id="count-done">0</span>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#3FB950" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="#3FB950" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Done <span class="dot-count" id="count-done">0</span>
       </button>
-
       <div class="sidebar-divider"></div>
       <div class="sidebar-section">Labels</div>
-
       <button class="sidebar-item" onclick="setFilter(this,'work')">
         <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#58A6FF"/></svg>
-        work
-        <span class="dot-count" id="count-work">0</span>
+        work <span class="dot-count" id="count-work">0</span>
       </button>
       <button class="sidebar-item" onclick="setFilter(this,'personal')">
         <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#BC8CFF"/></svg>
-        personal
-        <span class="dot-count" id="count-personal">0</span>
+        personal <span class="dot-count" id="count-personal">0</span>
       </button>
       <button class="sidebar-item" onclick="setFilter(this,'health')">
         <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#3FB950"/></svg>
-        health
-        <span class="dot-count" id="count-health">0</span>
+        health <span class="dot-count" id="count-health">0</span>
       </button>
-
       <div class="sidebar-divider"></div>
-
       <div class="sidebar-progress">
-        <div class="sidebar-progress-label">
-          <span>progress</span>
-          <span id="progressPct">0%</span>
-        </div>
-        <div class="progress-track">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
+        <div class="sidebar-progress-label"><span>progress</span><span id="progressPct">0%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
       </div>
     </aside>
 
-    <!-- Main -->
     <main class="main">
-
       <div class="breadcrumb">
         <span>~/planner</span>
         <span style="color:var(--text-faint)">/</span>
         <span class="active" id="bcDate">today</span>
       </div>
-
-      <div class="page-title">
-        # daily tasks
-        <span class="comment">// stay focused</span>
-      </div>
-
+      <div class="page-title"># daily tasks <span class="comment">// stay focused</span></div>
       <div class="page-meta">
         <span class="kw">const</span>&nbsp;today&nbsp;=&nbsp;<span class="str">"<span id="metaDate"></span>"</span>&nbsp;<span class="cmt">// <span class="daystr" id="metaDay"></span></span>
       </div>
 
-      <!-- Input -->
       <div id="inputArea">
-      <div class="input-block">
-        <div class="input-topbar">
-          <span class="input-topbar-label">
-            <span class="fn">addTask</span><span class="paren">(</span><span class="str">"..."</span><span class="paren">)</span>
-          </span>
-        </div>
-        <div class="input-row">
-          <span class="line-num">1</span>
-          <span class="prompt-char">&gt;</span>
-          <input class="task-input" id="taskInput" type="text" placeholder="describe your task..." maxlength="120"/>
-          <button class="add-btn" onclick="addTask()">+ add</button>
-        </div>
-        <div class="tags-row">
-          <button class="tag-btn" data-tag="work"     onclick="toggleTag(this)">#work</button>
-          <button class="tag-btn" data-tag="personal" onclick="toggleTag(this)">#personal</button>
-          <button class="tag-btn" data-tag="health"   onclick="toggleTag(this)">#health</button>
+        <div class="input-block">
+          <div class="input-topbar">
+            <span class="input-topbar-label"><span class="fn">addTask</span><span class="paren">(</span><span class="str">"..."</span><span class="paren">)</span></span>
+          </div>
+          <div class="input-row">
+            <span class="line-num">1</span>
+            <span class="prompt-char">&gt;</span>
+            <input class="task-input" id="taskInput" type="text" placeholder="describe your task..." maxlength="120"/>
+            <button class="add-btn" onclick="addTask()">+ add</button>
+          </div>
+          <div class="tags-row">
+            <button class="tag-btn" data-tag="work"     onclick="toggleTag(this)">#work</button>
+            <button class="tag-btn" data-tag="personal" onclick="toggleTag(this)">#personal</button>
+            <button class="tag-btn" data-tag="health"   onclick="toggleTag(this)">#health</button>
+          </div>
         </div>
       </div>
-      </div><!-- /inputArea -->
 
-      <!-- List View -->
       <div id="listView">
-      <!-- Tasks -->
-      <div class="task-list" id="taskList"></div>
-
-      <!-- Empty State -->
-      <div class="empty-state" id="emptyState">
-        <div class="empty-code">
-          <div><span style="color:var(--text-faint)">// no tasks yet</span></div>
-          <div><span class="kw">while</span> (tasks.<span class="fn">length</span> === 0) {</div>
-          <div>&nbsp;&nbsp;tasks.<span class="fn">push</span>(<span class="str">"your first task"</span>);</div>
-          <div>}</div>
+        <div class="task-list" id="taskList"></div>
+        <div class="empty-state" id="emptyState">
+          <div class="empty-code">
+            <div><span style="color:var(--text-faint)">// no tasks yet</span></div>
+            <div><span class="kw">while</span> (tasks.<span class="fn">length</span> === 0) {</div>
+            <div>&nbsp;&nbsp;tasks.<span class="fn">push</span>(<span class="str">"your first task"</span>);</div>
+            <div>}</div>
+          </div>
         </div>
       </div>
-      </div><!-- /listView -->
 
-      <!-- Kanban Board -->
       <div id="kanbanView">
         <div class="kb-col" data-status="todo" ondragover="onDragOver(event)" ondrop="onDrop(event,'todo')" ondragleave="onDragLeave(event)">
-          <div class="kb-col-header">
-            <div class="kb-col-title"><span class="kb-col-dot"></span>TODO</div>
-            <span class="kb-count" id="kb-count-todo">0</span>
-          </div>
+          <div class="kb-col-header"><div class="kb-col-title"><span class="kb-col-dot"></span>TODO</div><span class="kb-count" id="kb-count-todo">0</span></div>
           <div class="kb-cards" id="kb-todo"></div>
         </div>
         <div class="kb-col" data-status="doing" ondragover="onDragOver(event)" ondrop="onDrop(event,'doing')" ondragleave="onDragLeave(event)">
-          <div class="kb-col-header">
-            <div class="kb-col-title"><span class="kb-col-dot"></span>DOING</div>
-            <span class="kb-count" id="kb-count-doing">0</span>
-          </div>
+          <div class="kb-col-header"><div class="kb-col-title"><span class="kb-col-dot"></span>DOING</div><span class="kb-count" id="kb-count-doing">0</span></div>
           <div class="kb-cards" id="kb-doing"></div>
         </div>
         <div class="kb-col" data-status="done" ondragover="onDragOver(event)" ondrop="onDrop(event,'done')" ondragleave="onDragLeave(event)">
-          <div class="kb-col-header">
-            <div class="kb-col-title"><span class="kb-col-dot"></span>DONE</div>
-            <span class="kb-count" id="kb-count-done">0</span>
-          </div>
+          <div class="kb-col-header"><div class="kb-col-title"><span class="kb-col-dot"></span>DONE</div><span class="kb-count" id="kb-count-done">0</span></div>
           <div class="kb-cards" id="kb-done"></div>
         </div>
       </div>
-
     </main>
   </div>
 
-  <!-- Status Bar -->
   <div class="statusbar">
     <div class="status-left">
       <div class="status-item">⎇ &nbsp;main</div>
@@ -1248,19 +505,17 @@
       <div class="status-item">Markdown</div>
     </div>
   </div>
+</div>
 
-  </div><!-- /app-wrapper -->
-
-  <!-- Celebration Popup -->
-  <div class="celebrate-overlay" id="celebrateOverlay" onclick="closeCelebration(event)">
-    <div class="celebrate-card" id="celebrateCard">
-      <div class="celebrate-ascii" id="celebrateAscii"></div>
-      <div class="celebrate-title" id="celebrateTitle"></div>
-      <div class="celebrate-msg" id="celebrateMsg"></div>
-      <button class="celebrate-btn" onclick="closeCelebration()">I got this! 🚀</button>
-      <div class="celebrate-task-name" id="celebrateTask"></div>
-    </div>
+<div class="celebrate-overlay" id="celebrateOverlay" onclick="closeCelebration(event)">
+  <div class="celebrate-card" id="celebrateCard">
+    <div class="celebrate-ascii" id="celebrateAscii"></div>
+    <div class="celebrate-title" id="celebrateTitle"></div>
+    <div class="celebrate-msg" id="celebrateMsg"></div>
+    <button class="celebrate-btn" onclick="closeCelebration()">I got this! 🚀</button>
+    <div class="celebrate-task-name" id="celebrateTask"></div>
   </div>
+</div>
 
 <script>
   let tasks = JSON.parse(localStorage.getItem('devday-tasks') || '[]');
@@ -1268,12 +523,9 @@
   let currentFilter = 'all';
   let currentView = 'list';
   let dragId = null;
+  let _dragImageEl = null;
 
-  // Migrate old tasks: add status field based on done boolean
-  tasks = tasks.map(t => ({
-    ...t,
-    status: t.status || (t.done ? 'done' : 'todo')
-  }));
+  tasks = tasks.map(t => ({ ...t, status: t.status || (t.done ? 'done' : 'todo') }));
 
   function init() {
     setDate();
@@ -1294,25 +546,22 @@
     document.getElementById('bcDate').textContent   = `${months[now.getMonth()]}-${String(now.getDate()).padStart(2,'0')}`;
   }
 
-  // ── SVG Seven-Segment Clock ──
-  const SEG_ON  = '#DA7756';
-  const SEG_OFF = '#1C1009';
+  // ── Seven-Segment Clock ──
+  const SEG_ON   = '#DA7756';
+  const SEG_OFF  = '#1C1009';
   const SEG_GLOW = 'drop-shadow(0 0 4px rgba(218,119,86,0.8))';
-
-  // Segments: [a=top, b=top-right, c=bot-right, d=bottom, e=bot-left, f=top-left, g=middle]
-  const SEG_MAP = {
-    '0':[1,1,1,1,1,1,0], '1':[0,1,1,0,0,0,0], '2':[1,1,0,1,1,0,1],
-    '3':[1,1,1,1,0,0,1], '4':[0,1,1,0,0,1,1], '5':[1,0,1,1,0,1,1],
-    '6':[1,0,1,1,1,1,1], '7':[1,1,1,0,0,0,0], '8':[1,1,1,1,1,1,1],
+  const SEG_MAP  = {
+    '0':[1,1,1,1,1,1,0],'1':[0,1,1,0,0,0,0],'2':[1,1,0,1,1,0,1],
+    '3':[1,1,1,1,0,0,1],'4':[0,1,1,0,0,1,1],'5':[1,0,1,1,0,1,1],
+    '6':[1,0,1,1,1,1,1],'7':[1,1,1,0,0,0,0],'8':[1,1,1,1,1,1,1],
     '9':[1,1,1,1,0,1,1],
   };
 
-  // Each digit: 20×38 viewBox. Segments as filled polygons.
   function digitSVG(ch) {
     const s = SEG_MAP[ch] || [0,0,0,0,0,0,0];
     const c = i => s[i] ? SEG_ON : SEG_OFF;
-    const filter = s.some(x=>x) ? `filter="${SEG_GLOW}"` : '';
-    return `<svg width="26" height="44" viewBox="0 0 20 38" xmlns="http://www.w3.org/2000/svg" ${filter}>
+    const f = s.some(x=>x) ? `filter="${SEG_GLOW}"` : '';
+    return `<svg width="26" height="44" viewBox="0 0 20 38" xmlns="http://www.w3.org/2000/svg" ${f}>
       <polygon points="3,1 17,1 15,4 5,4"           fill="${c(0)}"/>
       <polygon points="18,2 18,17 15,15 15,5"        fill="${c(1)}"/>
       <polygon points="18,21 18,36 15,33 15,23"      fill="${c(2)}"/>
@@ -1337,243 +586,91 @@
     const h = String(now.getHours()).padStart(2,'0');
     const m = String(now.getMinutes()).padStart(2,'0');
     const blink = now.getSeconds() % 2 === 0;
-
     document.getElementById('segClock').innerHTML =
-      digitSVG(h[0]) + digitSVG(h[1]) +
-      colonSVG(blink) +
-      digitSVG(m[0]) + digitSVG(m[1]);
-
-    // status bar time only
+      digitSVG(h[0]) + digitSVG(h[1]) + colonSVG(blink) + digitSVG(m[0]) + digitSVG(m[1]);
     document.getElementById('statusTime').textContent = `${h}:${m}`;
   }
 
-  function startClock() {
-    renderAsciiClock();
-    setInterval(renderAsciiClock, 1000);
-  }
+  function startClock() { renderAsciiClock(); setInterval(renderAsciiClock, 1000); }
 
-  // ── Nothing OS dot-matrix weather icons ──
-  // Each icon is a 9×9 bit grid (1=dot, 0=empty)
+  // ── Weather ──
   const DOT_ICONS = {
-    clear: [
-      [0,0,0,1,0,0,0,0,0],
-      [0,0,0,0,0,1,0,0,0],
-      [0,1,0,0,0,0,0,1,0],
-      [0,0,0,1,1,1,0,0,0],
-      [1,0,1,1,1,1,1,0,1],
-      [0,0,0,1,1,1,0,0,0],
-      [0,1,0,0,0,0,0,1,0],
-      [0,0,0,0,0,1,0,0,0],
-      [0,0,0,1,0,0,0,0,0],
-    ],
-    partly_cloudy: [
-      [0,0,0,1,0,0,0,0,0],
-      [0,0,0,0,1,0,0,0,0],
-      [0,0,0,1,1,1,0,0,0],
-      [0,0,1,1,1,1,1,0,0],
-      [0,1,0,0,0,0,0,1,0],
-      [0,0,1,1,1,1,1,1,0],
-      [0,1,1,1,1,1,1,1,1],
-      [0,0,1,1,1,1,1,1,0],
-      [0,0,0,0,0,0,0,0,0],
-    ],
-    cloudy: [
-      [0,0,0,0,0,0,0,0,0],
-      [0,0,1,1,0,0,0,0,0],
-      [0,1,1,1,1,0,0,0,0],
-      [1,1,1,1,1,1,1,0,0],
-      [0,1,1,1,1,1,1,1,0],
-      [1,1,1,1,1,1,1,1,1],
-      [0,1,1,1,1,1,1,1,0],
-      [0,0,1,1,1,1,1,0,0],
-      [0,0,0,0,0,0,0,0,0],
-    ],
-    rain: [
-      [0,0,1,1,1,0,0,0,0],
-      [0,1,1,1,1,1,0,0,0],
-      [1,1,1,1,1,1,1,0,0],
-      [0,1,1,1,1,1,1,1,0],
-      [0,0,0,0,0,0,0,0,0],
-      [0,1,0,1,0,1,0,1,0],
-      [1,0,1,0,1,0,1,0,1],
-      [0,1,0,1,0,1,0,1,0],
-      [0,0,1,0,1,0,1,0,0],
-    ],
-    snow: [
-      [0,0,0,1,0,1,0,0,0],
-      [0,0,0,0,1,0,0,0,0],
-      [0,0,0,1,0,1,0,0,0],
-      [1,0,1,0,0,0,1,0,1],
-      [0,1,0,0,0,0,0,1,0],
-      [1,0,1,0,0,0,1,0,1],
-      [0,0,0,1,0,1,0,0,0],
-      [0,0,0,0,1,0,0,0,0],
-      [0,0,0,1,0,1,0,0,0],
-    ],
-    storm: [
-      [0,1,1,1,1,1,0,0,0],
-      [1,1,1,1,1,1,1,0,0],
-      [1,1,1,1,1,1,1,1,0],
-      [0,0,0,0,0,0,0,0,0],
-      [0,0,1,1,0,0,0,0,0],
-      [0,1,1,0,0,0,0,0,0],
-      [0,1,1,1,1,0,0,0,0],
-      [0,0,0,1,0,0,0,0,0],
-      [0,0,0,1,0,0,0,0,0],
-    ],
-    fog: [
-      [0,0,0,0,0,0,0,0,0],
-      [1,1,1,1,1,1,1,1,1],
-      [0,0,0,0,0,0,0,0,0],
-      [1,1,1,1,1,1,1,1,1],
-      [0,0,0,0,0,0,0,0,0],
-      [1,1,1,1,1,1,1,1,1],
-      [0,0,0,0,0,0,0,0,0],
-      [1,1,1,1,1,1,1,1,1],
-      [0,0,0,0,0,0,0,0,0],
-    ],
+    clear:         [[0,0,0,1,0,0,0,0,0],[0,0,0,0,0,1,0,0,0],[0,1,0,0,0,0,0,1,0],[0,0,0,1,1,1,0,0,0],[1,0,1,1,1,1,1,0,1],[0,0,0,1,1,1,0,0,0],[0,1,0,0,0,0,0,1,0],[0,0,0,0,0,1,0,0,0],[0,0,0,1,0,0,0,0,0]],
+    partly_cloudy: [[0,0,0,1,0,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,1,1,1,1,1,0,0],[0,1,0,0,0,0,0,1,0],[0,0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,1,1],[0,0,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0]],
+    cloudy:        [[0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,1,1,0,0,0,0],[1,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,0],[0,0,1,1,1,1,1,0,0],[0,0,0,0,0,0,0,0,0]],
+    rain:          [[0,0,1,1,1,0,0,0,0],[0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],[0,1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0,1],[0,1,0,1,0,1,0,1,0],[0,0,1,0,1,0,1,0,0]],
+    snow:          [[0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0],[1,0,1,0,0,0,1,0,1],[0,1,0,0,0,0,0,1,0],[1,0,1,0,0,0,1,0,1],[0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0]],
+    storm:         [[0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],[1,1,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,0,0,0,0,0,0],[0,1,1,1,1,0,0,0,0],[0,0,0,1,0,0,0,0,0],[0,0,0,1,0,0,0,0,0]],
+    fog:           [[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0]],
   };
 
   function drawWeatherDots(canvasEl, iconKey) {
     const grid = DOT_ICONS[iconKey] || DOT_ICONS.clear;
     const ctx  = canvasEl.getContext('2d');
     const size = canvasEl.width;
-    const rows = 9, cols = 9;
     const padding = size * 0.06;
-    const cellW = (size - padding * 2) / cols;
-    const cellH = (size - padding * 2) / rows;
+    const cellW = (size - padding * 2) / 9;
+    const cellH = (size - padding * 2) / 9;
     const dotR  = cellW * 0.38;
-
     ctx.clearRect(0, 0, size, size);
-
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
         const on = grid[r][c] === 1;
-        const x  = padding + c * cellW + cellW / 2;
-        const y  = padding + r * cellH + cellH / 2;
-
         ctx.beginPath();
-        ctx.arc(x, y, dotR, 0, Math.PI * 2);
-
-        if (on) {
-          ctx.fillStyle = '#DA7756';
-          ctx.shadowColor = 'rgba(218,119,86,0.9)';
-          ctx.shadowBlur  = size > 50 ? 7 : 4;
-        } else {
-          ctx.fillStyle = '#21262D';
-          ctx.shadowBlur = 0;
-        }
+        ctx.arc(padding + c * cellW + cellW / 2, padding + r * cellH + cellH / 2, dotR, 0, Math.PI * 2);
+        if (on) { ctx.fillStyle = '#DA7756'; ctx.shadowColor = 'rgba(218,119,86,0.9)'; ctx.shadowBlur = size > 50 ? 7 : 4; }
+        else    { ctx.fillStyle = '#21262D'; ctx.shadowBlur = 0; }
         ctx.fill();
       }
     }
   }
 
-  function codeToIcon(code) {
-    if (code === 0)               return 'clear';
-    if (code <= 2)                return 'partly_cloudy';
-    if (code === 3)               return 'cloudy';
-    if (code <= 48)               return 'fog';
-    if (code <= 67 || code <= 82) return 'rain';
-    if (code <= 77)               return 'snow';
+  function codeToIcon(c) {
+    if (c === 0) return 'clear';
+    if (c <= 2)  return 'partly_cloudy';
+    if (c === 3) return 'cloudy';
+    if (c <= 48) return 'fog';
+    if (c <= 67 || c <= 82) return 'rain';
+    if (c <= 77) return 'snow';
     return 'storm';
   }
 
-  const WX_DESC = {
-    0:'clear_sky', 1:'mainly_clear', 2:'partly_cloudy', 3:'overcast',
-    45:'fog', 48:'rime_fog', 51:'drizzle_light', 53:'drizzle',
-    55:'drizzle_heavy', 61:'rain_light', 63:'rain', 65:'rain_heavy',
-    71:'snow_light', 73:'snow', 75:'snow_heavy',
-    80:'showers_light', 81:'showers', 82:'showers_violent',
-    95:'thunderstorm', 96:'thunderstorm_hail', 99:'thunderstorm_hail',
-  };
+  const WX_DESC = { 0:'clear_sky',1:'mainly_clear',2:'partly_cloudy',3:'overcast',45:'fog',48:'rime_fog',51:'drizzle_light',53:'drizzle',55:'drizzle_heavy',61:'rain_light',63:'rain',65:'rain_heavy',71:'snow_light',73:'snow',75:'snow_heavy',80:'showers_light',81:'showers',82:'showers_violent',95:'thunderstorm',96:'thunderstorm_hail',99:'thunderstorm_hail' };
 
   async function fetchWeather() {
     try {
       const coords = await new Promise(res => {
         if (!navigator.geolocation) return res({ lat: 38.7169, lon: -9.1399 });
-        navigator.geolocation.getCurrentPosition(
-          p => res({ lat: p.coords.latitude, lon: p.coords.longitude }),
-          () => res({ lat: 38.7169, lon: -9.1399 }),
-          { timeout: 4000 }
-        );
+        navigator.geolocation.getCurrentPosition(p => res({ lat: p.coords.latitude, lon: p.coords.longitude }), () => res({ lat: 38.7169, lon: -9.1399 }), { timeout: 4000 });
       });
-
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}` +
-        `&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m,precipitation` +
-        `&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max` +
-        `&timezone=auto&forecast_days=4&wind_speed_unit=kmh&temperature_unit=celsius`;
-
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m,precipitation&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&timezone=auto&forecast_days=4&wind_speed_unit=kmh&temperature_unit=celsius`;
       const data = await (await fetch(url)).json();
-
-      // Reverse geocode city name
       try {
         const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lon}&format=json`);
-        const geoData = await geo.json();
-        const city    = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.county || '';
-        const country = geoData.address?.country_code?.toUpperCase() || '';
-        if (city) document.getElementById('weatherLocation').textContent = `${city}, ${country}`;
-      } catch(_) { /* keep default */ }
-      const cur  = data.current;
-      const daily = data.daily;
-
+        const gd  = await geo.json();
+        const city = gd.address?.city || gd.address?.town || gd.address?.village || gd.address?.county || '';
+        const cc   = gd.address?.country_code?.toUpperCase() || '';
+        if (city) document.getElementById('weatherLocation').textContent = `${city}, ${cc}`;
+      } catch(_) {}
+      const cur = data.current, daily = data.daily;
       const code = cur.weather_code;
-      const iconKey = codeToIcon(code);
-      const desc = (WX_DESC[code] || 'unknown').replace(/_/g,' ');
-      const temp = Math.round(cur.temperature_2m);
-      const wind = Math.round(cur.wind_speed_10m);
-      const hum  = cur.relative_humidity_2m;
-      const precip = cur.precipitation ?? 0;
-
-      // Draw dot canvas
-      drawWeatherDots(document.getElementById('weatherCanvas'), iconKey);
-
-      document.getElementById('wTemp').textContent = `${temp}°`;
-      document.getElementById('wDesc').textContent = desc;
-
-      // Badges
-      const badges = [
-        { val: `${hum}%`,   label: 'HUMID',  hi: false },
-        { val: `${wind}`,   label: 'KM/H',   hi: false },
-        { val: `${precip}`, label: 'MM',      hi: precip > 0 },
-      ];
-      document.getElementById('wBadges').innerHTML = badges.map(b => `
-        <div class="weather-badge ${b.hi ? 'highlight' : ''}">
-          <span class="badge-val">${b.val}</span>
-          <span class="badge-label">${b.label}</span>
-        </div>
-      `).join('');
-
-      // Forecast
+      drawWeatherDots(document.getElementById('weatherCanvas'), codeToIcon(code));
+      document.getElementById('wTemp').textContent = `${Math.round(cur.temperature_2m)}°`;
+      document.getElementById('wDesc').textContent = (WX_DESC[code] || 'unknown').replace(/_/g,' ');
+      document.getElementById('wBadges').innerHTML = [
+        { val: `${cur.relative_humidity_2m}%`, label: 'HUMID', hi: false },
+        { val: `${Math.round(cur.wind_speed_10m)}`,  label: 'KM/H',  hi: false },
+        { val: `${cur.precipitation ?? 0}`,           label: 'MM',    hi: (cur.precipitation ?? 0) > 0 },
+      ].map(b => `<div class="weather-badge ${b.hi?'highlight':''}"><span class="badge-val">${b.val}</span><span class="badge-label">${b.label}</span></div>`).join('');
       const fdays = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-      document.getElementById('wForecast').innerHTML = daily.time.slice(1,4).map((t, i) => {
-        const d = new Date(t + 'T12:00:00');
-        const dayLabel = fdays[d.getDay()];
-        const hi = Math.round(daily.temperature_2m_max[i+1]);
-        const lo = Math.round(daily.temperature_2m_min[i+1]);
-        const fCode = daily.weather_code[i+1];
-        const fIcon = codeToIcon(fCode);
-        // Mini inline canvas for forecast icon
-        const id = `fc-${i}`;
-        setTimeout(() => {
-          const el = document.getElementById(id);
-          if (el) drawWeatherDots(el, fIcon);
-        }, 50);
-        return `
-          <div class="forecast-row">
-            <span class="forecast-day">${dayLabel}</span>
-            <div class="forecast-dots">
-              <canvas id="${id}" width="36" height="36" style="image-rendering:pixelated"></canvas>
-            </div>
-            <span class="forecast-temps"><span class="hi">${hi}°</span> / ${lo}°</span>
-          </div>`;
+      document.getElementById('wForecast').innerHTML = daily.time.slice(1,4).map((t,i) => {
+        const d = new Date(t+'T12:00:00'), id = `fc-${i}`;
+        setTimeout(() => { const el = document.getElementById(id); if(el) drawWeatherDots(el, codeToIcon(daily.weather_code[i+1])); }, 50);
+        return `<div class="forecast-row"><span class="forecast-day">${fdays[d.getDay()]}</span><div class="forecast-dots"><canvas id="${id}" width="36" height="36" style="image-rendering:pixelated"></canvas></div><span class="forecast-temps"><span class="hi">${Math.round(daily.temperature_2m_max[i+1])}°</span> / ${Math.round(daily.temperature_2m_min[i+1])}°</span></div>`;
       }).join('');
-
       document.getElementById('weatherLoading').style.display = 'none';
       document.getElementById('weatherWidget').style.display  = 'block';
-
-    } catch(e) {
-      document.getElementById('weatherLoading').textContent = '// fetch failed';
-    }
+    } catch(e) { document.getElementById('weatherLoading').textContent = '// fetch failed'; }
   }
 
   function save() { localStorage.setItem('devday-tasks', JSON.stringify(tasks)); }
@@ -1583,28 +680,19 @@
     const text  = input.value.trim();
     if (!text) return;
     tasks.unshift({ id: Date.now(), text, tag: selectedTag, done: false, status: 'todo' });
-    save();
-    input.value = '';
+    save(); input.value = '';
     renderTasks();
     if (currentView === 'kanban') renderKanban();
   }
 
   function toggleDone(id) {
     const t = tasks.find(t => t.id === id);
-    if (t) {
-      t.done = !t.done;
-      t.status = t.done ? 'done' : 'todo';
-      save(); renderTasks();
-      if (t.done) showCelebration(t.text);
-    }
+    if (t) { t.done = !t.done; t.status = t.done ? 'done' : 'todo'; save(); renderTasks(); if (t.done) showCelebration(t.text); }
   }
 
   function deleteTask(id) {
     const el = document.querySelector(`[data-id="${id}"]`);
-    if (el) {
-      el.classList.add('removing');
-      setTimeout(() => { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); if (currentView === 'kanban') renderKanban(); }, 260);
-    }
+    if (el) { el.classList.add('removing'); setTimeout(() => { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); if (currentView === 'kanban') renderKanban(); }, 260); }
   }
 
   function toggleTag(btn) {
@@ -1616,9 +704,7 @@
 
   function setFilter(btn, filter) {
     document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentFilter = filter;
-    renderTasks();
+    btn.classList.add('active'); currentFilter = filter; renderTasks();
   }
 
   function getFiltered() {
@@ -1631,110 +717,64 @@
   }
 
   function renderTasks() {
-    const list     = document.getElementById('taskList');
-    const empty    = document.getElementById('emptyState');
+    const list = document.getElementById('taskList'), empty = document.getElementById('emptyState');
     const filtered = getFiltered();
-
-    list.innerHTML = filtered.map((t, i) => `
-      <div class="task-item ${t.done ? 'done' : ''}" data-id="${t.id}">
-        <span class="line-gutter">${i + 1}</span>
+    list.innerHTML = filtered.map((t,i) => `
+      <div class="task-item ${t.done?'done':''}" data-id="${t.id}">
+        <span class="line-gutter">${i+1}</span>
         <button class="check-btn" onclick="toggleDone(${t.id})">
-          <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-            <path d="M1 3.5l2.5 2.5 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5l2.5 2.5 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="task-body">
           <div class="task-text">${escHtml(t.text)}</div>
           ${t.tag ? `<div class="task-meta"><span class="task-tag ${t.tag}">#${t.tag}</span></div>` : ''}
         </div>
         <button class="delete-btn" onclick="deleteTask(${t.id})">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M1 1l10 10M11 1L1 11" stroke="#FF7B72" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#FF7B72" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
-      </div>
-    `).join('');
-
+      </div>`).join('');
     empty.classList.toggle('visible', tasks.length === 0);
     updateCounts();
   }
 
   function updateCounts() {
-    const all  = tasks.length;
-    const done = tasks.filter(t => t.done).length;
-    const pct  = all === 0 ? 0 : Math.round((done / all) * 100);
+    const all = tasks.length, done = tasks.filter(t=>t.done).length, pct = all===0?0:Math.round(done/all*100);
     document.getElementById('count-all').textContent      = all;
-    document.getElementById('count-active').textContent   = tasks.filter(t => !t.done).length;
+    document.getElementById('count-active').textContent   = tasks.filter(t=>!t.done).length;
     document.getElementById('count-done').textContent     = done;
-    document.getElementById('count-work').textContent     = tasks.filter(t => t.tag === 'work').length;
-    document.getElementById('count-personal').textContent = tasks.filter(t => t.tag === 'personal').length;
-    document.getElementById('count-health').textContent   = tasks.filter(t => t.tag === 'health').length;
-    document.getElementById('progressFill').style.width  = pct + '%';
-    document.getElementById('progressPct').textContent   = pct + '%';
-    document.getElementById('statusTaskCount').textContent = `${all} task${all !== 1 ? 's' : ''}`;
+    document.getElementById('count-work').textContent     = tasks.filter(t=>t.tag==='work').length;
+    document.getElementById('count-personal').textContent = tasks.filter(t=>t.tag==='personal').length;
+    document.getElementById('count-health').textContent   = tasks.filter(t=>t.tag==='health').length;
+    document.getElementById('progressFill').style.width   = pct+'%';
+    document.getElementById('progressPct').textContent    = pct+'%';
+    document.getElementById('statusTaskCount').textContent = `${all} task${all!==1?'s':''}`;
   }
 
-  function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  // ── Celebration Popup ──
+  // ── Celebration ──
   const CELEBRATIONS = [
-    {
-      ascii: "  \\o/\n   |\n  / \\",
-      title: "Task <span>crushed!</span>",
-      msg: "You're on fire 🔥\nTake a deep breath and enjoy\nthe moment — you earned it."
-    },
-    {
-      ascii: "  (^_^)\n  /||\\\n   /\\",
-      title: "That's a <span>W!</span>",
-      msg: "Seriously, great work.\nMaybe grab a coffee ☕\nor stretch for 2 minutes?"
-    },
-    {
-      ascii: "  ★ ★ ★\n \\(•‿•)/\n  _|_|_",
-      title: "<span>Ship</span>ped!",
-      msg: "One step closer to done.\nYou're building momentum —\nkeep that energy going 💪"
-    },
-    {
-      ascii: "  d(^_^)b\n   ||||\n   d  b",
-      title: "<span>Boom.</span> Done.",
-      msg: "Locked in and delivering.\nGo hydrate 💧 — your brain\ndeserves it after that focus."
-    },
-    {
-      ascii: "  \\(^o^)/\n   _|_\n  /   \\",
-      title: "Level <span>up!</span>",
-      msg: "Every task done is progress.\nTreat yourself — even 5 mins\nof something you love counts 🎮"
-    },
-    {
-      ascii: "   .+*+.\n  (>‿<)\n   /|\\",
-      title: "<span>Clean</span> commit!",
-      msg: "git commit -m 'nailed it'\nTake a little break, breathe,\nyou're doing amazing 🌟"
-    },
+    { ascii:"  \\o/\n   |\n  / \\",  title:"Task <span>crushed!</span>",   msg:"You're on fire 🔥\nTake a deep breath and enjoy\nthe moment — you earned it." },
+    { ascii:"  (^_^)\n  /||\\\n   /\\", title:"That's a <span>W!</span>",  msg:"Seriously, great work.\nMaybe grab a coffee ☕\nor stretch for 2 minutes?" },
+    { ascii:"  ★ ★ ★\n \\(•‿•)/\n  _|_|_", title:"<span>Ship</span>ped!", msg:"One step closer to done.\nYou're building momentum —\nkeep that energy going 💪" },
+    { ascii:"  d(^_^)b\n   ||||\n   d  b",  title:"<span>Boom.</span> Done.", msg:"Locked in and delivering.\nGo hydrate 💧 — your brain\ndeserves it after that focus." },
+    { ascii:"  \\(^o^)/\n   _|_\n  /   \\", title:"Level <span>up!</span>",  msg:"Every task done is progress.\nTreat yourself — even 5 mins\nof something you love counts 🎮" },
+    { ascii:"   .+*+.\n  (>‿<)\n   /|\\",  title:"<span>Clean</span> commit!", msg:"git commit -m 'nailed it'\nTake a little break, breathe,\nyou're doing amazing 🌟" },
   ];
 
   function showCelebration(taskText) {
-    const c = CELEBRATIONS[Math.floor(Math.random() * CELEBRATIONS.length)];
+    const c = CELEBRATIONS[Math.floor(Math.random()*CELEBRATIONS.length)];
     document.getElementById('celebrateAscii').textContent = c.ascii;
     document.getElementById('celebrateTitle').innerHTML   = c.title;
-    document.getElementById('celebrateMsg').innerHTML     = c.msg.replace(/\n/g, '<br>');
+    document.getElementById('celebrateMsg').innerHTML     = c.msg.replace(/\n/g,'<br>');
     document.getElementById('celebrateTask').innerHTML    = `✓ <span>"${escHtml(taskText)}"</span>`;
-
-    const overlay = document.getElementById('celebrateOverlay');
-    const card    = document.getElementById('celebrateCard');
-    overlay.classList.add('show');
-
-    // confetti dots
+    const card = document.getElementById('celebrateCard');
+    document.getElementById('celebrateOverlay').classList.add('show');
     const colors = ['#DA7756','#3FB950','#58A6FF','#BC8CFF','#E3B341'];
     for (let i = 0; i < 12; i++) {
       const dot = document.createElement('div');
       dot.className = 'confetti-dot';
-      dot.style.cssText = `
-        left: ${20 + Math.random() * 60}%;
-        top: ${10 + Math.random() * 30}%;
-        background: ${colors[i % colors.length]};
-        animation-delay: ${Math.random() * 0.4}s;
-        animation-duration: ${0.7 + Math.random() * 0.5}s;
-      `;
+      dot.style.cssText = `left:${20+Math.random()*60}%;top:${10+Math.random()*30}%;background:${colors[i%colors.length]};animation-delay:${Math.random()*0.4}s;animation-duration:${0.7+Math.random()*0.5}s;`;
       card.appendChild(dot);
       setTimeout(() => dot.remove(), 1500);
     }
@@ -1744,58 +784,37 @@
     if (e && e.target !== document.getElementById('celebrateOverlay')) return;
     document.getElementById('celebrateOverlay').classList.remove('show');
   }
+
   function switchView(view) {
     currentView = view;
-    const listEl   = document.getElementById('listView');
-    const kanbanEl = document.getElementById('kanbanView');
-    const inputEl  = document.getElementById('inputArea');
-    document.getElementById('btnList').classList.toggle('active', view === 'list');
-    document.getElementById('btnKanban').classList.toggle('active', view === 'kanban');
-    if (view === 'list') {
-      listEl.style.display   = '';
-      inputEl.style.display  = '';
-      kanbanEl.classList.remove('visible');
-      renderTasks();
-    } else {
-      listEl.style.display   = 'none';
-      inputEl.style.display  = 'none';
-      kanbanEl.classList.add('visible');
-      renderKanban();
-    }
+    const listEl = document.getElementById('listView'), kanbanEl = document.getElementById('kanbanView'), inputEl = document.getElementById('inputArea');
+    document.getElementById('btnList').classList.toggle('active', view==='list');
+    document.getElementById('btnKanban').classList.toggle('active', view==='kanban');
+    if (view === 'list') { listEl.style.display=''; inputEl.style.display=''; kanbanEl.classList.remove('visible'); renderTasks(); }
+    else                 { listEl.style.display='none'; inputEl.style.display='none'; kanbanEl.classList.add('visible'); renderKanban(); }
   }
 
-  // ── Kanban Render ──
+  // ── Kanban ──
   function renderKanban() {
-    const cols = ['todo','doing','done'];
-    cols.forEach(status => {
-      const col   = document.getElementById(`kb-${status}`);
-      const count = document.getElementById(`kb-count-${status}`);
+    ['todo','doing','done'].forEach(status => {
+      const col = document.getElementById(`kb-${status}`), count = document.getElementById(`kb-count-${status}`);
       const items = tasks.filter(t => t.status === status);
       count.textContent = items.length;
-
-      if (items.length === 0) {
-        col.innerHTML = `<div class="kb-col-empty">// empty</div>`;
-        return;
-      }
-
-      const nextStatus = { todo: 'doing', doing: 'done', done: null };
-      const prevStatus = { todo: null, doing: 'todo', done: 'doing' };
-
+      if (items.length === 0) { col.innerHTML = `<div class="kb-col-empty">// empty</div>`; return; }
+      const next = { todo:'doing', doing:'done', done:null };
+      const prev = { todo:null, doing:'todo', done:'doing' };
       col.innerHTML = items.map(t => `
-        <div class="kb-card" data-id="${t.id}" draggable="true"
-          ondragstart="onDragStart(event,${t.id})"
-          ondragend="onDragEnd(event)">
+        <div class="kb-card" data-id="${t.id}" draggable="true" ondragstart="onDragStart(event,${t.id})" ondragend="onDragEnd(event)">
           <div class="kb-card-text">${escHtml(t.text)}</div>
           <div class="kb-card-footer">
-            <span>${t.tag ? `<span class="kb-card-tag ${t.tag}">#${t.tag}</span>` : ''}</span>
+            <span>${t.tag?`<span class="kb-card-tag ${t.tag}">#${t.tag}</span>`:''}</span>
             <div class="kb-card-actions">
-              ${prevStatus[status] ? `<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${prevStatus[status]}')">← back</button>` : ''}
-              ${nextStatus[status] ? `<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${nextStatus[status]}')">next →</button>` : ''}
+              ${prev[status]?`<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${prev[status]}')">← back</button>`:''}
+              ${next[status]?`<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${next[status]}')">next →</button>`:''}
               <button class="kb-action-btn del-btn" onclick="deleteKbCard(${t.id})">✕</button>
             </div>
           </div>
-        </div>
-      `).join('');
+        </div>`).join('');
     });
     updateCounts();
   }
@@ -1804,133 +823,114 @@
     const t = tasks.find(t => t.id === id);
     if (!t) return;
     const wasDone = t.status === 'done';
-    t.status = newStatus;
-    t.done   = newStatus === 'done';
-    save();
-    renderKanban();
+    t.status = newStatus; t.done = newStatus === 'done';
+    save(); renderKanban();
     if (newStatus === 'done' && !wasDone) showCelebration(t.text);
   }
 
-  function deleteKbCard(id) {
-    tasks = tasks.filter(t => t.id !== id);
-    save();
-    renderKanban();
-    updateCounts();
-  }
+  function deleteKbCard(id) { tasks = tasks.filter(t => t.id !== id); save(); renderKanban(); updateCounts(); }
 
-  // ── Drag & Drop ──
+  // ── Drag & Drop — opaque drag image ──
   function onDragStart(e, id) {
-    dragId = id;
-    setTimeout(() => {
-      const el = document.querySelector(`.kb-card[data-id="${id}"]`);
-      if (el) el.classList.add('dragging');
-    }, 0);
-  }
+  dragId = id;
+  const card = e.currentTarget;
+  const rect = card.getBoundingClientRect();
+  const clone = card.cloneNode(true);
 
-  function onDragEnd(e) {
+  Object.assign(clone.style, {
+    position:      'fixed',
+    top:           rect.top + 'px',
+    left:          rect.left + 'px',
+    width:         rect.width + 'px',
+    margin:        '0',
+    opacity:       '1',
+    pointerEvents: 'none',
+    zIndex:        '9999',
+    background:    '#1a1f2a',
+    border:        '1px solid rgba(218,119,86,0.5)',
+    borderLeft:    '3px solid #DA7756',
+    borderRadius:  '8px',
+    padding:       '11px 13px',
+    boxShadow:     '0 10px 32px rgba(0,0,0,0.6)',
+    color:         '#E6EDF3',
+  });
+
+  document.body.appendChild(clone);
+  e.dataTransfer.setDragImage(clone, e.clientX - rect.left, e.clientY - rect.top);
+
+  requestAnimationFrame(() => {
+    document.body.removeChild(clone);
+    document.querySelector(`.kb-card[data-id="${id}"]`)?.classList.add('dragging');
+  });
+}
+
+  function onDragEnd() {
+    if (_dragImageEl) { document.body.removeChild(_dragImageEl); _dragImageEl = null; }
     document.querySelectorAll('.kb-card').forEach(el => el.classList.remove('dragging'));
     document.querySelectorAll('.kb-cards').forEach(el => el.classList.remove('drag-over'));
   }
 
   function onDragOver(e) {
     e.preventDefault();
-    const cards = e.currentTarget.querySelector('.kb-cards');
-    if (cards) cards.classList.add('drag-over');
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.querySelector('.kb-cards')?.classList.add('drag-over');
   }
 
-  function onDragLeave(e) {
-    const cards = e.currentTarget.querySelector('.kb-cards');
-    if (cards) cards.classList.remove('drag-over');
-  }
+  function onDragLeave(e) { e.currentTarget.querySelector('.kb-cards')?.classList.remove('drag-over'); }
 
   function onDrop(e, status) {
     e.preventDefault();
-    const cards = e.currentTarget.querySelector('.kb-cards');
-    if (cards) cards.classList.remove('drag-over');
-    if (dragId !== null) {
-      moveCard(dragId, status);
-      dragId = null;
-    }
+    e.currentTarget.querySelector('.kb-cards')?.classList.remove('drag-over');
+    if (dragId !== null) { moveCard(dragId, status); dragId = null; }
   }
 
-  // ── Intro Boot Screen ──
-  // Only show if it's been more than 30 minutes since last visit
+  // ── Intro ──
   const INTRO_COOLDOWN_MS = 30 * 60 * 1000;
-
   function shouldShowIntro() {
-    const last = localStorage.getItem('devday-last-visit');
-    const now  = Date.now();
+    const last = localStorage.getItem('devday-last-visit'), now = Date.now();
     localStorage.setItem('devday-last-visit', now);
-    if (!last) return true;
-    return (now - parseInt(last)) > INTRO_COOLDOWN_MS;
+    return !last || (now - parseInt(last)) > INTRO_COOLDOWN_MS;
   }
+
   const INTRO_LINES = [
-    { text: `<span class="kw">import</span> { focus, clarity, flow } <span class="kw">from</span> <span class="str">'devday'</span>`,           delay: 0   },
-    { text: ``,                                                                                                                   delay: 180 },
-    { text: `<span class="cmt">// initializing your productivity environment...</span>`,                                          delay: 240 },
-    { text: `<span class="kw">const</span> day <span class="op">=</span> <span class="kw">new</span> <span class="cls">Day</span><span class="op">(</span>{ mode: <span class="str">'focused'</span>, distractions: <span class="num">0</span> }<span class="op">)</span>`, delay: 460 },
-    { text: ``,                                                                                                                   delay: 640 },
-    { text: `<span class="fn">day</span><span class="op">.</span><span class="fn">tasks</span><span class="op">.</span><span class="fn">load</span><span class="op">()</span>        <span class="cmt">// ✓ synced from localStorage</span>`,  delay: 720 },
-    { text: `<span class="fn">day</span><span class="op">.</span><span class="fn">weather</span><span class="op">.</span><span class="fn">fetch</span><span class="op">()</span>      <span class="cmt">// ✓ connected to open-meteo</span>`,   delay: 940 },
-    { text: `<span class="fn">day</span><span class="op">.</span><span class="fn">clock</span><span class="op">.</span><span class="fn">start</span><span class="op">()</span>        <span class="cmt">// ✓ ticking</span>`,                     delay: 1160 },
-    { text: ``,                                                                                                                   delay: 1340 },
-    { text: `<span class="kw">export default</span> <span class="acc">devday</span>   <span class="cmt">// ready. let's get it.</span>`,              delay: 1420 },
+    { text:`<span class="kw">import</span> { focus, clarity, flow } <span class="kw">from</span> <span class="str">'devday'</span>`, delay:0 },
+    { text:``, delay:180 },
+    { text:`<span class="cmt">// initializing your productivity environment...</span>`, delay:240 },
+    { text:`<span class="kw">const</span> day <span class="op">=</span> <span class="kw">new</span> <span class="cls">Day</span><span class="op">(</span>{ mode: <span class="str">'focused'</span>, distractions: <span class="num">0</span> }<span class="op">)</span>`, delay:460 },
+    { text:``, delay:640 },
+    { text:`<span class="fn">day</span><span class="op">.</span><span class="fn">tasks</span><span class="op">.</span><span class="fn">load</span><span class="op">()</span>        <span class="cmt">// ✓ synced from localStorage</span>`, delay:720 },
+    { text:`<span class="fn">day</span><span class="op">.</span><span class="fn">weather</span><span class="op">.</span><span class="fn">fetch</span><span class="op">()</span>      <span class="cmt">// ✓ connected to open-meteo</span>`, delay:940 },
+    { text:`<span class="fn">day</span><span class="op">.</span><span class="fn">clock</span><span class="op">.</span><span class="fn">start</span><span class="op">()</span>        <span class="cmt">// ✓ ticking</span>`, delay:1160 },
+    { text:``, delay:1340 },
+    { text:`<span class="kw">export default</span> <span class="acc">devday</span>   <span class="cmt">// ready. let's get it.</span>`, delay:1420 },
   ];
 
-  const TAGLINES = [
-    'ship more. stress less.',
-    'your day, version controlled.',
-    'commit to your goals.',
-    'focus mode: engaged.',
-    'build the day you want.',
-  ];
+  const TAGLINES = ['ship more. stress less.','your day, version controlled.','commit to your goals.','focus mode: engaged.','build the day you want.'];
 
   function runIntro() {
     const container = document.getElementById('introCode');
     const loader    = document.getElementById('introLoader');
     const tagline   = document.getElementById('introTagline');
     const screen    = document.getElementById('introScreen');
-    const app       = document.getElementById('appWrapper');
-
-    tagline.textContent = TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
-
-    // Render line elements
-    INTRO_LINES.forEach((l, i) => {
+    tagline.textContent = TAGLINES[Math.floor(Math.random()*TAGLINES.length)];
+    INTRO_LINES.forEach((l,i) => {
       const row = document.createElement('div');
       row.className = 'intro-line';
-      row.innerHTML = `<span class="intro-lnum">${l.text ? i + 1 : ''}</span><span>${l.text}${i === INTRO_LINES.length - 1 ? '<span class="intro-cursor"></span>' : ''}</span>`;
+      row.innerHTML = `<span class="intro-lnum">${l.text?i+1:''}</span><span>${l.text}${i===INTRO_LINES.length-1?'<span class="intro-cursor"></span>':''}</span>`;
       container.appendChild(row);
     });
-
-    // Stagger each line visible
-    INTRO_LINES.forEach((l, i) => {
-      setTimeout(() => {
-        container.children[i].classList.add('visible');
-      }, 300 + l.delay);
-    });
-
-    // Show loader after last line
-    const lastDelay = INTRO_LINES[INTRO_LINES.length - 1].delay;
-    setTimeout(() => {
-      loader.style.opacity  = '1';
-      tagline.style.opacity = '1';
-    }, 300 + lastDelay + 200);
-
-    // Fade out intro, fade in app
-    const totalDuration = 300 + lastDelay + 1100;
+    INTRO_LINES.forEach((l,i) => setTimeout(() => container.children[i].classList.add('visible'), 300+l.delay));
+    const lastDelay = INTRO_LINES[INTRO_LINES.length-1].delay;
+    setTimeout(() => { loader.style.opacity='1'; tagline.style.opacity='1'; }, 300+lastDelay+200);
     setTimeout(() => {
       screen.classList.add('fade-out');
-      app.classList.add('visible');
+      document.getElementById('appWrapper').classList.add('visible');
       setTimeout(() => screen.remove(), 800);
-    }, totalDuration);
+    }, 300+lastDelay+1100);
   }
 
-  if (shouldShowIntro()) {
-    runIntro();
-  } else {
-    document.getElementById('introScreen').remove();
-    document.getElementById('appWrapper').classList.add('visible');
-  }
+  if (shouldShowIntro()) { runIntro(); }
+  else { document.getElementById('introScreen').remove(); document.getElementById('appWrapper').classList.add('visible'); }
 
   init();
 </script>
