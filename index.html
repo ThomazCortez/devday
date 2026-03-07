@@ -17,17 +17,14 @@
       --text:        #E6EDF3;
       --text-muted:  #7D8590;
       --text-faint:  #3D444D;
-
-      --green:   #3FB950;
-      --blue:    #58A6FF;
-      --orange:  #F0883E;
-      --red:     #FF7B72;
-      --purple:  #BC8CFF;
-      --yellow:  #E3B341;
-
-      --claude:     #DA7756;
-      --claude-dim: rgba(218,119,86,0.15);
-
+      --green:       #3FB950;
+      --blue:        #58A6FF;
+      --orange:      #F0883E;
+      --red:         #FF7B72;
+      --purple:      #BC8CFF;
+      --yellow:      #E3B341;
+      --claude:      #DA7756;
+      --claude-dim:  rgba(218,119,86,0.15);
       --tag-work-bg:      rgba(88,166,255,0.12);
       --tag-work-ink:     #58A6FF;
       --tag-personal-bg:  rgba(188,140,255,0.12);
@@ -36,50 +33,28 @@
       --tag-health-ink:   #3FB950;
     }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
 
-    .titlebar {
-      width: 100%;
-      background: var(--bg-2);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      height: 38px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
+    /* ── Title Bar ── */
+    .titlebar { width: 100%; background: var(--bg-2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 38px; position: sticky; top: 0; z-index: 100; }
     .titlebar-left { display: flex; align-items: center; gap: 16px; }
     .window-dots { display: flex; gap: 6px; }
     .dot { width: 12px; height: 12px; border-radius: 50%; }
     .dot.red    { background: #FF5F57; }
     .dot.yellow { background: #FFBD2E; }
     .dot.green  { background: #28C840; }
-
     .titlebar-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); }
     .titlebar-title span { color: var(--claude); }
 
-    .layout {
-      display: flex;
-      width: 100%;
-      min-height: calc(100vh - 62px);
-      padding-bottom: 24px;
-    }
+    /* ── Layout ── */
+    .layout { display: flex; width: 100%; min-height: calc(100vh - 62px); padding-bottom: 24px; }
 
+    /* ── Clock ── */
     .ascii-clock-wrap { padding: 16px 14px 14px; border-bottom: 1px solid var(--border-soft); }
     .seg-clock { display: flex; align-items: center; justify-content: center; gap: 2px; line-height: 0; }
     .seg-clock svg { display: block; }
 
+    /* ── Weather ── */
     .weather-wrap { padding: 14px 14px 16px; border-bottom: 1px solid var(--border-soft); }
     .weather-header { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px; }
     .weather-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -102,7 +77,96 @@
     .forecast-temps .hi { color: var(--text); }
     .weather-loading { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); font-style: italic; padding: 4px 0; }
 
-    .sidebar { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); padding-bottom: 24px; display: flex; flex-direction: column; gap: 2px; }
+    /* ── Pomodoro Float Widget ── */
+    .pomo-float {
+      position: fixed;
+      bottom: 40px;
+      right: 20px;
+      width: 260px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(218,119,86,0.10);
+      z-index: 200;
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+      user-select: none;
+    }
+    .pomo-float:hover { box-shadow: 0 14px 48px rgba(0,0,0,0.65), 0 0 0 1px rgba(218,119,86,0.22); }
+    .pomo-float.dragging { box-shadow: 0 20px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(218,119,86,0.35); transition: none; }
+
+    .pomo-float-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 14px;
+      cursor: grab;
+      background: var(--bg-3);
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .pomo-float-header:active { cursor: grabbing; }
+    .pomo-float-header:hover { background: #252b35; }
+    .pomo-float-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); }
+    .pomo-float-right { display: flex; align-items: center; gap: 6px; }
+    .pomo-float-chevron { font-size: 8px; color: var(--text-faint); transition: transform 0.25s ease; line-height: 1; cursor: pointer; padding: 2px 4px; }
+    .pomo-float.collapsed .pomo-float-chevron { transform: rotate(-90deg); }
+
+    .pomo-float-mini-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--claude); display: none; letter-spacing: 0.05em; }
+    .pomo-float.collapsed .pomo-float-mini-time { display: block; }
+    .pomo-float.collapsed .pomo-float-title { display: none; }
+
+    .pomo-float-body {
+      padding: 16px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      max-height: 360px;
+      transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.2s ease;
+      opacity: 1;
+    }
+    .pomo-float.collapsed .pomo-float-body { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; pointer-events: none; }
+
+    .pomodoro-mode-badges { display: flex; gap: 4px; }
+    .pomo-mode-btn { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text-faint); cursor: pointer; transition: all 0.15s; }
+    .pomo-mode-btn.active { background: var(--claude-dim); color: var(--claude); border-color: var(--claude); }
+
+    /* ring-wrap has explicit height = SVG height so nothing overflows */
+    .pomodoro-ring-wrap {
+      position: relative;
+      width: 148px;
+      height: 148px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+    .pomodoro-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); pointer-events: none; }
+    .pomo-ring-track { fill: none; stroke: var(--bg-3); stroke-width: 3; }
+    .pomo-ring-fill  { fill: none; stroke: var(--claude); stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.4s ease; }
+    .pomo-ring-fill.break { stroke: var(--green); }
+    .pomodoro-display { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 2px; }
+    .pomodoro-display svg { display: block; }
+    .pomodoro-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; text-align: center; margin-bottom: 10px; transition: color 0.3s; }
+    .pomodoro-label.work  { color: var(--claude); }
+    .pomodoro-label.break { color: var(--green); }
+    .pomodoro-label.idle  { color: var(--text-faint); }
+    .pomodoro-controls { display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .pomo-btn { background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; color: var(--text-muted); }
+    .pomo-btn:hover { border-color: var(--text-muted); color: var(--text); }
+    .pomo-btn.primary { background: var(--claude); border-color: var(--claude); color: white; width: 38px; height: 38px; border-radius: 8px; }
+    .pomo-btn.primary:hover { opacity: 0.85; }
+    .pomo-btn.secondary { width: 30px; height: 30px; }
+    .pomo-btn.primary.active-break { background: var(--green); border-color: var(--green); }
+    .pomodoro-sessions { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; }
+    .pomo-session-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--bg-3); border: 1px solid var(--border); transition: all 0.3s ease; }
+    .pomo-session-dot.done { background: var(--claude); border-color: var(--claude); box-shadow: 0 0 6px rgba(218,119,86,0.55); }
+    @keyframes pomo-pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+    .pomodoro-display.running { animation: pomo-pulse 2s ease-in-out infinite; }
+
+    /* ── Sidebar ── */
+    .sidebar { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); padding-bottom: 24px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
     .sidebar-section { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); padding: 12px 16px 4px; }
     .sidebar-item { display: flex; align-items: center; gap: 8px; padding: 6px 16px; font-size: 13px; color: var(--text-muted); cursor: pointer; border: none; border-left: 2px solid transparent; background: none; width: 100%; text-align: left; font-family: 'Inter', sans-serif; transition: all 0.15s; }
     .sidebar-item:hover { background: var(--bg-3); color: var(--text); }
@@ -116,6 +180,7 @@
     .progress-track { height: 3px; background: var(--bg-3); border-radius: 2px; overflow: hidden; }
     .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--blue)); border-radius: 2px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); width: 0%; }
 
+    /* ── View Toggle ── */
     .view-toggle { display: flex; gap: 2px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px; padding: 3px; }
     .view-btn { background: none; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); transition: all 0.15s; }
     .view-btn:hover { color: var(--text-muted); }
@@ -125,7 +190,6 @@
     /* ── Kanban ── */
     #kanbanView { display: none; }
     #kanbanView.visible { display: flex; gap: 16px; padding: 0 4px 24px; }
-
     .kb-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
     .kb-col-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; position: sticky; top: 46px; z-index: 10; }
     .kb-col-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; gap: 7px; }
@@ -137,51 +201,13 @@
     .kb-col[data-status="doing"] .kb-col-title { color: var(--yellow); }
     .kb-col[data-status="done"]  .kb-col-title { color: var(--green); }
     .kb-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); background: var(--bg-3); padding: 1px 7px; border-radius: 10px; }
-
     .kb-cards { display: flex; flex-direction: column; gap: 6px; min-height: 60px; padding: 4px 0; transition: background 0.15s; border-radius: 8px; }
     .kb-cards.drag-over { background: var(--claude-dim); outline: 1px dashed var(--claude); outline-offset: -2px; }
 
-    /* ── Kanban Card: orange hover + opaque drag ── */
-    .kb-card {
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-left: 3px solid transparent;
-      border-radius: 8px;
-      padding: 11px 13px;
-      cursor: grab;
-      position: relative;
-      animation: fadeSlide 0.22s ease both;
-      transition:
-        border-color 0.2s ease,
-        border-left-color 0.2s ease,
-        background 0.2s ease,
-        box-shadow 0.2s ease,
-        transform 0.2s cubic-bezier(0.4,0,0.2,1);
-    }
-
-    /* Orange highlight on hover */
-    .kb-card:hover {
-      border-color: rgba(218,119,86,0.45);
-      border-left-color: var(--claude);
-      background: #191e27;
-      transform: translateY(-2px);
-      box-shadow:
-        0 0 0 1px rgba(218,119,86,0.18),
-        0 6px 20px rgba(218,119,86,0.13),
-        0 2px 8px rgba(0,0,0,0.4);
-    }
-
-    /* Ghost placeholder in column while dragging — very faint dashed outline */
-    .kb-card.dragging {
-      opacity: 0.15;
-      cursor: grabbing;
-      transform: scale(0.97);
-      border-style: dashed;
-      border-color: var(--claude);
-      border-left-color: var(--claude);
-      box-shadow: none;
-    }
-
+    /* ── Kanban Card ── */
+    .kb-card { background: var(--bg-2); border: 1px solid var(--border); border-left: 3px solid transparent; border-radius: 8px; padding: 11px 13px; cursor: grab; position: relative; animation: fadeSlide 0.22s ease both; transition: border-color 0.2s ease, border-left-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s cubic-bezier(0.4,0,0.2,1); }
+    .kb-card:hover { border-color: rgba(218,119,86,0.45); border-left-color: var(--claude); background: #191e27; transform: translateY(-2px); box-shadow: 0 0 0 1px rgba(218,119,86,0.18), 0 6px 20px rgba(218,119,86,0.13), 0 2px 8px rgba(0,0,0,0.4); }
+    .kb-card.dragging { opacity: 0.15; cursor: grabbing; transform: scale(0.97); border-style: dashed; border-color: var(--claude); border-left-color: var(--claude); box-shadow: none; }
     .kb-card-text { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); line-height: 1.5; word-break: break-word; }
     .kb-col[data-status="done"] .kb-card-text { text-decoration: line-through; color: var(--text-faint); }
     .kb-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
@@ -194,10 +220,11 @@
     .kb-action-btn { background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.06em; transition: all 0.12s; }
     .kb-action-btn.move-btn { color: var(--text-faint); }
     .kb-action-btn.move-btn:hover { background: var(--bg-3); color: var(--claude); }
-    .kb-action-btn.del-btn { color: var(--text-faint); }
+    .kb-action-btn.del-btn  { color: var(--text-faint); }
     .kb-action-btn.del-btn:hover { background: rgba(255,123,114,0.12); color: var(--red); }
     .kb-col-empty { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); font-style: italic; padding: 16px 12px; text-align: center; border: 1px dashed var(--border-soft); border-radius: 8px; }
 
+    /* ── Main ── */
     .main { flex: 1; padding: 36px 48px; min-width: 0; }
     .breadcrumb { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
     .breadcrumb span { color: var(--text-muted); }
@@ -210,6 +237,7 @@
     .page-meta .cmt { color: var(--text-faint); }
     .page-meta .daystr { color: var(--blue); }
 
+    /* ── Input ── */
     .input-block { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; overflow: hidden; transition: border-color 0.2s; }
     .input-block:focus-within { border-color: var(--claude); }
     .input-topbar { display: flex; align-items: center; padding: 7px 12px; border-bottom: 1px solid var(--border-soft); background: var(--bg-3); gap: 8px; }
@@ -231,14 +259,10 @@
     .tag-btn.active[data-tag="personal"] { background: var(--tag-personal-bg); color: var(--tag-personal-ink); border-color: var(--tag-personal-ink); }
     .tag-btn.active[data-tag="health"]   { background: var(--tag-health-bg);   color: var(--tag-health-ink);   border-color: var(--tag-health-ink); }
 
+    /* ── Task List ── */
     .task-list { display: flex; flex-direction: column; gap: 1px; }
-    .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 10px; border-radius: 6px; border: 1px solid transparent; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); animation: fadeSlide 0.25s ease both; }
-
-    @keyframes fadeSlide {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
+    .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: 6px; border: 1px solid transparent; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); animation: fadeSlide 0.25s ease both; }
+    @keyframes fadeSlide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
     .task-item:hover { background: var(--bg-2); border-color: var(--border); }
     .task-item.done { opacity: 0.4; }
     .task-item.removing { opacity: 0; transform: translateX(10px); max-height: 0; padding: 0; overflow: hidden; transition: all 0.25s ease; }
@@ -260,20 +284,23 @@
     .task-item:hover .delete-btn { opacity: 1; }
     .delete-btn:hover { background: rgba(255,123,114,0.12); }
 
+    /* ── Empty State ── */
     .empty-state { padding: 40px 0; display: none; }
     .empty-state.visible { display: block; }
     .empty-code { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 2.2; color: var(--text-faint); }
-    .empty-code .kw { color: var(--purple); }
-    .empty-code .fn { color: var(--blue); }
+    .empty-code .kw  { color: var(--purple); }
+    .empty-code .fn  { color: var(--blue); }
     .empty-code .str { color: var(--green); }
 
+    /* ── Status Bar ── */
     .statusbar { width: 100%; height: 24px; background: var(--claude); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
     .status-left, .status-right { display: flex; align-items: center; gap: 16px; }
     .status-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.85); }
 
+    /* ── Celebration ── */
     .celebrate-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
     .celebrate-overlay.show { opacity: 1; pointer-events: all; }
-    .celebrate-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px; padding: 36px 40px 32px; max-width: 380px; width: 90%; text-align: center; transform: translateY(24px) scale(0.95); transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--border); }
+    .celebrate-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px; padding: 36px 40px 32px; max-width: 380px; width: 90%; text-align: center; transform: translateY(24px) scale(0.95); transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--border); }
     .celebrate-overlay.show .celebrate-card { transform: translateY(0) scale(1); }
     .celebrate-ascii { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; color: var(--claude); text-shadow: 0 0 20px rgba(218,119,86,0.4); white-space: pre; margin-bottom: 20px; }
     .celebrate-title { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
@@ -284,13 +311,10 @@
     .celebrate-btn:active { transform: translateY(0); }
     .celebrate-task-name { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
     .celebrate-task-name span { color: var(--green); }
-
-    @keyframes confetti-drop {
-      0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(60px) rotate(360deg); opacity: 0; }
-    }
+    @keyframes confetti-drop { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(60px) rotate(360deg);opacity:0} }
     .confetti-dot { position: absolute; width: 5px; height: 5px; border-radius: 50%; animation: confetti-drop 0.9s ease-out both; }
 
+    /* ── Intro ── */
     #introScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.7s ease; }
     #introScreen.fade-out { opacity: 0; pointer-events: none; }
     .intro-window { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; width: min(640px, 90vw); overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
@@ -329,14 +353,11 @@
 </head>
 <body>
 
+<!-- Intro -->
 <div id="introScreen">
   <div class="intro-window">
     <div class="intro-titlebar">
-      <div class="intro-dots">
-        <div class="intro-dot r"></div>
-        <div class="intro-dot y"></div>
-        <div class="intro-dot g"></div>
-      </div>
+      <div class="intro-dots"><div class="intro-dot r"></div><div class="intro-dot y"></div><div class="intro-dot g"></div></div>
       <div class="intro-tab">devday<span>.init</span></div>
     </div>
     <div class="intro-code" id="introCode"></div>
@@ -350,32 +371,21 @@
   </div>
 </div>
 
+<!-- App -->
 <div class="app-wrapper" id="appWrapper">
 
   <div class="titlebar">
     <div class="titlebar-left">
-      <div class="window-dots">
-        <div class="dot red"></div>
-        <div class="dot yellow"></div>
-        <div class="dot green"></div>
-      </div>
+      <div class="window-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
       <div class="titlebar-title">tasks<span>.md</span> — devday</div>
     </div>
     <div class="view-toggle">
       <button class="view-btn active" id="btnList" onclick="switchView('list')">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <rect x="0" y="1" width="12" height="1.5" rx="0.75" fill="currentColor"/>
-          <rect x="0" y="5" width="12" height="1.5" rx="0.75" fill="currentColor"/>
-          <rect x="0" y="9" width="12" height="1.5" rx="0.75" fill="currentColor"/>
-        </svg>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="0" y="1" width="12" height="1.5" rx="0.75" fill="currentColor"/><rect x="0" y="5" width="12" height="1.5" rx="0.75" fill="currentColor"/><rect x="0" y="9" width="12" height="1.5" rx="0.75" fill="currentColor"/></svg>
         list
       </button>
       <button class="view-btn" id="btnKanban" onclick="switchView('kanban')">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <rect x="0"  y="0" width="3.2" height="12" rx="1" fill="currentColor"/>
-          <rect x="4.4" y="0" width="3.2" height="8"  rx="1" fill="currentColor"/>
-          <rect x="8.8" y="0" width="3.2" height="10" rx="1" fill="currentColor"/>
-        </svg>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="0" y="0" width="3.2" height="12" rx="1" fill="currentColor"/><rect x="4.4" y="0" width="3.2" height="8" rx="1" fill="currentColor"/><rect x="8.8" y="0" width="3.2" height="10" rx="1" fill="currentColor"/></svg>
         kanban
       </button>
     </div>
@@ -383,10 +393,14 @@
 
   <div class="layout">
     <aside class="sidebar">
+
+      <!-- Clock -->
       <div class="ascii-clock-wrap">
         <div class="seg-clock" id="segClock"></div>
       </div>
-      <div class="weather-wrap" id="weatherWrap">
+
+      <!-- Weather -->
+      <div class="weather-wrap">
         <div class="weather-header">// <span id="weatherLocation">weather.live</span></div>
         <div class="weather-loading" id="weatherLoading">fetching data...</div>
         <div id="weatherWidget" style="display:none">
@@ -401,6 +415,8 @@
           <div class="weather-forecast" id="wForecast"></div>
         </div>
       </div>
+
+      <!-- Explorer -->
       <div class="sidebar-section" style="margin-top:12px">Explorer</div>
       <button class="sidebar-item active" onclick="setFilter(this,'all')">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="#7D8590"/><rect x="9" y="2" width="5" height="5" rx="1" fill="#7D8590"/><rect x="2" y="9" width="5" height="5" rx="1" fill="#7D8590"/><rect x="9" y="9" width="5" height="5" rx="1" fill="#7D8590"/></svg>
@@ -433,13 +449,12 @@
         <div class="sidebar-progress-label"><span>progress</span><span id="progressPct">0%</span></div>
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
       </div>
+
     </aside>
 
     <main class="main">
       <div class="breadcrumb">
-        <span>~/planner</span>
-        <span style="color:var(--text-faint)">/</span>
-        <span class="active" id="bcDate">today</span>
+        <span>~/planner</span><span style="color:var(--text-faint)">/</span><span class="active" id="bcDate">today</span>
       </div>
       <div class="page-title"># daily tasks <span class="comment">// stay focused</span></div>
       <div class="page-meta">
@@ -478,15 +493,15 @@
       </div>
 
       <div id="kanbanView">
-        <div class="kb-col" data-status="todo" ondragover="onDragOver(event)" ondrop="onDrop(event,'todo')" ondragleave="onDragLeave(event)">
+        <div class="kb-col" data-status="todo">
           <div class="kb-col-header"><div class="kb-col-title"><span class="kb-col-dot"></span>TODO</div><span class="kb-count" id="kb-count-todo">0</span></div>
           <div class="kb-cards" id="kb-todo"></div>
         </div>
-        <div class="kb-col" data-status="doing" ondragover="onDragOver(event)" ondrop="onDrop(event,'doing')" ondragleave="onDragLeave(event)">
+        <div class="kb-col" data-status="doing">
           <div class="kb-col-header"><div class="kb-col-title"><span class="kb-col-dot"></span>DOING</div><span class="kb-count" id="kb-count-doing">0</span></div>
           <div class="kb-cards" id="kb-doing"></div>
         </div>
-        <div class="kb-col" data-status="done" ondragover="onDragOver(event)" ondrop="onDrop(event,'done')" ondragleave="onDragLeave(event)">
+        <div class="kb-col" data-status="done">
           <div class="kb-col-header"><div class="kb-col-title"><span class="kb-col-dot"></span>DONE</div><span class="kb-count" id="kb-count-done">0</span></div>
           <div class="kb-cards" id="kb-done"></div>
         </div>
@@ -505,24 +520,63 @@
       <div class="status-item">Markdown</div>
     </div>
   </div>
+
 </div>
 
+<!-- Pomodoro Float -->
+<div class="pomo-float" id="pomoFloat">
+  <div class="pomo-float-header" id="pomoFloatHeader">
+    <span class="pomo-float-title">// pomodoro</span>
+    <span class="pomo-float-mini-time" id="pomoMiniTime">25:00</span>
+    <div class="pomo-float-right">
+      <div class="pomodoro-mode-badges">
+        <button class="pomo-mode-btn active" id="pomoBtnWork"  onclick="event.stopPropagation();setPomoMode('work')">work</button>
+        <button class="pomo-mode-btn"        id="pomoBtnBreak" onclick="event.stopPropagation();setPomoMode('break')">break</button>
+      </div>
+      <span class="pomo-float-chevron" id="pomoChevron">▼</span>
+    </div>
+  </div>
+  <div class="pomo-float-body" id="pomoFloatBody">
+    <div class="pomodoro-ring-wrap">
+      <svg class="pomodoro-ring" width="148" height="148" viewBox="0 0 148 148">
+        <circle class="pomo-ring-track" cx="74" cy="74" r="66"/>
+        <circle class="pomo-ring-fill"  cx="74" cy="74" r="66" id="pomoRingFill"/>
+      </svg>
+      <div class="pomodoro-display" id="pomoDisplay"></div>
+    </div>
+    <div class="pomodoro-label idle" id="pomoLabel">ready</div>
+    <div class="pomodoro-controls">
+      <button class="pomo-btn secondary" onclick="resetPomo()" title="Reset">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 8a5 5 0 1 0 1.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3 4v4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="pomo-btn primary" id="pomoPlayBtn" onclick="togglePomo()">
+        <svg id="pomoPlayIcon" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 3l9 5-9 5V3z" fill="currentColor"/></svg>
+      </button>
+      <button class="pomo-btn secondary" onclick="skipPomo()" title="Skip">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 4l7 4-7 4V4zM13 4v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="pomodoro-sessions" id="pomoSessions"></div>
+  </div>
+</div>
+
+<!-- Celebration -->
 <div class="celebrate-overlay" id="celebrateOverlay" onclick="closeCelebration(event)">
   <div class="celebrate-card" id="celebrateCard">
     <div class="celebrate-ascii" id="celebrateAscii"></div>
     <div class="celebrate-title" id="celebrateTitle"></div>
-    <div class="celebrate-msg" id="celebrateMsg"></div>
+    <div class="celebrate-msg"   id="celebrateMsg"></div>
     <button class="celebrate-btn" onclick="closeCelebration()">I got this! 🚀</button>
     <div class="celebrate-task-name" id="celebrateTask"></div>
   </div>
 </div>
 
 <script>
-let tasks = JSON.parse(localStorage.getItem('devday-tasks') || '[]');
-  let selectedTag = null;
+  let tasks         = JSON.parse(localStorage.getItem('devday-tasks') || '[]');
+  let selectedTag   = null;
   let currentFilter = 'all';
-  let currentView = 'list';
-  let dragId = null;
+  let currentView   = 'list';
+  let dragId        = null;
 
   tasks = tasks.map(t => ({ ...t, status: t.status || (t.done ? 'done' : 'todo') }));
 
@@ -531,13 +585,12 @@ let tasks = JSON.parse(localStorage.getItem('devday-tasks') || '[]');
     renderTasks();
     startClock();
     fetchWeather();
-    document.getElementById('taskInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') addTask();
-    });
+    initPomo();
+    document.getElementById('taskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
   }
 
   function setDate() {
-    const now = new Date();
+    const now    = new Date();
     const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     document.getElementById('metaDate').textContent = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
@@ -545,560 +598,473 @@ let tasks = JSON.parse(localStorage.getItem('devday-tasks') || '[]');
     document.getElementById('bcDate').textContent   = `${months[now.getMonth()]}-${String(now.getDate()).padStart(2,'0')}`;
   }
 
-  // ── SVG Seven-Segment Clock ──
-  const SEG_ON  = '#DA7756';
-  const SEG_OFF = '#1C1009';
-  const SEG_GLOW = 'drop-shadow(0 0 4px rgba(218,119,86,0.8))';
-
-  const SEG_MAP = {
-    '0':[1,1,1,1,1,1,0], '1':[0,1,1,0,0,0,0], '2':[1,1,0,1,1,0,1],
-    '3':[1,1,1,1,0,0,1], '4':[0,1,1,0,0,1,1], '5':[1,0,1,1,0,1,1],
-    '6':[1,0,1,1,1,1,1], '7':[1,1,1,0,0,0,0], '8':[1,1,1,1,1,1,1],
-    '9':[1,1,1,1,0,1,1],
-  };
+  // ── Seven-Segment Clock ──
+  const SEG_ON = '#DA7756', SEG_OFF = '#1C1009', SEG_GLOW = 'drop-shadow(0 0 4px rgba(218,119,86,0.8))';
+  const SEG_MAP = { '0':[1,1,1,1,1,1,0],'1':[0,1,1,0,0,0,0],'2':[1,1,0,1,1,0,1],'3':[1,1,1,1,0,0,1],'4':[0,1,1,0,0,1,1],'5':[1,0,1,1,0,1,1],'6':[1,0,1,1,1,1,1],'7':[1,1,1,0,0,0,0],'8':[1,1,1,1,1,1,1],'9':[1,1,1,1,0,1,1] };
 
   function digitSVG(ch) {
-    const s = SEG_MAP[ch] || [0,0,0,0,0,0,0];
-    const c = i => s[i] ? SEG_ON : SEG_OFF;
-    const filter = s.some(x=>x) ? `filter="${SEG_GLOW}"` : '';
-    return `<svg width="26" height="44" viewBox="0 0 20 38" xmlns="http://www.w3.org/2000/svg" ${filter}>
-      <polygon points="3,1 17,1 15,4 5,4"           fill="${c(0)}"/>
-      <polygon points="18,2 18,17 15,15 15,5"        fill="${c(1)}"/>
-      <polygon points="18,21 18,36 15,33 15,23"      fill="${c(2)}"/>
-      <polygon points="3,37 17,37 15,34 5,34"        fill="${c(3)}"/>
-      <polygon points="2,21 2,36 5,33 5,23"          fill="${c(4)}"/>
-      <polygon points="2,2 2,17 5,15 5,5"            fill="${c(5)}"/>
+    const s = SEG_MAP[ch]||[0,0,0,0,0,0,0], c = i => s[i]?SEG_ON:SEG_OFF, f = s.some(x=>x)?`filter="${SEG_GLOW}"`:'';
+    return `<svg width="26" height="44" viewBox="0 0 20 38" xmlns="http://www.w3.org/2000/svg" ${f}>
+      <polygon points="3,1 17,1 15,4 5,4" fill="${c(0)}"/>
+      <polygon points="18,2 18,17 15,15 15,5" fill="${c(1)}"/>
+      <polygon points="18,21 18,36 15,33 15,23" fill="${c(2)}"/>
+      <polygon points="3,37 17,37 15,34 5,34" fill="${c(3)}"/>
+      <polygon points="2,21 2,36 5,33 5,23" fill="${c(4)}"/>
+      <polygon points="2,2 2,17 5,15 5,5" fill="${c(5)}"/>
       <polygon points="3,19 5,16 15,16 17,19 15,22 5,22" fill="${c(6)}"/>
     </svg>`;
   }
 
   function colonSVG(lit) {
-    const col = lit ? SEG_ON : SEG_OFF;
-    const f   = lit ? `filter="${SEG_GLOW}"` : '';
-    return `<svg width="14" height="44" viewBox="0 0 10 38" xmlns="http://www.w3.org/2000/svg" ${f}>
-      <circle cx="5" cy="12" r="2.8" fill="${col}"/>
-      <circle cx="5" cy="26" r="2.8" fill="${col}"/>
-    </svg>`;
+    const col = lit?SEG_ON:SEG_OFF, f = lit?`filter="${SEG_GLOW}"`:'' ;
+    return `<svg width="14" height="44" viewBox="0 0 10 38" xmlns="http://www.w3.org/2000/svg" ${f}><circle cx="5" cy="12" r="2.8" fill="${col}"/><circle cx="5" cy="26" r="2.8" fill="${col}"/></svg>`;
   }
 
   function renderAsciiClock() {
-    const now = new Date();
-    const h = String(now.getHours()).padStart(2,'0');
-    const m = String(now.getMinutes()).padStart(2,'0');
-    const blink = now.getSeconds() % 2 === 0;
-    document.getElementById('segClock').innerHTML =
-      digitSVG(h[0]) + digitSVG(h[1]) + colonSVG(blink) + digitSVG(m[0]) + digitSVG(m[1]);
+    const now = new Date(), h = String(now.getHours()).padStart(2,'0'), m = String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('segClock').innerHTML = digitSVG(h[0])+digitSVG(h[1])+colonSVG(now.getSeconds()%2===0)+digitSVG(m[0])+digitSVG(m[1]);
     document.getElementById('statusTime').textContent = `${h}:${m}`;
   }
+  function startClock() { renderAsciiClock(); setInterval(renderAsciiClock, 1000); }
 
-  function startClock() {
-    renderAsciiClock();
-    setInterval(renderAsciiClock, 1000);
-  }
-
-  // ── Nothing OS dot-matrix weather icons ──
+  // ── Weather ──
   const DOT_ICONS = {
-    clear: [
-      [0,0,0,1,0,0,0,0,0],[0,0,0,0,0,1,0,0,0],[0,1,0,0,0,0,0,1,0],
-      [0,0,0,1,1,1,0,0,0],[1,0,1,1,1,1,1,0,1],[0,0,0,1,1,1,0,0,0],
-      [0,1,0,0,0,0,0,1,0],[0,0,0,0,0,1,0,0,0],[0,0,0,1,0,0,0,0,0],
-    ],
-    partly_cloudy: [
-      [0,0,0,1,0,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,1,1,0,0,0],
-      [0,0,1,1,1,1,1,0,0],[0,1,0,0,0,0,0,1,0],[0,0,1,1,1,1,1,1,0],
-      [0,1,1,1,1,1,1,1,1],[0,0,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],
-    ],
-    cloudy: [
-      [0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,1,1,0,0,0,0],
-      [1,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1],
-      [0,1,1,1,1,1,1,1,0],[0,0,1,1,1,1,1,0,0],[0,0,0,0,0,0,0,0,0],
-    ],
-    rain: [
-      [0,0,1,1,1,0,0,0,0],[0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],
-      [0,1,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],[0,1,0,1,0,1,0,1,0],
-      [1,0,1,0,1,0,1,0,1],[0,1,0,1,0,1,0,1,0],[0,0,1,0,1,0,1,0,0],
-    ],
-    snow: [
-      [0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0],
-      [1,0,1,0,0,0,1,0,1],[0,1,0,0,0,0,0,1,0],[1,0,1,0,0,0,1,0,1],
-      [0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0],
-    ],
-    storm: [
-      [0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],[1,1,1,1,1,1,1,1,0],
-      [0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,0,0,0,0,0,0],
-      [0,1,1,1,1,0,0,0,0],[0,0,0,1,0,0,0,0,0],[0,0,0,1,0,0,0,0,0],
-    ],
-    fog: [
-      [0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],
-      [1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],
-      [0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],
-    ],
+    clear:         [[0,0,0,1,0,0,0,0,0],[0,0,0,0,0,1,0,0,0],[0,1,0,0,0,0,0,1,0],[0,0,0,1,1,1,0,0,0],[1,0,1,1,1,1,1,0,1],[0,0,0,1,1,1,0,0,0],[0,1,0,0,0,0,0,1,0],[0,0,0,0,0,1,0,0,0],[0,0,0,1,0,0,0,0,0]],
+    partly_cloudy: [[0,0,0,1,0,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,1,1,1,1,1,0,0],[0,1,0,0,0,0,0,1,0],[0,0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,1,1],[0,0,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0]],
+    cloudy:        [[0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,1,1,0,0,0,0],[1,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,0],[0,0,1,1,1,1,1,0,0],[0,0,0,0,0,0,0,0,0]],
+    rain:          [[0,0,1,1,1,0,0,0,0],[0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],[0,1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0,1],[0,1,0,1,0,1,0,1,0],[0,0,1,0,1,0,1,0,0]],
+    snow:          [[0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0],[1,0,1,0,0,0,1,0,1],[0,1,0,0,0,0,0,1,0],[1,0,1,0,0,0,1,0,1],[0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0]],
+    storm:         [[0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],[1,1,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,0,0,0,0,0,0],[0,1,1,1,1,0,0,0,0],[0,0,0,1,0,0,0,0,0],[0,0,0,1,0,0,0,0,0]],
+    fog:           [[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0]],
   };
 
   function drawWeatherDots(canvasEl, iconKey) {
-    const grid = DOT_ICONS[iconKey] || DOT_ICONS.clear;
-    const ctx  = canvasEl.getContext('2d');
-    const size = canvasEl.width;
-    const rows = 9, cols = 9;
-    const padding = size * 0.06;
-    const cellW = (size - padding * 2) / cols;
-    const cellH = (size - padding * 2) / rows;
-    const dotR  = cellW * 0.38;
-    ctx.clearRect(0, 0, size, size);
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const on = grid[r][c] === 1;
-        const x  = padding + c * cellW + cellW / 2;
-        const y  = padding + r * cellH + cellH / 2;
-        ctx.beginPath();
-        ctx.arc(x, y, dotR, 0, Math.PI * 2);
-        if (on) { ctx.fillStyle = '#DA7756'; ctx.shadowColor = 'rgba(218,119,86,0.9)'; ctx.shadowBlur = size > 50 ? 7 : 4; }
-        else    { ctx.fillStyle = '#21262D'; ctx.shadowBlur = 0; }
-        ctx.fill();
-      }
+    const grid = DOT_ICONS[iconKey]||DOT_ICONS.clear, ctx = canvasEl.getContext('2d'), size = canvasEl.width;
+    const pad = size*0.06, cW = (size-pad*2)/9, cH = (size-pad*2)/9, r = cW*0.38;
+    ctx.clearRect(0,0,size,size);
+    for (let row=0;row<9;row++) for (let col=0;col<9;col++) {
+      const on = grid[row][col]===1;
+      ctx.beginPath(); ctx.arc(pad+col*cW+cW/2, pad+row*cH+cH/2, r, 0, Math.PI*2);
+      if (on) { ctx.fillStyle='#DA7756'; ctx.shadowColor='rgba(218,119,86,0.9)'; ctx.shadowBlur=size>50?7:4; }
+      else    { ctx.fillStyle='#21262D'; ctx.shadowBlur=0; }
+      ctx.fill();
     }
   }
 
-  function codeToIcon(code) {
-    if (code === 0)               return 'clear';
-    if (code <= 2)                return 'partly_cloudy';
-    if (code === 3)               return 'cloudy';
-    if (code <= 48)               return 'fog';
-    if (code <= 67 || code <= 82) return 'rain';
-    if (code <= 77)               return 'snow';
-    return 'storm';
-  }
-
-  const WX_DESC = {
-    0:'clear_sky', 1:'mainly_clear', 2:'partly_cloudy', 3:'overcast',
-    45:'fog', 48:'rime_fog', 51:'drizzle_light', 53:'drizzle',
-    55:'drizzle_heavy', 61:'rain_light', 63:'rain', 65:'rain_heavy',
-    71:'snow_light', 73:'snow', 75:'snow_heavy',
-    80:'showers_light', 81:'showers', 82:'showers_violent',
-    95:'thunderstorm', 96:'thunderstorm_hail', 99:'thunderstorm_hail',
-  };
+  function codeToIcon(c) { if(c===0)return'clear'; if(c<=2)return'partly_cloudy'; if(c===3)return'cloudy'; if(c<=48)return'fog'; if(c<=67||c<=82)return'rain'; if(c<=77)return'snow'; return'storm'; }
+  const WX_DESC = {0:'clear_sky',1:'mainly_clear',2:'partly_cloudy',3:'overcast',45:'fog',48:'rime_fog',51:'drizzle_light',53:'drizzle',55:'drizzle_heavy',61:'rain_light',63:'rain',65:'rain_heavy',71:'snow_light',73:'snow',75:'snow_heavy',80:'showers_light',81:'showers',82:'showers_violent',95:'thunderstorm',96:'thunderstorm_hail',99:'thunderstorm_hail'};
 
   async function fetchWeather() {
     try {
       const coords = await new Promise(res => {
-        if (!navigator.geolocation) return res({ lat: 38.7169, lon: -9.1399 });
-        navigator.geolocation.getCurrentPosition(
-          p => res({ lat: p.coords.latitude, lon: p.coords.longitude }),
-          () => res({ lat: 38.7169, lon: -9.1399 }),
-          { timeout: 4000 }
-        );
+        if (!navigator.geolocation) return res({lat:38.7169,lon:-9.1399});
+        navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lon:p.coords.longitude}),()=>res({lat:38.7169,lon:-9.1399}),{timeout:4000});
       });
-
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}` +
-        `&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m,precipitation` +
-        `&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max` +
-        `&timezone=auto&forecast_days=4&wind_speed_unit=kmh&temperature_unit=celsius`;
-
-      const data = await (await fetch(url)).json();
-
+      const data = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m,precipitation&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&timezone=auto&forecast_days=4&wind_speed_unit=kmh&temperature_unit=celsius`)).json();
       try {
-        const geo     = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lon}&format=json`);
-        const geoData = await geo.json();
-        const city    = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.county || '';
-        const country = geoData.address?.country_code?.toUpperCase() || '';
-        if (city) document.getElementById('weatherLocation').textContent = `${city}, ${country}`;
+        const gd = await (await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lon}&format=json`)).json();
+        const city = gd.address?.city||gd.address?.town||gd.address?.village||gd.address?.county||'';
+        const cc   = gd.address?.country_code?.toUpperCase()||'';
+        if (city) document.getElementById('weatherLocation').textContent = `${city}, ${cc}`;
       } catch(_) {}
-
-      const cur   = data.current;
-      const daily = data.daily;
-      const code  = cur.weather_code;
-      const iconKey = codeToIcon(code);
-      const desc    = (WX_DESC[code] || 'unknown').replace(/_/g,' ');
-      const temp    = Math.round(cur.temperature_2m);
-      const wind    = Math.round(cur.wind_speed_10m);
-      const hum     = cur.relative_humidity_2m;
-      const precip  = cur.precipitation ?? 0;
-
-      drawWeatherDots(document.getElementById('weatherCanvas'), iconKey);
-      document.getElementById('wTemp').textContent = `${temp}°`;
-      document.getElementById('wDesc').textContent = desc;
-
-      const badges = [
-        { val: `${hum}%`,   label: 'HUMID', hi: false },
-        { val: `${wind}`,   label: 'KM/H',  hi: false },
-        { val: `${precip}`, label: 'MM',     hi: precip > 0 },
-      ];
-      document.getElementById('wBadges').innerHTML = badges.map(b => `
-        <div class="weather-badge ${b.hi ? 'highlight' : ''}">
-          <span class="badge-val">${b.val}</span>
-          <span class="badge-label">${b.label}</span>
-        </div>
-      `).join('');
-
-      const fdays = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-      document.getElementById('wForecast').innerHTML = daily.time.slice(1,4).map((t, i) => {
-        const d = new Date(t + 'T12:00:00');
-        const id = `fc-${i}`;
-        setTimeout(() => { const el = document.getElementById(id); if (el) drawWeatherDots(el, codeToIcon(daily.weather_code[i+1])); }, 50);
-        return `
-          <div class="forecast-row">
-            <span class="forecast-day">${fdays[d.getDay()]}</span>
-            <div class="forecast-dots"><canvas id="${id}" width="36" height="36" style="image-rendering:pixelated"></canvas></div>
-            <span class="forecast-temps"><span class="hi">${Math.round(daily.temperature_2m_max[i+1])}°</span> / ${Math.round(daily.temperature_2m_min[i+1])}°</span>
-          </div>`;
+      const cur=data.current, daily=data.daily, code=cur.weather_code;
+      drawWeatherDots(document.getElementById('weatherCanvas'), codeToIcon(code));
+      document.getElementById('wTemp').textContent = `${Math.round(cur.temperature_2m)}°`;
+      document.getElementById('wDesc').textContent = (WX_DESC[code]||'unknown').replace(/_/g,' ');
+      document.getElementById('wBadges').innerHTML = [
+        {val:`${cur.relative_humidity_2m}%`,label:'HUMID',hi:false},
+        {val:`${Math.round(cur.wind_speed_10m)}`,label:'KM/H',hi:false},
+        {val:`${cur.precipitation??0}`,label:'MM',hi:(cur.precipitation??0)>0},
+      ].map(b=>`<div class="weather-badge ${b.hi?'highlight':''}"><span class="badge-val">${b.val}</span><span class="badge-label">${b.label}</span></div>`).join('');
+      const fdays=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+      document.getElementById('wForecast').innerHTML = daily.time.slice(1,4).map((t,i)=>{
+        const d=new Date(t+'T12:00:00'),id=`fc-${i}`;
+        setTimeout(()=>{const el=document.getElementById(id);if(el)drawWeatherDots(el,codeToIcon(daily.weather_code[i+1]));},50);
+        return `<div class="forecast-row"><span class="forecast-day">${fdays[d.getDay()]}</span><div class="forecast-dots"><canvas id="${id}" width="36" height="36" style="image-rendering:pixelated"></canvas></div><span class="forecast-temps"><span class="hi">${Math.round(daily.temperature_2m_max[i+1])}°</span> / ${Math.round(daily.temperature_2m_min[i+1])}°</span></div>`;
       }).join('');
+      document.getElementById('weatherLoading').style.display='none';
+      document.getElementById('weatherWidget').style.display='block';
+    } catch(e) { document.getElementById('weatherLoading').textContent='// fetch failed'; }
+  }
 
-      document.getElementById('weatherLoading').style.display = 'none';
-      document.getElementById('weatherWidget').style.display  = 'block';
-    } catch(e) {
-      document.getElementById('weatherLoading').textContent = '// fetch failed';
+  // ── Pomodoro ──
+  const POMO_WORK_SECS=25*60, POMO_BREAK_SECS=5*60, POMO_SESSIONS=4;
+  const RING_CIRC = 2*Math.PI*66;
+  let pomoMode='work', pomoRunning=false, pomoSecsLeft=POMO_WORK_SECS, pomoInterval=null, pomoDone=0;
+
+  function initPomo() {
+    const fill = document.getElementById('pomoRingFill');
+    fill.style.strokeDasharray = RING_CIRC;
+    fill.style.strokeDashoffset = 0;
+    updatePomoDisplay(); updatePomoRing(); updatePomoSessions();
+  }
+
+  function setPomoMode(mode) {
+    pomoMode=mode; pomoRunning=false; clearInterval(pomoInterval);
+    pomoSecsLeft = mode==='work'?POMO_WORK_SECS:POMO_BREAK_SECS;
+    document.getElementById('pomoBtnWork').classList.toggle('active',  mode==='work');
+    document.getElementById('pomoBtnBreak').classList.toggle('active', mode==='break');
+    document.getElementById('pomoRingFill').classList.toggle('break',  mode==='break');
+    document.getElementById('pomoPlayBtn').classList.toggle('active-break', mode==='break');
+    document.getElementById('pomoDisplay').classList.remove('running');
+    updatePomoDisplay(); updatePomoRing(); setPomoLabel('ready'); setPlayIcon(false);
+  }
+
+  function togglePomo() { pomoRunning ? pausePomo() : startPomo(); }
+
+  function startPomo() {
+    pomoRunning=true; setPlayIcon(true);
+    setPomoLabel(pomoMode==='work'?'focus':'rest');
+    document.getElementById('pomoDisplay').classList.add('running');
+    pomoInterval = setInterval(()=>{
+      pomoSecsLeft--; updatePomoDisplay(); updatePomoRing();
+      if (pomoSecsLeft<=0) { clearInterval(pomoInterval); pomoRunning=false; onPomoComplete(); }
+    },1000);
+  }
+
+  function pausePomo() {
+    pomoRunning=false; clearInterval(pomoInterval); setPlayIcon(false);
+    setPomoLabel('paused'); document.getElementById('pomoDisplay').classList.remove('running');
+  }
+
+  function resetPomo() {
+    pomoRunning=false; clearInterval(pomoInterval);
+    pomoSecsLeft=pomoMode==='work'?POMO_WORK_SECS:POMO_BREAK_SECS;
+    document.getElementById('pomoDisplay').classList.remove('running');
+    updatePomoDisplay(); updatePomoRing(); setPomoLabel('ready'); setPlayIcon(false);
+  }
+
+  function skipPomo() {
+    pomoRunning=false; clearInterval(pomoInterval);
+    document.getElementById('pomoDisplay').classList.remove('running');
+    onPomoComplete();
+  }
+
+  function onPomoComplete() {
+    setPlayIcon(false); document.getElementById('pomoDisplay').classList.remove('running');
+    if (pomoMode==='work') {
+      pomoDone = Math.min(pomoDone+1, POMO_SESSIONS); updatePomoSessions();
+      if (pomoDone>=POMO_SESSIONS) { pomoDone=0; updatePomoSessions(); }
+      setPomoLabel('done! take a break 🎉');
+      setTimeout(()=>setPomoMode('break'),1200);
+    } else {
+      setPomoLabel('break over — back to it 💪');
+      setTimeout(()=>setPomoMode('work'),1200);
     }
   }
 
+  // ── Pomodoro Float: collapse + drag ──
+  function togglePomoFloat() {
+    document.getElementById('pomoFloat').classList.toggle('collapsed');
+  }
+
+  (function initPomoFloat() {
+    const el = document.getElementById('pomoFloat');
+    const header = el.querySelector('.pomo-float-header');
+    let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
+
+    // Convert bottom/right to top/left on first drag so position is stable
+    function ensureTopLeft() {
+      if (el.style.top) return;
+      const r = el.getBoundingClientRect();
+      el.style.top    = r.top  + 'px';
+      el.style.left   = r.left + 'px';
+      el.style.bottom = 'auto';
+      el.style.right  = 'auto';
+    }
+
+    header.addEventListener('mousedown', e => {
+      // Only drag from header itself, not the buttons inside
+      if (e.target.closest('button')) return;
+      e.preventDefault();
+      ensureTopLeft();
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      origLeft = parseInt(el.style.left); origTop = parseInt(el.style.top);
+      el.classList.add('dragging');
+      document.addEventListener('mousemove', onPomoMove);
+      document.addEventListener('mouseup',   onPomoUp);
+    });
+
+    function onPomoMove(e) {
+      if (!dragging) return;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      // Clamp to viewport
+      const maxX = window.innerWidth  - el.offsetWidth;
+      const maxY = window.innerHeight - el.offsetHeight;
+      el.style.left = Math.max(0, Math.min(maxX, origLeft + dx)) + 'px';
+      el.style.top  = Math.max(0, Math.min(maxY, origTop  + dy)) + 'px';
+    }
+
+    function onPomoUp(e) {
+      if (!dragging) return;
+      dragging = false;
+      el.classList.remove('dragging');
+      // If barely moved, treat as a collapse toggle click
+      const dx = Math.abs(e.clientX - startX), dy = Math.abs(e.clientY - startY);
+      if (dx < 4 && dy < 4) togglePomoFloat();
+      document.removeEventListener('mousemove', onPomoMove);
+      document.removeEventListener('mouseup',   onPomoUp);
+    }
+  })();
+
+  function updatePomoDisplay() {
+    const mins=String(Math.floor(pomoSecsLeft/60)).padStart(2,'0'), secs=String(pomoSecsLeft%60).padStart(2,'0');
+    document.getElementById('pomoDisplay').innerHTML =
+      digitSVG(mins[0])+digitSVG(mins[1])+colonSVG(pomoRunning?(pomoSecsLeft%2===0):true)+digitSVG(secs[0])+digitSVG(secs[1]);
+    document.getElementById('pomoMiniTime').textContent = `${mins}:${secs}`;
+  }
+
+  function updatePomoRing() {
+    const total = pomoMode==='work'?POMO_WORK_SECS:POMO_BREAK_SECS;
+    document.getElementById('pomoRingFill').style.strokeDashoffset = RING_CIRC*(1-pomoSecsLeft/total);
+  }
+
+  function updatePomoSessions() {
+    document.getElementById('pomoSessions').innerHTML =
+      Array.from({length:POMO_SESSIONS},(_,i)=>`<div class="pomo-session-dot ${i<pomoDone?'done':''}"></div>`).join('');
+  }
+
+  function setPomoLabel(text) {
+    const el = document.getElementById('pomoLabel');
+    el.textContent = text;
+    el.className = 'pomodoro-label '+(text==='ready'||text==='paused'?'idle':pomoMode==='break'?'break':'work');
+  }
+
+  function setPlayIcon(playing) {
+    document.getElementById('pomoPlayIcon').innerHTML = playing
+      ? '<rect x="4" y="3" width="3" height="10" rx="1" fill="currentColor"/><rect x="9" y="3" width="3" height="10" rx="1" fill="currentColor"/>'
+      : '<path d="M5 3l9 5-9 5V3z" fill="currentColor"/>';
+  }
+
+  // ── Tasks ──
   function save() { localStorage.setItem('devday-tasks', JSON.stringify(tasks)); }
 
   function addTask() {
-    const input = document.getElementById('taskInput');
-    const text  = input.value.trim();
+    const input=document.getElementById('taskInput'), text=input.value.trim();
     if (!text) return;
-    tasks.unshift({ id: Date.now(), text, tag: selectedTag, done: false, status: 'todo' });
-    save();
-    input.value = '';
-    renderTasks();
-    if (currentView === 'kanban') renderKanban();
+    tasks.unshift({id:Date.now(),text,tag:selectedTag,done:false,status:'todo'});
+    save(); input.value=''; renderTasks(); if(currentView==='kanban')renderKanban();
   }
 
   function toggleDone(id) {
-    const t = tasks.find(t => t.id === id);
-    if (t) {
-      t.done = !t.done;
-      t.status = t.done ? 'done' : 'todo';
-      save(); renderTasks();
-      if (t.done) showCelebration(t.text);
-    }
+    const t=tasks.find(t=>t.id===id);
+    if (t) { t.done=!t.done; t.status=t.done?'done':'todo'; save(); renderTasks(); if(t.done)showCelebration(t.text); }
   }
 
   function deleteTask(id) {
-    const el = document.querySelector(`[data-id="${id}"]`);
-    if (el) {
-      el.classList.add('removing');
-      setTimeout(() => { tasks = tasks.filter(t => t.id !== id); save(); renderTasks(); if (currentView === 'kanban') renderKanban(); }, 260);
-    }
+    const el=document.querySelector(`[data-id="${id}"]`);
+    if (el) { el.classList.add('removing'); setTimeout(()=>{tasks=tasks.filter(t=>t.id!==id);save();renderTasks();if(currentView==='kanban')renderKanban();},260); }
   }
 
   function toggleTag(btn) {
-    const tag = btn.dataset.tag;
-    document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-    selectedTag = selectedTag === tag ? null : tag;
-    if (selectedTag) btn.classList.add('active');
+    const tag=btn.dataset.tag;
+    document.querySelectorAll('.tag-btn').forEach(b=>b.classList.remove('active'));
+    selectedTag=selectedTag===tag?null:tag; if(selectedTag)btn.classList.add('active');
   }
 
-  function setFilter(btn, filter) {
-    document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentFilter = filter;
-    renderTasks();
+  function setFilter(btn,filter) {
+    document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); currentFilter=filter; renderTasks();
   }
 
   function getFiltered() {
-    return tasks.filter(t => {
-      if (currentFilter === 'active') return !t.done;
-      if (currentFilter === 'done')   return t.done;
-      if (['work','personal','health'].includes(currentFilter)) return t.tag === currentFilter;
+    return tasks.filter(t=>{
+      if(currentFilter==='active')return !t.done;
+      if(currentFilter==='done')return t.done;
+      if(['work','personal','health'].includes(currentFilter))return t.tag===currentFilter;
       return true;
     });
   }
 
   function renderTasks() {
-    const list     = document.getElementById('taskList');
-    const empty    = document.getElementById('emptyState');
-    const filtered = getFiltered();
-    list.innerHTML = filtered.map((t, i) => `
-      <div class="task-item ${t.done ? 'done' : ''}" data-id="${t.id}">
-        <span class="line-gutter">${i + 1}</span>
+    const list=document.getElementById('taskList'), empty=document.getElementById('emptyState');
+    list.innerHTML=getFiltered().map((t,i)=>`
+      <div class="task-item ${t.done?'done':''}" data-id="${t.id}">
+        <span class="line-gutter">${i+1}</span>
         <button class="check-btn" onclick="toggleDone(${t.id})">
-          <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-            <path d="M1 3.5l2.5 2.5 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5l2.5 2.5 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="task-body">
           <div class="task-text">${escHtml(t.text)}</div>
-          ${t.tag ? `<div class="task-meta"><span class="task-tag ${t.tag}">#${t.tag}</span></div>` : ''}
+          ${t.tag?`<div class="task-meta"><span class="task-tag ${t.tag}">#${t.tag}</span></div>`:''}
         </div>
         <button class="delete-btn" onclick="deleteTask(${t.id})">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M1 1l10 10M11 1L1 11" stroke="#FF7B72" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#FF7B72" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
-      </div>
-    `).join('');
-    empty.classList.toggle('visible', tasks.length === 0);
+      </div>`).join('');
+    empty.classList.toggle('visible', tasks.length===0);
     updateCounts();
   }
 
   function updateCounts() {
-    const all  = tasks.length;
-    const done = tasks.filter(t => t.done).length;
-    const pct  = all === 0 ? 0 : Math.round((done / all) * 100);
+    const all=tasks.length, done=tasks.filter(t=>t.done).length, pct=all===0?0:Math.round(done/all*100);
     document.getElementById('count-all').textContent      = all;
-    document.getElementById('count-active').textContent   = tasks.filter(t => !t.done).length;
+    document.getElementById('count-active').textContent   = tasks.filter(t=>!t.done).length;
     document.getElementById('count-done').textContent     = done;
-    document.getElementById('count-work').textContent     = tasks.filter(t => t.tag === 'work').length;
-    document.getElementById('count-personal').textContent = tasks.filter(t => t.tag === 'personal').length;
-    document.getElementById('count-health').textContent   = tasks.filter(t => t.tag === 'health').length;
-    document.getElementById('progressFill').style.width   = pct + '%';
-    document.getElementById('progressPct').textContent    = pct + '%';
-    document.getElementById('statusTaskCount').textContent = `${all} task${all !== 1 ? 's' : ''}`;
+    document.getElementById('count-work').textContent     = tasks.filter(t=>t.tag==='work').length;
+    document.getElementById('count-personal').textContent = tasks.filter(t=>t.tag==='personal').length;
+    document.getElementById('count-health').textContent   = tasks.filter(t=>t.tag==='health').length;
+    document.getElementById('progressFill').style.width   = pct+'%';
+    document.getElementById('progressPct').textContent    = pct+'%';
+    document.getElementById('statusTaskCount').textContent= `${all} task${all!==1?'s':''}`;
   }
 
-  function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  // ── Celebration Popup ──
+  // ── Celebration ──
   const CELEBRATIONS = [
-    { ascii:"  \\o/\n   |\n  / \\",      title:"Task <span>crushed!</span>",    msg:"You're on fire 🔥\nTake a deep breath and enjoy\nthe moment — you earned it." },
-    { ascii:"  (^_^)\n  /||\\\n   /\\",  title:"That's a <span>W!</span>",      msg:"Seriously, great work.\nMaybe grab a coffee ☕\nor stretch for 2 minutes?" },
-    { ascii:"  ★ ★ ★\n \\(•‿•)/\n  _|_|_", title:"<span>Ship</span>ped!",     msg:"One step closer to done.\nYou're building momentum —\nkeep that energy going 💪" },
-    { ascii:"  d(^_^)b\n   ||||\n   d  b",  title:"<span>Boom.</span> Done.",   msg:"Locked in and delivering.\nGo hydrate 💧 — your brain\ndeserves it after that focus." },
-    { ascii:"  \\(^o^)/\n   _|_\n  /   \\", title:"Level <span>up!</span>",     msg:"Every task done is progress.\nTreat yourself — even 5 mins\nof something you love counts 🎮" },
-    { ascii:"   .+*+.\n  (>‿<)\n   /|\\",  title:"<span>Clean</span> commit!", msg:"git commit -m 'nailed it'\nTake a little break, breathe,\nyou're doing amazing 🌟" },
+    {ascii:"  \\o/\n   |\n  / \\",       title:"Task <span>crushed!</span>",   msg:"You're on fire 🔥\nTake a deep breath and enjoy\nthe moment — you earned it."},
+    {ascii:"  (^_^)\n  /||\\\n   /\\",   title:"That's a <span>W!</span>",     msg:"Seriously, great work.\nMaybe grab a coffee ☕\nor stretch for 2 minutes?"},
+    {ascii:"  ★ ★ ★\n \\(•‿•)/\n  _|_|_",title:"<span>Ship</span>ped!",       msg:"One step closer to done.\nYou're building momentum —\nkeep that energy going 💪"},
+    {ascii:"  d(^_^)b\n   ||||\n   d  b", title:"<span>Boom.</span> Done.",    msg:"Locked in and delivering.\nGo hydrate 💧 — your brain\ndeserves it after that focus."},
+    {ascii:"  \\(^o^)/\n   _|_\n  /   \\",title:"Level <span>up!</span>",      msg:"Every task done is progress.\nTreat yourself — even 5 mins\nof something you love counts 🎮"},
+    {ascii:"   .+*+.\n  (>‿<)\n   /|\\",  title:"<span>Clean</span> commit!",  msg:"git commit -m 'nailed it'\nTake a little break, breathe,\nyou're doing amazing 🌟"},
   ];
 
   function showCelebration(taskText) {
-    const c = CELEBRATIONS[Math.floor(Math.random() * CELEBRATIONS.length)];
-    document.getElementById('celebrateAscii').textContent = c.ascii;
-    document.getElementById('celebrateTitle').innerHTML   = c.title;
-    document.getElementById('celebrateMsg').innerHTML     = c.msg.replace(/\n/g, '<br>');
-    document.getElementById('celebrateTask').innerHTML    = `✓ <span>"${escHtml(taskText)}"</span>`;
-    const card = document.getElementById('celebrateCard');
+    const c=CELEBRATIONS[Math.floor(Math.random()*CELEBRATIONS.length)];
+    document.getElementById('celebrateAscii').textContent=c.ascii;
+    document.getElementById('celebrateTitle').innerHTML=c.title;
+    document.getElementById('celebrateMsg').innerHTML=c.msg.replace(/\n/g,'<br>');
+    document.getElementById('celebrateTask').innerHTML=`✓ <span>"${escHtml(taskText)}"</span>`;
+    const card=document.getElementById('celebrateCard');
     document.getElementById('celebrateOverlay').classList.add('show');
-    const colors = ['#DA7756','#3FB950','#58A6FF','#BC8CFF','#E3B341'];
-    for (let i = 0; i < 12; i++) {
-      const dot = document.createElement('div');
-      dot.className = 'confetti-dot';
-      dot.style.cssText = `left:${20+Math.random()*60}%;top:${10+Math.random()*30}%;background:${colors[i%colors.length]};animation-delay:${Math.random()*0.4}s;animation-duration:${0.7+Math.random()*0.5}s;`;
-      card.appendChild(dot);
-      setTimeout(() => dot.remove(), 1500);
+    const colors=['#DA7756','#3FB950','#58A6FF','#BC8CFF','#E3B341'];
+    for(let i=0;i<12;i++){
+      const dot=document.createElement('div'); dot.className='confetti-dot';
+      dot.style.cssText=`left:${20+Math.random()*60}%;top:${10+Math.random()*30}%;background:${colors[i%colors.length]};animation-delay:${Math.random()*0.4}s;animation-duration:${0.7+Math.random()*0.5}s;`;
+      card.appendChild(dot); setTimeout(()=>dot.remove(),1500);
     }
   }
 
   function closeCelebration(e) {
-    if (e && e.target !== document.getElementById('celebrateOverlay')) return;
+    if(e&&e.target!==document.getElementById('celebrateOverlay'))return;
     document.getElementById('celebrateOverlay').classList.remove('show');
   }
 
   function switchView(view) {
-    currentView = view;
-    const listEl   = document.getElementById('listView');
-    const kanbanEl = document.getElementById('kanbanView');
-    const inputEl  = document.getElementById('inputArea');
-    document.getElementById('btnList').classList.toggle('active', view === 'list');
-    document.getElementById('btnKanban').classList.toggle('active', view === 'kanban');
-    if (view === 'list') {
-      listEl.style.display  = '';
-      inputEl.style.display = '';
-      kanbanEl.classList.remove('visible');
-      renderTasks();
-    } else {
-      listEl.style.display  = 'none';
-      inputEl.style.display = 'none';
-      kanbanEl.classList.add('visible');
-      renderKanban();
-    }
+    currentView=view;
+    const listEl=document.getElementById('listView'),kanbanEl=document.getElementById('kanbanView'),inputEl=document.getElementById('inputArea');
+    document.getElementById('btnList').classList.toggle('active',   view==='list');
+    document.getElementById('btnKanban').classList.toggle('active', view==='kanban');
+    if(view==='list'){listEl.style.display='';inputEl.style.display='';kanbanEl.classList.remove('visible');renderTasks();}
+    else             {listEl.style.display='none';inputEl.style.display='none';kanbanEl.classList.add('visible');renderKanban();}
   }
 
-  // ── Kanban Render ──
+  // ── Kanban ──
   function renderKanban() {
-    const cols = ['todo','doing','done'];
-    cols.forEach(status => {
-      const col   = document.getElementById(`kb-${status}`);
-      const count = document.getElementById(`kb-count-${status}`);
-      const items = tasks.filter(t => t.status === status);
-      count.textContent = items.length;
-
-      if (items.length === 0) {
-        col.innerHTML = `<div class="kb-col-empty">// empty</div>`;
-        return;
-      }
-
-      const nextStatus = { todo: 'doing', doing: 'done', done: null };
-      const prevStatus = { todo: null, doing: 'todo', done: 'doing' };
-
-      col.innerHTML = items.map(t => `
+    ['todo','doing','done'].forEach(status=>{
+      const col=document.getElementById(`kb-${status}`), count=document.getElementById(`kb-count-${status}`);
+      const items=tasks.filter(t=>t.status===status);
+      count.textContent=items.length;
+      if(!items.length){col.innerHTML=`<div class="kb-col-empty">// empty</div>`;return;}
+      const next={todo:'doing',doing:'done',done:null}, prev={todo:null,doing:'todo',done:'doing'};
+      col.innerHTML=items.map(t=>`
         <div class="kb-card" data-id="${t.id}" onmousedown="onCardMouseDown(event,${t.id})">
           <div class="kb-card-text">${escHtml(t.text)}</div>
           <div class="kb-card-footer">
-            <span>${t.tag ? `<span class="kb-card-tag ${t.tag}">#${t.tag}</span>` : ''}</span>
+            <span>${t.tag?`<span class="kb-card-tag ${t.tag}">#${t.tag}</span>`:''}</span>
             <div class="kb-card-actions">
-              ${prevStatus[status] ? `<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${prevStatus[status]}')">← back</button>` : ''}
-              ${nextStatus[status] ? `<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${nextStatus[status]}')">next →</button>` : ''}
+              ${prev[status]?`<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${prev[status]}')">← back</button>`:''}
+              ${next[status]?`<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${next[status]}')">next →</button>`:''}
               <button class="kb-action-btn del-btn" onclick="deleteKbCard(${t.id})">✕</button>
             </div>
           </div>
-        </div>
-      `).join('');
+        </div>`).join('');
     });
     updateCounts();
   }
 
-  function moveCard(id, newStatus) {
-    const t = tasks.find(t => t.id === id);
-    if (!t) return;
-    const wasDone = t.status === 'done';
-    t.status = newStatus;
-    t.done   = newStatus === 'done';
-    save();
-    renderKanban();
-    if (newStatus === 'done' && !wasDone) showCelebration(t.text);
+  function moveCard(id,newStatus) {
+    const t=tasks.find(t=>t.id===id); if(!t)return;
+    const wasDone=t.status==='done'; t.status=newStatus; t.done=newStatus==='done';
+    save(); renderKanban(); if(newStatus==='done'&&!wasDone)showCelebration(t.text);
   }
 
-  function deleteKbCard(id) {
-    tasks = tasks.filter(t => t.id !== id);
-    save();
-    renderKanban();
-    updateCounts();
-  }
+  function deleteKbCard(id){tasks=tasks.filter(t=>t.id!==id);save();renderKanban();updateCounts();}
 
-  // ── Custom mouse-based drag (no native DnD API) ──
-  let _dragClone    = null;
-  let _dragOffsetX  = 0;
-  let _dragOffsetY  = 0;
-  let _dragOverCol  = null;
+  // ── Mouse Drag ──
+  let _dragClone=null, _dragOffsetX=0, _dragOffsetY=0, _dragOverCol=null;
 
-  function onCardMouseDown(e, id) {
-    if (e.target.closest('button')) return; // let button clicks through
-    e.preventDefault();
-
-    dragId = id;
-    const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-
-    _dragOffsetX = e.clientX - rect.left;
-    _dragOffsetY = e.clientY - rect.top;
-
-    // Build fully opaque floating clone
-    _dragClone = card.cloneNode(true);
-    Object.assign(_dragClone.style, {
-      position:      'fixed',
-      top:           rect.top + 'px',
-      left:          rect.left + 'px',
-      width:         rect.width + 'px',
-      margin:        '0',
-      opacity:       '1',
-      pointerEvents: 'none',
-      zIndex:        '9999',
-      background:    '#1a1f2a',
-      border:        '1px solid rgba(218,119,86,0.5)',
-      borderLeft:    '3px solid #DA7756',
-      borderRadius:  '8px',
-      padding:       '11px 13px',
-      boxShadow:     '0 12px 36px rgba(0,0,0,0.7), 0 0 0 1px rgba(218,119,86,0.25)',
-      color:         '#E6EDF3',
-      transition:    'none',
-      transform:     'rotate(1.5deg) scale(1.03)',
+  function onCardMouseDown(e,id) {
+    if(e.target.closest('button'))return;
+    e.preventDefault(); dragId=id;
+    const card=e.currentTarget, rect=card.getBoundingClientRect();
+    _dragOffsetX=e.clientX-rect.left; _dragOffsetY=e.clientY-rect.top;
+    _dragClone=card.cloneNode(true);
+    Object.assign(_dragClone.style,{
+      position:'fixed',top:rect.top+'px',left:rect.left+'px',width:rect.width+'px',
+      margin:'0',opacity:'1',pointerEvents:'none',zIndex:'9999',
+      background:'#1a1f2a',border:'1px solid rgba(218,119,86,0.5)',
+      borderLeft:'3px solid #DA7756',borderRadius:'8px',padding:'11px 13px',
+      boxShadow:'0 12px 36px rgba(0,0,0,0.7),0 0 0 1px rgba(218,119,86,0.25)',
+      color:'#E6EDF3',transition:'none',transform:'rotate(1.5deg) scale(1.03)',
     });
-
     document.body.appendChild(_dragClone);
     card.classList.add('dragging');
-
-    document.addEventListener('mousemove', onDragMouseMove);
-    document.addEventListener('mouseup',   onDragMouseUp);
+    document.addEventListener('mousemove',onDragMouseMove);
+    document.addEventListener('mouseup',onDragMouseUp);
   }
 
   function onDragMouseMove(e) {
-    if (!_dragClone) return;
-
-    _dragClone.style.left = (e.clientX - _dragOffsetX) + 'px';
-    _dragClone.style.top  = (e.clientY - _dragOffsetY) + 'px';
-
-    // Highlight the column we're hovering over
-    document.querySelectorAll('.kb-cards').forEach(c => c.classList.remove('drag-over'));
-    const el  = document.elementFromPoint(e.clientX, e.clientY);
-    const col = el?.closest('.kb-col');
-    if (col) {
-      _dragOverCol = col.dataset.status;
-      col.querySelector('.kb-cards')?.classList.add('drag-over');
-    } else {
-      _dragOverCol = null;
-    }
+    if(!_dragClone)return;
+    _dragClone.style.left=(e.clientX-_dragOffsetX)+'px';
+    _dragClone.style.top =(e.clientY-_dragOffsetY)+'px';
+    document.querySelectorAll('.kb-cards').forEach(c=>c.classList.remove('drag-over'));
+    const col=document.elementFromPoint(e.clientX,e.clientY)?.closest('.kb-col');
+    if(col){_dragOverCol=col.dataset.status;col.querySelector('.kb-cards')?.classList.add('drag-over');}
+    else   {_dragOverCol=null;}
   }
 
   function onDragMouseUp() {
-    document.removeEventListener('mousemove', onDragMouseMove);
-    document.removeEventListener('mouseup',   onDragMouseUp);
-
-    if (_dragOverCol && dragId !== null) moveCard(dragId, _dragOverCol);
-
-    if (_dragClone) { document.body.removeChild(_dragClone); _dragClone = null; }
-    document.querySelectorAll('.kb-card').forEach(el => el.classList.remove('dragging'));
-    document.querySelectorAll('.kb-cards').forEach(el => el.classList.remove('drag-over'));
-    dragId       = null;
-    _dragOverCol = null;
+    document.removeEventListener('mousemove',onDragMouseMove);
+    document.removeEventListener('mouseup',onDragMouseUp);
+    if(_dragOverCol&&dragId!==null)moveCard(dragId,_dragOverCol);
+    if(_dragClone){document.body.removeChild(_dragClone);_dragClone=null;}
+    document.querySelectorAll('.kb-card').forEach(el=>el.classList.remove('dragging'));
+    document.querySelectorAll('.kb-cards').forEach(el=>el.classList.remove('drag-over'));
+    dragId=null;_dragOverCol=null;
   }
 
-  // ── Intro Boot Screen ──
-  const INTRO_COOLDOWN_MS = 30 * 60 * 1000;
+  // ── Intro ──
+  const INTRO_COOLDOWN_MS=30*60*1000;
+  function shouldShowIntro(){const last=localStorage.getItem('devday-last-visit'),now=Date.now();localStorage.setItem('devday-last-visit',now);return !last||(now-parseInt(last))>INTRO_COOLDOWN_MS;}
 
-  function shouldShowIntro() {
-    const last = localStorage.getItem('devday-last-visit');
-    const now  = Date.now();
-    localStorage.setItem('devday-last-visit', now);
-    if (!last) return true;
-    return (now - parseInt(last)) > INTRO_COOLDOWN_MS;
-  }
-
-  const INTRO_LINES = [
-    { text:`<span class="kw">import</span> { focus, clarity, flow } <span class="kw">from</span> <span class="str">'devday'</span>`, delay:0 },
-    { text:``, delay:180 },
-    { text:`<span class="cmt">// initializing your productivity environment...</span>`, delay:240 },
-    { text:`<span class="kw">const</span> day <span class="op">=</span> <span class="kw">new</span> <span class="cls">Day</span><span class="op">(</span>{ mode: <span class="str">'focused'</span>, distractions: <span class="num">0</span> }<span class="op">)</span>`, delay:460 },
-    { text:``, delay:640 },
-    { text:`<span class="fn">day</span><span class="op">.</span><span class="fn">tasks</span><span class="op">.</span><span class="fn">load</span><span class="op">()</span>        <span class="cmt">// ✓ synced from localStorage</span>`, delay:720 },
-    { text:`<span class="fn">day</span><span class="op">.</span><span class="fn">weather</span><span class="op">.</span><span class="fn">fetch</span><span class="op">()</span>      <span class="cmt">// ✓ connected to open-meteo</span>`, delay:940 },
-    { text:`<span class="fn">day</span><span class="op">.</span><span class="fn">clock</span><span class="op">.</span><span class="fn">start</span><span class="op">()</span>        <span class="cmt">// ✓ ticking</span>`, delay:1160 },
-    { text:``, delay:1340 },
-    { text:`<span class="kw">export default</span> <span class="acc">devday</span>   <span class="cmt">// ready. let's get it.</span>`, delay:1420 },
+  const INTRO_LINES=[
+    {text:`<span class="kw">import</span> { focus, clarity, flow } <span class="kw">from</span> <span class="str">'devday'</span>`,delay:0},
+    {text:``,delay:180},
+    {text:`<span class="cmt">// initializing your productivity environment...</span>`,delay:240},
+    {text:`<span class="kw">const</span> day <span class="op">=</span> <span class="kw">new</span> <span class="cls">Day</span><span class="op">(</span>{ mode: <span class="str">'focused'</span>, distractions: <span class="num">0</span> }<span class="op">)</span>`,delay:460},
+    {text:``,delay:640},
+    {text:`<span class="fn">day</span><span class="op">.</span><span class="fn">tasks</span><span class="op">.</span><span class="fn">load</span><span class="op">()</span>        <span class="cmt">// ✓ synced from localStorage</span>`,delay:720},
+    {text:`<span class="fn">day</span><span class="op">.</span><span class="fn">weather</span><span class="op">.</span><span class="fn">fetch</span><span class="op">()</span>      <span class="cmt">// ✓ connected to open-meteo</span>`,delay:940},
+    {text:`<span class="fn">day</span><span class="op">.</span><span class="fn">clock</span><span class="op">.</span><span class="fn">start</span><span class="op">()</span>        <span class="cmt">// ✓ ticking</span>`,delay:1160},
+    {text:``,delay:1340},
+    {text:`<span class="kw">export default</span> <span class="acc">devday</span>   <span class="cmt">// ready. let's get it.</span>`,delay:1420},
   ];
-
-  const TAGLINES = [
-    'ship more. stress less.',
-    'your day, version controlled.',
-    'commit to your goals.',
-    'focus mode: engaged.',
-    'build the day you want.',
-  ];
+  const TAGLINES=['ship more. stress less.','your day, version controlled.','commit to your goals.','focus mode: engaged.','build the day you want.'];
 
   function runIntro() {
-    const container = document.getElementById('introCode');
-    const loader    = document.getElementById('introLoader');
-    const tagline   = document.getElementById('introTagline');
-    const screen    = document.getElementById('introScreen');
-    const app       = document.getElementById('appWrapper');
-
-    tagline.textContent = TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
-
-    INTRO_LINES.forEach((l, i) => {
-      const row = document.createElement('div');
-      row.className = 'intro-line';
-      row.innerHTML = `<span class="intro-lnum">${l.text ? i + 1 : ''}</span><span>${l.text}${i === INTRO_LINES.length - 1 ? '<span class="intro-cursor"></span>' : ''}</span>`;
+    const container=document.getElementById('introCode'),loader=document.getElementById('introLoader'),tagline=document.getElementById('introTagline'),screen=document.getElementById('introScreen');
+    tagline.textContent=TAGLINES[Math.floor(Math.random()*TAGLINES.length)];
+    INTRO_LINES.forEach((l,i)=>{
+      const row=document.createElement('div'); row.className='intro-line';
+      row.innerHTML=`<span class="intro-lnum">${l.text?i+1:''}</span><span>${l.text}${i===INTRO_LINES.length-1?'<span class="intro-cursor"></span>':''}</span>`;
       container.appendChild(row);
     });
-
-    INTRO_LINES.forEach((l, i) => {
-      setTimeout(() => container.children[i].classList.add('visible'), 300 + l.delay);
-    });
-
-    const lastDelay = INTRO_LINES[INTRO_LINES.length - 1].delay;
-    setTimeout(() => { loader.style.opacity = '1'; tagline.style.opacity = '1'; }, 300 + lastDelay + 200);
-    setTimeout(() => {
+    INTRO_LINES.forEach((l,i)=>setTimeout(()=>container.children[i].classList.add('visible'),300+l.delay));
+    const lastDelay=INTRO_LINES[INTRO_LINES.length-1].delay;
+    setTimeout(()=>{loader.style.opacity='1';tagline.style.opacity='1';},300+lastDelay+200);
+    setTimeout(()=>{
       screen.classList.add('fade-out');
-      app.classList.add('visible');
-      setTimeout(() => screen.remove(), 800);
-    }, 300 + lastDelay + 1100);
+      document.getElementById('appWrapper').classList.add('visible');
+      setTimeout(()=>screen.remove(),800);
+    },300+lastDelay+1100);
   }
 
-  if (shouldShowIntro()) {
-    runIntro();
-  } else {
-    document.getElementById('introScreen').remove();
-    document.getElementById('appWrapper').classList.add('visible');
-  }
+  if(shouldShowIntro()){runIntro();}
+  else{document.getElementById('introScreen').remove();document.getElementById('appWrapper').classList.add('visible');}
 
   init();
 </script>
