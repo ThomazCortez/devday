@@ -1296,7 +1296,7 @@
       const globalIdx = start + i;
       return `
       <div class="task-item ${t.done?'done':''} ${isOverdue?'overdue-task':''}" data-id="${t.id}">
-        <span class="drag-handle" onmousedown="onListHandleDown(event,${t.id})">
+        <span class="drag-handle" onmousedown="onListHandleDown(event,${t.id})" ontouchstart="onListHandleDown(event,${t.id})">
           <svg width="10" height="14" viewBox="0 0 10 14" fill="none">
             <circle cx="3" cy="3"  r="1.2" fill="currentColor"/>
             <circle cx="7" cy="3"  r="1.2" fill="currentColor"/>
@@ -1446,7 +1446,7 @@
         const dm=dueMeta(t.due);
         const isOverdue=!t.done&&dm?.cls==='overdue';
         return `
-        <div class="kb-card ${isOverdue?'overdue-card':''}" data-id="${t.id}" onmousedown="onCardMouseDown(event,${t.id})">
+        <div class="kb-card ${isOverdue?'overdue-card':''}" data-id="${t.id}" onmousedown="onCardMouseDown(event,${t.id})" ontouchstart="onCardMouseDown(event,${t.id})">
           <div class="kb-card-text">${escHtml(t.text)}</div>
           ${dm&&!t.done?`<div style="margin:5px 0 2px"><span class="due-badge ${dm.cls}">${dm.icon} ${dm.label}</span></div>`:''}
           <div class="kb-card-footer">
@@ -1471,16 +1471,24 @@
 
   function deleteKbCard(id){tasks=tasks.filter(t=>t.id!==id);save();renderKanban();updateCounts();}
 
+  // ── Shared drag helpers (mouse + touch) ──
+  function getXY(e) {
+    const src = e.touches ? e.touches[0] : e;
+    return { x: src.clientX, y: src.clientY };
+  }
+
   // ── List Drag Reorder ──
   let _listDragId=null, _listDragClone=null, _listDragOffX=0, _listDragOffY=0, _listDropBeforeId=null;
 
   function onListHandleDown(e, id) {
+    if (e.touches && e.touches.length > 1) return;
     e.preventDefault(); e.stopPropagation();
     _listDragId = id;
+    const {x, y} = getXY(e);
     const row = e.currentTarget.closest('.task-item');
     const rect = row.getBoundingClientRect();
-    _listDragOffX = e.clientX - rect.left;
-    _listDragOffY = e.clientY - rect.top;
+    _listDragOffX = x - rect.left;
+    _listDragOffY = y - rect.top;
     _listDragClone = row.cloneNode(true);
     Object.assign(_listDragClone.style, {
       position:'fixed', top:rect.top+'px', left:rect.left+'px', width:rect.width+'px',
@@ -1493,20 +1501,23 @@
     row.classList.add('list-ghost');
     document.addEventListener('mousemove', onListDragMove);
     document.addEventListener('mouseup',   onListDragUp);
+    document.addEventListener('touchmove', onListDragMove, {passive:false});
+    document.addEventListener('touchend',  onListDragUp);
   }
 
   function onListDragMove(e) {
     if (!_listDragClone) return;
-    _listDragClone.style.left = (e.clientX - _listDragOffX) + 'px';
-    _listDragClone.style.top  = (e.clientY - _listDragOffY) + 'px';
-    // clear old indicator
+    e.preventDefault();
+    const {x, y} = getXY(e);
+    _listDragClone.style.left = (x - _listDragOffX) + 'px';
+    _listDragClone.style.top  = (y - _listDragOffY) + 'px';
     document.querySelectorAll('.list-drop-indicator').forEach(el => el.remove());
     const list = document.getElementById('taskList');
     const rows = [...list.querySelectorAll('.task-item')].filter(el => +el.dataset.id !== _listDragId);
     let insertBefore = null;
     for (const row of rows) {
       const mid = row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2;
-      if (e.clientY < mid) { insertBefore = row; break; }
+      if (y < mid) { insertBefore = row; break; }
     }
     _listDropBeforeId = insertBefore ? +insertBefore.dataset.id : null;
     const ind = document.createElement('div');
@@ -1518,6 +1529,8 @@
   function onListDragUp() {
     document.removeEventListener('mousemove', onListDragMove);
     document.removeEventListener('mouseup',   onListDragUp);
+    document.removeEventListener('touchmove', onListDragMove);
+    document.removeEventListener('touchend',  onListDragUp);
     document.querySelectorAll('.list-drop-indicator').forEach(el => el.remove());
     if (_listDragClone) { document.body.removeChild(_listDragClone); _listDragClone = null; }
     if (_listDragId !== null) {
@@ -1540,42 +1553,47 @@
   // ── Kanban Drag (between columns + within-column reorder) ──
   let _dragClone=null, _dragOffsetX=0, _dragOffsetY=0, _dragOverCol=null, _dragOverCardId=null;
 
-  function onCardMouseDown(e,id) {
-    if(e.target.closest('button'))return;
-    e.preventDefault(); dragId=id;
-    const card=e.currentTarget, rect=card.getBoundingClientRect();
-    _dragOffsetX=e.clientX-rect.left; _dragOffsetY=e.clientY-rect.top;
-    _dragClone=card.cloneNode(true);
-    Object.assign(_dragClone.style,{
-      position:'fixed',top:rect.top+'px',left:rect.left+'px',width:rect.width+'px',
-      margin:'0',opacity:'1',pointerEvents:'none',zIndex:'9999',
-      background:'#1a1f2a',border:'1px solid rgba(218,119,86,0.5)',
-      borderLeft:'3px solid #DA7756',borderRadius:'8px',padding:'11px 13px',
+  function onCardMouseDown(e, id) {
+    if (e.target.closest('button')) return;
+    if (e.touches && e.touches.length > 1) return;
+    e.preventDefault(); dragId = id;
+    const {x, y} = getXY(e);
+    const card = e.currentTarget, rect = card.getBoundingClientRect();
+    _dragOffsetX = x - rect.left; _dragOffsetY = y - rect.top;
+    _dragClone = card.cloneNode(true);
+    Object.assign(_dragClone.style, {
+      position:'fixed', top:rect.top+'px', left:rect.left+'px', width:rect.width+'px',
+      margin:'0', opacity:'1', pointerEvents:'none', zIndex:'9999',
+      background:'#1a1f2a', border:'1px solid rgba(218,119,86,0.5)',
+      borderLeft:'3px solid #DA7756', borderRadius:'8px', padding:'11px 13px',
       boxShadow:'0 12px 36px rgba(0,0,0,0.7),0 0 0 1px rgba(218,119,86,0.25)',
-      color:'#E6EDF3',transition:'none',transform:'rotate(1.5deg) scale(1.03)',
+      color:'#E6EDF3', transition:'none', transform:'rotate(1.5deg) scale(1.03)',
     });
     document.body.appendChild(_dragClone);
     card.classList.add('dragging');
-    document.addEventListener('mousemove',onDragMouseMove);
-    document.addEventListener('mouseup',onDragMouseUp);
+    document.addEventListener('mousemove', onDragMouseMove);
+    document.addEventListener('mouseup',   onDragMouseUp);
+    document.addEventListener('touchmove', onDragMouseMove, {passive:false});
+    document.addEventListener('touchend',  onDragMouseUp);
   }
 
   function onDragMouseMove(e) {
-    if(!_dragClone)return;
-    _dragClone.style.left=(e.clientX-_dragOffsetX)+'px';
-    _dragClone.style.top =(e.clientY-_dragOffsetY)+'px';
-    document.querySelectorAll('.kb-cards').forEach(c=>c.classList.remove('drag-over'));
-    document.querySelectorAll('.kb-drop-indicator').forEach(el=>el.remove());
-    const col=document.elementFromPoint(e.clientX,e.clientY)?.closest('.kb-col');
+    if (!_dragClone) return;
+    e.preventDefault();
+    const {x, y} = getXY(e);
+    _dragClone.style.left = (x - _dragOffsetX) + 'px';
+    _dragClone.style.top  = (y - _dragOffsetY) + 'px';
+    document.querySelectorAll('.kb-cards').forEach(c => c.classList.remove('drag-over'));
+    document.querySelectorAll('.kb-drop-indicator').forEach(el => el.remove());
+    const col = document.elementFromPoint(x, y)?.closest('.kb-col');
     if (col) {
       _dragOverCol = col.dataset.status;
       col.querySelector('.kb-cards')?.classList.add('drag-over');
-      // find which card we're above within this column
-      const cards = [...col.querySelectorAll('.kb-card')].filter(c=>+c.dataset.id!==dragId);
+      const cards = [...col.querySelectorAll('.kb-card')].filter(c => +c.dataset.id !== dragId);
       let insertBefore = null;
       for (const c of cards) {
-        const mid = c.getBoundingClientRect().top + c.getBoundingClientRect().height/2;
-        if (e.clientY < mid) { insertBefore=c; break; }
+        const mid = c.getBoundingClientRect().top + c.getBoundingClientRect().height / 2;
+        if (y < mid) { insertBefore = c; break; }
       }
       _dragOverCardId = insertBefore ? +insertBefore.dataset.id : null;
       const ind = document.createElement('div');
@@ -1584,39 +1602,39 @@
       if (insertBefore) colCards.insertBefore(ind, insertBefore);
       else              colCards.appendChild(ind);
     } else {
-      _dragOverCol=null; _dragOverCardId=null;
+      _dragOverCol = null; _dragOverCardId = null;
     }
   }
 
   function onDragMouseUp() {
-    document.removeEventListener('mousemove',onDragMouseMove);
-    document.removeEventListener('mouseup',onDragMouseUp);
-    document.querySelectorAll('.kb-drop-indicator').forEach(el=>el.remove());
+    document.removeEventListener('mousemove', onDragMouseMove);
+    document.removeEventListener('mouseup',   onDragMouseUp);
+    document.removeEventListener('touchmove', onDragMouseMove);
+    document.removeEventListener('touchend',  onDragMouseUp);
+    document.querySelectorAll('.kb-drop-indicator').forEach(el => el.remove());
     if (_dragOverCol && dragId !== null) {
-      const t = tasks.find(t=>t.id===dragId);
+      const t = tasks.find(t => t.id === dragId);
       if (t) {
-        const wasDone = t.status==='done';
+        const wasDone = t.status === 'done';
         t.status = _dragOverCol;
-        t.done   = _dragOverCol==='done';
-        // reorder within tasks array: move dragged task before target card
-        const fromIdx = tasks.findIndex(t=>t.id===dragId);
+        t.done   = _dragOverCol === 'done';
+        const fromIdx = tasks.findIndex(t => t.id === dragId);
         tasks.splice(fromIdx, 1);
         if (_dragOverCardId !== null) {
-          const toIdx = tasks.findIndex(t=>t.id===_dragOverCardId);
-          tasks.splice(toIdx===-1 ? tasks.length : toIdx, 0, t);
+          const toIdx = tasks.findIndex(t => t.id === _dragOverCardId);
+          tasks.splice(toIdx === -1 ? tasks.length : toIdx, 0, t);
         } else {
-          // dropped at end of column — insert after last card of that column
-          const lastIdx = tasks.reduce((acc,cur,i)=>cur.status===_dragOverCol?i:acc, -1);
-          tasks.splice(lastIdx+1, 0, t);
+          const lastIdx = tasks.reduce((acc, cur, i) => cur.status === _dragOverCol ? i : acc, -1);
+          tasks.splice(lastIdx + 1, 0, t);
         }
         save();
-        if (_dragOverCol==='done' && !wasDone) showCelebration(t.text);
+        if (_dragOverCol === 'done' && !wasDone) showCelebration(t.text);
       }
     }
-    if(_dragClone){document.body.removeChild(_dragClone);_dragClone=null;}
-    document.querySelectorAll('.kb-card').forEach(el=>el.classList.remove('dragging'));
-    document.querySelectorAll('.kb-cards').forEach(el=>el.classList.remove('drag-over'));
-    dragId=null; _dragOverCol=null; _dragOverCardId=null;
+    if (_dragClone) { document.body.removeChild(_dragClone); _dragClone = null; }
+    document.querySelectorAll('.kb-card').forEach(el => el.classList.remove('dragging'));
+    document.querySelectorAll('.kb-cards').forEach(el => el.classList.remove('drag-over'));
+    dragId = null; _dragOverCol = null; _dragOverCardId = null;
     renderKanban();
   }
 
