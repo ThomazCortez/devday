@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>devday — sign in</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #0D1117; --bg-2: #161B22; --bg-3: #21262D;
+      --border:  #30363D; --border-s: #21262D;
+      --text:    #E6EDF3; --text-m: #8B949E; --text-f: #484F58;
+      --claude:  #DA7756; --claude-d: rgba(218,119,86,0.12);
+      --green:   #3FB950; --blue: #58A6FF; --purple: #BC8CFF;
+      --yellow:  #E3B341; --red: #FF7B72;
+    }
+
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Noise ── */
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.35;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+    }
+
+    /* ── Grid bg ── */
+    .bg-grid {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(48,54,61,0.35) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(48,54,61,0.35) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 100%);
+    }
+
+    /* ── Glow orb ── */
+    .bg-orb {
+      position: fixed; width: 600px; height: 600px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(218,119,86,0.07) 0%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      pointer-events: none; z-index: 0;
+      animation: orbPulse 6s ease-in-out infinite;
+    }
+    @keyframes orbPulse { 0%,100%{opacity:0.6;transform:translate(-50%,-50%) scale(1)} 50%{opacity:1;transform:translate(-50%,-50%) scale(1.08)} }
+
+    /* ── Layout ── */
+    .page { position: relative; z-index: 1; width: 100%; max-width: 460px; padding: 24px; }
+
+    /* ── Back link ── */
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: var(--text-f); text-decoration: none; margin-bottom: 32px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--text-m); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(218,119,86,0.05);
+      animation: fadeUp 0.5s ease both;
+    }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+    /* Card titlebar */
+    .card-bar {
+      background: var(--bg-3); border-bottom: 1px solid var(--border);
+      padding: 10px 16px; display: flex; align-items: center; gap: 10px;
+    }
+    .card-dots { display: flex; gap: 6px; }
+    .dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dot.r { background: #FF5F57; } .dot.y { background: #FFBD2E; } .dot.g { background: #28C840; }
+    .card-tab { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-m); margin-left: 6px; }
+    .card-tab span { color: var(--claude); }
+
+    /* Card body */
+    .card-body { padding: 44px 40px 40px; }
+
+    .card-logo {
+      font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700;
+      color: var(--text); margin-bottom: 6px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .card-logo span { color: var(--claude); }
+    .card-logo-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+      box-shadow: 0 0 8px rgba(63,185,80,0.6);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .card-sub {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: var(--text-f); margin-bottom: 40px; letter-spacing: 0.05em;
+    }
+    .card-sub span { color: var(--text-m); }
+
+    /* Code comment above button */
+    .code-comment {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: var(--text-f); font-style: italic; margin-bottom: 10px;
+    }
+
+    /* Google button */
+    .google-btn {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      width: 100%; padding: 14px 20px; border-radius: 8px;
+      background: var(--bg-3); border: 1px solid var(--border);
+      color: var(--text); font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; cursor: pointer; transition: all 0.18s;
+      position: relative; overflow: hidden;
+    }
+    .google-btn::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(218,119,86,0.05), transparent);
+      opacity: 0; transition: opacity 0.18s;
+    }
+    .google-btn:hover { border-color: rgba(218,119,86,0.5); color: var(--text); }
+    .google-btn:hover::before { opacity: 1; }
+    .google-btn:active { transform: scale(0.99); }
+    .google-btn.loading { opacity: 0.6; pointer-events: none; }
+
+    /* Spinner */
+    .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--claude); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    .google-btn.loading .spinner { display: block; }
+    .google-btn.loading .google-icon { display: none; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 24px 0; color: var(--text-f);
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border-s); }
+
+    /* Info pills */
+    .info-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .info-pill {
+      display: flex; align-items: center; gap: 5px;
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      color: var(--text-f); padding: 4px 10px; border-radius: 12px;
+      background: var(--bg-3); border: 1px solid var(--border-s);
+    }
+    .info-pill .dot-sm { width: 5px; height: 5px; border-radius: 50%; }
+
+    /* Error */
+    .auth-error {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: var(--red); margin-top: 14px; min-height: 16px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .auth-error:not(:empty)::before { content: '//'; color: var(--text-f); }
+
+    /* Footer note */
+    .card-footer-note {
+      text-align: center; margin-top: 28px; padding-top: 24px;
+      border-top: 1px solid var(--border-s);
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      color: var(--text-f); line-height: 1.8;
+    }
+    .card-footer-note a { color: var(--text-m); text-decoration: none; transition: color 0.15s; }
+    .card-footer-note a:hover { color: var(--claude); }
+
+    /* Bottom brand */
+    .bottom-brand {
+      text-align: center; margin-top: 24px;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-f);
+    }
+    .bottom-brand span { color: var(--claude); }
+
+    @media (max-width: 480px) {
+      .card-body { padding: 32px 24px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orb"></div>
+
+<div class="page">
+  <a href="index.html" class="back-link">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    back to home
+  </a>
+
+  <div class="card">
+    <div class="card-bar">
+      <div class="card-dots">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      </div>
+      <div class="card-tab">devday — <span>auth.ts</span></div>
+    </div>
+
+    <div class="card-body">
+      <div class="card-logo">
+        dev<span>day</span>
+        <div class="card-logo-dot"></div>
+      </div>
+      <div class="card-sub">
+        <span>// welcome back.</span> sign in to access your tasks.
+      </div>
+
+      <div class="code-comment">// authenticate with Google to continue →</div>
+      <button class="google-btn" id="googleBtn" onclick="signInWithGoogle()">
+        <div class="spinner"></div>
+        <svg class="google-icon" width="18" height="18" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        continue with Google
+      </button>
+
+      <div class="auth-error" id="authError"></div>
+
+      <div class="divider">// or</div>
+
+      <div class="info-row">
+        <div class="info-pill"><div class="dot-sm" style="background:var(--green)"></div>free forever</div>
+        <div class="info-pill"><div class="dot-sm" style="background:var(--blue)"></div>syncs everywhere</div>
+        <div class="info-pill"><div class="dot-sm" style="background:var(--claude)"></div>private data</div>
+        <div class="info-pill"><div class="dot-sm" style="background:var(--purple)"></div>no spam</div>
+      </div>
+
+      <div class="card-footer-note">
+        by signing in you're just getting access to your own tasks.<br>
+        built by <a href="https://github.com/thomazcortez" target="_blank">@thomazcortez</a>
+        · <a href="index.html">learn more</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-brand">dev<span>day</span> — your day, version controlled.</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script>
+  firebase.initializeApp({
+    apiKey:            "AIzaSyCha8LZ-7nbpF5IFwZj7SOxPe1H_l8ZAU0",
+    authDomain:        "devdaydb.firebaseapp.com",
+    databaseURL:       "https://devdaydb-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId:         "devdaydb",
+    storageBucket:     "devdaydb.firebasestorage.app",
+    messagingSenderId: "492517359800",
+    appId:             "1:492517359800:web:6f06865884a39c416ef44d"
+  });
+
+  const auth = firebase.auth();
+
+  // if already signed in, go straight to app
+  auth.onAuthStateChanged(user => {
+    if (user) window.location.href = 'app.html';
+  });
+
+  function signInWithGoogle() {
+    const btn = document.getElementById('googleBtn');
+    const errEl = document.getElementById('authError');
+    errEl.textContent = '';
+    btn.classList.add('loading');
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+      .then(() => { window.location.href = 'app.html'; })
+      .catch(err => {
+        btn.classList.remove('loading');
+        errEl.textContent = err.message;
+      });
+  }
+</script>
+</body>
+</html>
