@@ -266,6 +266,26 @@
     /* kb card overdue left border */
     .kb-card.overdue-card:not([data-status-done]) { border-left-color: var(--red) !important; }
 
+    /* ── List Drag Reorder ── */
+    .drag-handle {
+      flex-shrink: 0; width: 16px; display: flex; align-items: center; justify-content: center;
+      cursor: grab; color: var(--text-faint); opacity: 0.35; transition: opacity 0.15s; padding: 2px 0;
+    }
+    .drag-handle:active { cursor: grabbing; }
+    .task-item:hover .drag-handle { opacity: 1; color: var(--text-muted); }
+    .task-item.list-ghost { opacity: 0.25; pointer-events: none; }
+    .list-drop-indicator {
+      height: 2px; background: var(--claude); border-radius: 1px;
+      margin: 1px 0; box-shadow: 0 0 6px rgba(218,119,86,0.5);
+      pointer-events: none;
+    }
+    /* kb drop indicator within column */
+    .kb-drop-indicator {
+      height: 2px; background: var(--claude); border-radius: 1px;
+      margin: 2px 0; box-shadow: 0 0 6px rgba(218,119,86,0.5);
+      pointer-events: none;
+    }
+
     /* Sidebar ── */
     .sidebar { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); padding-bottom: 24px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
     .sidebar-section { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); padding: 12px 16px 4px; }
@@ -1127,15 +1147,23 @@
 
   function renderTasks() {
     const list=document.getElementById('taskList'), empty=document.getElementById('emptyState');
-    // sort: overdue first, then by due date, then no date
-    const sorted = [...getFiltered()].sort((a,b)=>{
-      const ad=a.due||'9999', bd=b.due||'9999'; return ad<bd?-1:ad>bd?1:0;
-    });
-    list.innerHTML=sorted.map((t,i)=>{
+    // preserve tasks array order — no auto-sort
+    const filtered = getFiltered();
+    list.innerHTML=filtered.map((t,i)=>{
       const dm = dueMeta(t.due);
       const isOverdue = !t.done && dm?.cls==='overdue';
       return `
       <div class="task-item ${t.done?'done':''} ${isOverdue?'overdue-task':''}" data-id="${t.id}">
+        <span class="drag-handle" onmousedown="onListHandleDown(event,${t.id})">
+          <svg width="10" height="14" viewBox="0 0 10 14" fill="none">
+            <circle cx="3" cy="3"  r="1.2" fill="currentColor"/>
+            <circle cx="7" cy="3"  r="1.2" fill="currentColor"/>
+            <circle cx="3" cy="7"  r="1.2" fill="currentColor"/>
+            <circle cx="7" cy="7"  r="1.2" fill="currentColor"/>
+            <circle cx="3" cy="11" r="1.2" fill="currentColor"/>
+            <circle cx="7" cy="11" r="1.2" fill="currentColor"/>
+          </svg>
+        </span>
         <span class="line-gutter">${i+1}</span>
         <button class="check-btn" onclick="toggleDone(${t.id})">
           <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5l2.5 2.5 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1266,8 +1294,74 @@
 
   function deleteKbCard(id){tasks=tasks.filter(t=>t.id!==id);save();renderKanban();updateCounts();}
 
-  // ── Mouse Drag ──
-  let _dragClone=null, _dragOffsetX=0, _dragOffsetY=0, _dragOverCol=null;
+  // ── List Drag Reorder ──
+  let _listDragId=null, _listDragClone=null, _listDragOffX=0, _listDragOffY=0, _listDropBeforeId=null;
+
+  function onListHandleDown(e, id) {
+    e.preventDefault(); e.stopPropagation();
+    _listDragId = id;
+    const row = e.currentTarget.closest('.task-item');
+    const rect = row.getBoundingClientRect();
+    _listDragOffX = e.clientX - rect.left;
+    _listDragOffY = e.clientY - rect.top;
+    _listDragClone = row.cloneNode(true);
+    Object.assign(_listDragClone.style, {
+      position:'fixed', top:rect.top+'px', left:rect.left+'px', width:rect.width+'px',
+      margin:'0', pointerEvents:'none', zIndex:'9999', transition:'none',
+      background:'#1a1f2a', border:'1px solid rgba(218,119,86,0.45)',
+      borderRadius:'6px', boxShadow:'0 8px 28px rgba(0,0,0,0.6)',
+      transform:'rotate(0.4deg) scale(1.01)', opacity:'1',
+    });
+    document.body.appendChild(_listDragClone);
+    row.classList.add('list-ghost');
+    document.addEventListener('mousemove', onListDragMove);
+    document.addEventListener('mouseup',   onListDragUp);
+  }
+
+  function onListDragMove(e) {
+    if (!_listDragClone) return;
+    _listDragClone.style.left = (e.clientX - _listDragOffX) + 'px';
+    _listDragClone.style.top  = (e.clientY - _listDragOffY) + 'px';
+    // clear old indicator
+    document.querySelectorAll('.list-drop-indicator').forEach(el => el.remove());
+    const list = document.getElementById('taskList');
+    const rows = [...list.querySelectorAll('.task-item')].filter(el => +el.dataset.id !== _listDragId);
+    let insertBefore = null;
+    for (const row of rows) {
+      const mid = row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2;
+      if (e.clientY < mid) { insertBefore = row; break; }
+    }
+    _listDropBeforeId = insertBefore ? +insertBefore.dataset.id : null;
+    const ind = document.createElement('div');
+    ind.className = 'list-drop-indicator';
+    if (insertBefore) list.insertBefore(ind, insertBefore);
+    else              list.appendChild(ind);
+  }
+
+  function onListDragUp() {
+    document.removeEventListener('mousemove', onListDragMove);
+    document.removeEventListener('mouseup',   onListDragUp);
+    document.querySelectorAll('.list-drop-indicator').forEach(el => el.remove());
+    if (_listDragClone) { document.body.removeChild(_listDragClone); _listDragClone = null; }
+    if (_listDragId !== null) {
+      const fromIdx = tasks.findIndex(t => t.id === _listDragId);
+      if (fromIdx !== -1) {
+        const [task] = tasks.splice(fromIdx, 1);
+        if (_listDropBeforeId !== null) {
+          const toIdx = tasks.findIndex(t => t.id === _listDropBeforeId);
+          tasks.splice(toIdx === -1 ? tasks.length : toIdx, 0, task);
+        } else {
+          tasks.push(task);
+        }
+        save();
+      }
+    }
+    _listDragId = null; _listDropBeforeId = null;
+    renderTasks();
+  }
+
+  // ── Kanban Drag (between columns + within-column reorder) ──
+  let _dragClone=null, _dragOffsetX=0, _dragOffsetY=0, _dragOverCol=null, _dragOverCardId=null;
 
   function onCardMouseDown(e,id) {
     if(e.target.closest('button'))return;
@@ -1294,19 +1388,59 @@
     _dragClone.style.left=(e.clientX-_dragOffsetX)+'px';
     _dragClone.style.top =(e.clientY-_dragOffsetY)+'px';
     document.querySelectorAll('.kb-cards').forEach(c=>c.classList.remove('drag-over'));
+    document.querySelectorAll('.kb-drop-indicator').forEach(el=>el.remove());
     const col=document.elementFromPoint(e.clientX,e.clientY)?.closest('.kb-col');
-    if(col){_dragOverCol=col.dataset.status;col.querySelector('.kb-cards')?.classList.add('drag-over');}
-    else   {_dragOverCol=null;}
+    if (col) {
+      _dragOverCol = col.dataset.status;
+      col.querySelector('.kb-cards')?.classList.add('drag-over');
+      // find which card we're above within this column
+      const cards = [...col.querySelectorAll('.kb-card')].filter(c=>+c.dataset.id!==dragId);
+      let insertBefore = null;
+      for (const c of cards) {
+        const mid = c.getBoundingClientRect().top + c.getBoundingClientRect().height/2;
+        if (e.clientY < mid) { insertBefore=c; break; }
+      }
+      _dragOverCardId = insertBefore ? +insertBefore.dataset.id : null;
+      const ind = document.createElement('div');
+      ind.className = 'kb-drop-indicator';
+      const colCards = col.querySelector('.kb-cards');
+      if (insertBefore) colCards.insertBefore(ind, insertBefore);
+      else              colCards.appendChild(ind);
+    } else {
+      _dragOverCol=null; _dragOverCardId=null;
+    }
   }
 
   function onDragMouseUp() {
     document.removeEventListener('mousemove',onDragMouseMove);
     document.removeEventListener('mouseup',onDragMouseUp);
-    if(_dragOverCol&&dragId!==null)moveCard(dragId,_dragOverCol);
+    document.querySelectorAll('.kb-drop-indicator').forEach(el=>el.remove());
+    if (_dragOverCol && dragId !== null) {
+      const t = tasks.find(t=>t.id===dragId);
+      if (t) {
+        const wasDone = t.status==='done';
+        t.status = _dragOverCol;
+        t.done   = _dragOverCol==='done';
+        // reorder within tasks array: move dragged task before target card
+        const fromIdx = tasks.findIndex(t=>t.id===dragId);
+        tasks.splice(fromIdx, 1);
+        if (_dragOverCardId !== null) {
+          const toIdx = tasks.findIndex(t=>t.id===_dragOverCardId);
+          tasks.splice(toIdx===-1 ? tasks.length : toIdx, 0, t);
+        } else {
+          // dropped at end of column — insert after last card of that column
+          const lastIdx = tasks.reduce((acc,cur,i)=>cur.status===_dragOverCol?i:acc, -1);
+          tasks.splice(lastIdx+1, 0, t);
+        }
+        save();
+        if (_dragOverCol==='done' && !wasDone) showCelebration(t.text);
+      }
+    }
     if(_dragClone){document.body.removeChild(_dragClone);_dragClone=null;}
     document.querySelectorAll('.kb-card').forEach(el=>el.classList.remove('dragging'));
     document.querySelectorAll('.kb-cards').forEach(el=>el.classList.remove('drag-over'));
-    dragId=null;_dragOverCol=null;
+    dragId=null; _dragOverCol=null; _dragOverCardId=null;
+    renderKanban();
   }
 
   // ── Intro ──
