@@ -566,6 +566,49 @@
     /* Hide hamburger on desktop */
     .sidebar-toggle { display: none; }
 
+    /* ── Auth ── */
+    #authScreen {
+      position: fixed; inset: 0; background: var(--bg); z-index: 99999;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    #authScreen.hidden { display: none; }
+    .auth-card {
+      background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px;
+      padding: 44px 48px; width: min(400px, 90vw); text-align: center;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+    .auth-logo { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .auth-logo span { color: var(--claude); }
+    .auth-sub { font-size: 11px; color: var(--text-faint); margin-bottom: 36px; letter-spacing: 0.06em; }
+    .auth-google-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 12px 20px; border-radius: 8px;
+      background: var(--bg-3); border: 1px solid var(--border);
+      color: var(--text); font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; cursor: pointer; transition: all 0.15s;
+    }
+    .auth-google-btn:hover { border-color: var(--claude); color: var(--claude); background: var(--claude-dim); }
+    .auth-error { font-size: 11px; color: var(--red); margin-top: 14px; min-height: 16px; }
+    .user-pill {
+      display: flex; align-items: center; gap: 7px;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: var(--text-muted); padding: 3px 10px 3px 6px;
+      border: 1px solid var(--border); border-radius: 20px; background: var(--bg-3);
+    }
+    .user-avatar {
+      width: 20px; height: 20px; border-radius: 50%; background: var(--claude);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: white; flex-shrink: 0; overflow: hidden;
+    }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-name { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .signout-btn {
+      background: none; border: none; cursor: pointer; padding: 2px 4px;
+      color: var(--text-faint); font-size: 13px; transition: color 0.15s; border-radius: 3px;
+    }
+    .signout-btn:hover { color: var(--red); }
+
   </style>
 </head>
 <body>
@@ -588,6 +631,19 @@
   </div>
 </div>
 
+<!-- Auth Screen -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">dev<span>day</span></div>
+    <div class="auth-sub">// your personal daily planner</div>
+    <button class="auth-google-btn" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      sign in with Google
+    </button>
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
+
 <!-- App -->
 <div class="app-wrapper" id="appWrapper">
 
@@ -599,15 +655,22 @@
       <div class="window-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
       <div class="titlebar-title">tasks<span>.md</span> — devday</div>
     </div>
-    <div class="view-toggle">
-      <button class="view-btn active" id="btnList" onclick="switchView('list')">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="0" y="1" width="12" height="1.5" rx="0.75" fill="currentColor"/><rect x="0" y="5" width="12" height="1.5" rx="0.75" fill="currentColor"/><rect x="0" y="9" width="12" height="1.5" rx="0.75" fill="currentColor"/></svg>
-        list
-      </button>
-      <button class="view-btn" id="btnKanban" onclick="switchView('kanban')">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="0" y="0" width="3.2" height="12" rx="1" fill="currentColor"/><rect x="4.4" y="0" width="3.2" height="8" rx="1" fill="currentColor"/><rect x="8.8" y="0" width="3.2" height="10" rx="1" fill="currentColor"/></svg>
-        kanban
-      </button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="view-toggle">
+        <button class="view-btn active" id="btnList" onclick="switchView('list')">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="0" y="1" width="12" height="1.5" rx="0.75" fill="currentColor"/><rect x="0" y="5" width="12" height="1.5" rx="0.75" fill="currentColor"/><rect x="0" y="9" width="12" height="1.5" rx="0.75" fill="currentColor"/></svg>
+          list
+        </button>
+        <button class="view-btn" id="btnKanban" onclick="switchView('kanban')">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="0" y="0" width="3.2" height="12" rx="1" fill="currentColor"/><rect x="4.4" y="0" width="3.2" height="8" rx="1" fill="currentColor"/><rect x="8.8" y="0" width="3.2" height="10" rx="1" fill="currentColor"/></svg>
+          kanban
+        </button>
+      </div>
+      <div class="user-pill" id="userPill" style="display:none;">
+        <div class="user-avatar" id="userAvatar"></div>
+        <span class="user-name" id="userName"></span>
+        <button class="signout-btn" onclick="signOut()" title="Sign out">✕</button>
+      </div>
     </div>
   </div>
 
@@ -823,6 +886,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
 <script>
   // ── Firebase init ──
@@ -836,16 +900,68 @@
     appId:             "1:492517359800:web:6f06865884a39c416ef44d"
   };
   firebase.initializeApp(_firebaseConfig);
-  const _db  = firebase.database();
-  const _ref = _db.ref('tasks');
+  const _db   = firebase.database();
+  const _auth = firebase.auth();
+  let   _userRef = null;
+  let   _activeListener = null;
 
-  function dbSave(tasks) { _ref.set(tasks); }
-  function dbListen(cb)  {
-    _ref.on('value', snap => {
+  function dbSave(tasks) {
+    if (_userRef) _userRef.set(tasks);
+  }
+
+  function dbListen(cb) {
+    if (_activeListener && _userRef) _userRef.off('value', _activeListener);
+    _activeListener = _userRef.on('value', snap => {
       const val = snap.val();
       cb(Array.isArray(val) ? val : val ? Object.values(val) : []);
     });
   }
+
+  function dbDetach() {
+    if (_activeListener && _userRef) { _userRef.off('value', _activeListener); _activeListener = null; }
+    _userRef = null;
+  }
+
+  // ── Auth ──
+  function signInWithGoogle() {
+    document.getElementById('authError').textContent = '';
+    const provider = new firebase.auth.GoogleAuthProvider();
+    _auth.signInWithPopup(provider).catch(err => {
+      document.getElementById('authError').textContent = '// ' + err.message;
+    });
+  }
+
+  function signOut() {
+    dbDetach();
+    tasks = [];
+    _auth.signOut();
+  }
+
+  _auth.onAuthStateChanged(user => {
+    if (user) {
+      // signed in — set up per-user db path
+      _userRef = _db.ref('users/' + user.uid + '/tasks');
+      // update user pill
+      const pill = document.getElementById('userPill');
+      const nameEl = document.getElementById('userName');
+      const avatarEl = document.getElementById('userAvatar');
+      pill.style.display = 'flex';
+      nameEl.textContent = user.displayName?.split(' ')[0] || 'user';
+      if (user.photoURL) {
+        avatarEl.innerHTML = `<img src="${user.photoURL}" alt="avatar"/>`;
+      } else {
+        avatarEl.textContent = (user.displayName||'U')[0].toUpperCase();
+      }
+      // hide auth screen, start app
+      document.getElementById('authScreen').classList.add('hidden');
+      init();
+    } else {
+      // signed out — show auth screen, reset
+      document.getElementById('authScreen').classList.remove('hidden');
+      document.getElementById('userPill').style.display = 'none';
+      tasks = []; renderTasks();
+    }
+  });
   let tasks         = [];
   let selectedTag   = null;
   let selectedDue   = null;  // 'YYYY-MM-DD'
@@ -1676,8 +1792,6 @@
 
   if(shouldShowIntro()){runIntro();}
   else{document.getElementById('introScreen').remove();document.getElementById('appWrapper').classList.add('visible');}
-
-  init();
 </script>
 </body>
 </html>
