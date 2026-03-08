@@ -821,12 +821,12 @@
   </div>
 </div>
 
-<script type="module">
-  // ── Firebase ──
-  import { initializeApp }                        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, onValue }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-  const firebaseConfig = {
+<script>
+  // ── Firebase init ──
+  const _firebaseConfig = {
     apiKey:            "AIzaSyCha8LZ-7nbpF5IFwZj7SOxPe1H_l8ZAU0",
     authDomain:        "devdaydb.firebaseapp.com",
     databaseURL:       "https://devdaydb-default-rtdb.europe-west1.firebasedatabase.app",
@@ -835,20 +835,17 @@
     messagingSenderId: "492517359800",
     appId:             "1:492517359800:web:6f06865884a39c416ef44d"
   };
+  firebase.initializeApp(_firebaseConfig);
+  const _db  = firebase.database();
+  const _ref = _db.ref('tasks');
 
-  const _app = initializeApp(firebaseConfig);
-  const _db  = getDatabase(_app);
-  const _ref = ref(_db, 'tasks');
-
-  // expose to global scope for the rest of the script
-  window._dbSave = (tasks) => set(_ref, tasks);
-  window._dbListen = (cb)  => onValue(_ref, snap => {
-    const val = snap.val();
-    cb(Array.isArray(val) ? val : val ? Object.values(val) : []);
-  });
-</script>
-
-<script>
+  function dbSave(tasks) { _ref.set(tasks); }
+  function dbListen(cb)  {
+    _ref.on('value', snap => {
+      const val = snap.val();
+      cb(Array.isArray(val) ? val : val ? Object.values(val) : []);
+    });
+  }
   let tasks         = [];
   let selectedTag   = null;
   let selectedDue   = null;  // 'YYYY-MM-DD'
@@ -870,7 +867,7 @@
     document.getElementById('taskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
 
     // load tasks from Firebase and keep in sync across devices
-    window._dbListen(remote => {
+    dbListen(remote => {
       tasks = normalizeTasks(remote);
       renderTasks();
       if (currentView === 'kanban') renderKanban();
@@ -1241,7 +1238,7 @@
   function pickDay(iso) { setDue(iso); closeCalendar(); }
 
   // ── Tasks ──
-  function save() { window._dbSave(tasks); }
+  function save() { dbSave(tasks); }
 
   function addTask() {
     const input=document.getElementById('taskInput'), text=input.value.trim();
