@@ -289,6 +289,10 @@
     .view-btn svg { flex-shrink: 0; }
 
     /* ── Kanban ── */
+    #listView, #kanbanView, #inputArea {
+      transition: opacity 0.18s ease;
+    }
+    #listView.fading, #kanbanView.fading, #inputArea.fading { opacity: 0; pointer-events: none; }
     #kanbanView { display: none; }
     #kanbanView.visible { display: flex; gap: 16px; padding: 0 4px 24px; }
     .kb-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -1201,12 +1205,28 @@
   }
 
   function switchView(view) {
-    currentView=view;
-    const listEl=document.getElementById('listView'),kanbanEl=document.getElementById('kanbanView'),inputEl=document.getElementById('inputArea');
+    if (currentView === view) return;
+    const listEl=document.getElementById('listView'), kanbanEl=document.getElementById('kanbanView'), inputEl=document.getElementById('inputArea');
     document.getElementById('btnList').classList.toggle('active',   view==='list');
     document.getElementById('btnKanban').classList.toggle('active', view==='kanban');
-    if(view==='list'){listEl.style.display='';inputEl.style.display='';kanbanEl.classList.remove('visible');renderTasks();}
-    else             {listEl.style.display='none';inputEl.style.display='none';kanbanEl.classList.add('visible');renderKanban();}
+
+    listEl.classList.add('fading'); kanbanEl.classList.add('fading'); inputEl.classList.add('fading');
+
+    setTimeout(() => {
+      currentView = view;
+      if (view==='list') {
+        listEl.style.display=''; inputEl.style.display='';
+        kanbanEl.classList.remove('visible');
+        kanbanEl.style.display='none';
+        renderTasks();
+      } else {
+        listEl.style.display='none'; inputEl.style.display='none';
+        kanbanEl.style.display='';
+        kanbanEl.classList.add('visible');
+        renderKanban();
+      }
+      listEl.classList.remove('fading'); kanbanEl.classList.remove('fading'); inputEl.classList.remove('fading');
+    }, 180);
   }
 
   // ── Kanban ──
