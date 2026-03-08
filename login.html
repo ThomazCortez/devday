@@ -8,181 +8,127 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:      #0D1117; --bg-2: #161B22; --bg-3: #21262D;
-      --border:  #30363D; --border-s: #21262D;
-      --text:    #E6EDF3; --text-m: #8B949E; --text-f: #484F58;
-      --claude:  #DA7756; --claude-d: rgba(218,119,86,0.12);
-      --green:   #3FB950; --blue: #58A6FF; --purple: #BC8CFF;
-      --yellow:  #E3B341; --red: #FF7B72;
+      --bg:#0D1117; --bg-2:#161B22; --bg-3:#21262D;
+      --border:#30363D; --border-s:#21262D;
+      --text:#E6EDF3; --text-m:#8B949E; --text-f:#484F58;
+      --claude:#DA7756; --claude-d:rgba(218,119,86,0.12);
+      --green:#3FB950; --blue:#58A6FF; --purple:#BC8CFF;
+      --yellow:#E3B341; --red:#FF7B72;
     }
-
-    body {
-      background: var(--bg); color: var(--text);
-      font-family: 'Inter', sans-serif;
-      min-height: 100vh; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    /* ── Noise ── */
-    body::before {
-      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.35;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
-    }
-
-    /* ── Grid bg ── */
-    .bg-grid {
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      background-image:
-        linear-gradient(rgba(48,54,61,0.35) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(48,54,61,0.35) 1px, transparent 1px);
-      background-size: 40px 40px;
-      mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 100%);
-    }
-
-    /* ── Glow orb ── */
-    .bg-orb {
-      position: fixed; width: 600px; height: 600px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(218,119,86,0.07) 0%, transparent 70%);
-      top: 50%; left: 50%; transform: translate(-50%, -50%);
-      pointer-events: none; z-index: 0;
-      animation: orbPulse 6s ease-in-out infinite;
-    }
+    body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; overflow-y:auto; padding:20px 0; }
+    body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:0.35; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"); }
+    .bg-grid { position:fixed; inset:0; pointer-events:none; z-index:0; background-image:linear-gradient(rgba(48,54,61,0.35) 1px,transparent 1px),linear-gradient(90deg,rgba(48,54,61,0.35) 1px,transparent 1px); background-size:40px 40px; mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black 30%,transparent 100%); }
+    .bg-orb { position:fixed; width:600px; height:600px; border-radius:50%; background:radial-gradient(circle,rgba(218,119,86,0.07) 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; z-index:0; animation:orbPulse 6s ease-in-out infinite; }
     @keyframes orbPulse { 0%,100%{opacity:0.6;transform:translate(-50%,-50%) scale(1)} 50%{opacity:1;transform:translate(-50%,-50%) scale(1.08)} }
 
-    /* ── Layout ── */
-    .page { position: relative; z-index: 1; width: 100%; max-width: 460px; padding: 24px; }
+    .page { position:relative; z-index:1; width:100%; max-width:460px; padding:24px; }
+    .back-link { display:inline-flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-f); text-decoration:none; margin-bottom:28px; transition:color 0.15s; }
+    .back-link:hover { color:var(--text-m); }
 
-    /* ── Back link ── */
-    .back-link {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-family: 'JetBrains Mono', monospace; font-size: 11px;
-      color: var(--text-f); text-decoration: none; margin-bottom: 32px;
-      transition: color 0.15s;
-    }
-    .back-link:hover { color: var(--text-m); }
-
-    /* ── Card ── */
-    .card {
-      background: var(--bg-2); border: 1px solid var(--border);
-      border-radius: 16px; overflow: hidden;
-      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(218,119,86,0.05);
-      animation: fadeUp 0.5s ease both;
-    }
+    /* Card */
+    .card { background:var(--bg-2); border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:0 32px 80px rgba(0,0,0,0.5),0 0 0 1px rgba(218,119,86,0.05); animation:fadeUp 0.5s ease both; }
     @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .card-bar { background:var(--bg-3); border-bottom:1px solid var(--border); padding:10px 16px; display:flex; align-items:center; gap:10px; }
+    .card-dots { display:flex; gap:6px; }
+    .dot { width:11px; height:11px; border-radius:50%; }
+    .dot.r{background:#FF5F57} .dot.y{background:#FFBD2E} .dot.g{background:#28C840}
+    .card-tab { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-m); margin-left:6px; }
+    .card-tab span { color:var(--claude); }
+    .card-body { padding:36px 40px 36px; }
 
-    /* Card titlebar */
-    .card-bar {
-      background: var(--bg-3); border-bottom: 1px solid var(--border);
-      padding: 10px 16px; display: flex; align-items: center; gap: 10px;
-    }
-    .card-dots { display: flex; gap: 6px; }
-    .dot { width: 11px; height: 11px; border-radius: 50%; }
-    .dot.r { background: #FF5F57; } .dot.y { background: #FFBD2E; } .dot.g { background: #28C840; }
-    .card-tab { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-m); margin-left: 6px; }
-    .card-tab span { color: var(--claude); }
-
-    /* Card body */
-    .card-body { padding: 44px 40px 40px; }
-
-    .card-logo {
-      font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700;
-      color: var(--text); margin-bottom: 6px;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .card-logo span { color: var(--claude); }
-    .card-logo-dot {
-      width: 8px; height: 8px; border-radius: 50%; background: var(--green);
-      box-shadow: 0 0 8px rgba(63,185,80,0.6);
-      animation: pulse 2s ease-in-out infinite;
-    }
+    /* Logo */
+    .card-logo { font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:700; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:10px; }
+    .card-logo span { color:var(--claude); }
+    .card-logo-dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px rgba(63,185,80,0.6); animation:pulse 2s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .card-sub { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-f); margin-bottom:28px; letter-spacing:0.05em; }
+    .card-sub span { color:var(--text-m); }
 
-    .card-sub {
-      font-family: 'JetBrains Mono', monospace; font-size: 11px;
-      color: var(--text-f); margin-bottom: 40px; letter-spacing: 0.05em;
-    }
-    .card-sub span { color: var(--text-m); }
+    /* Method tabs */
+    .method-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border-s); border:1px solid var(--border-s); border-radius:8px; overflow:hidden; margin-bottom:28px; }
+    .method-tab { background:var(--bg-3); padding:9px 6px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-f); text-align:center; cursor:pointer; transition:all 0.15s; border:none; letter-spacing:0.04em; }
+    .method-tab:hover { color:var(--text-m); background:var(--bg-2); }
+    .method-tab.active { background:var(--bg-2); color:var(--claude); }
 
-    /* Code comment above button */
-    .code-comment {
-      font-family: 'JetBrains Mono', monospace; font-size: 11px;
-      color: var(--text-f); font-style: italic; margin-bottom: 10px;
-    }
+    /* Panels */
+    .method-panel { display:none; }
+    .method-panel.active { display:block; }
 
-    /* Google button */
-    .google-btn {
-      display: flex; align-items: center; justify-content: center; gap: 12px;
-      width: 100%; padding: 14px 20px; border-radius: 8px;
-      background: var(--bg-3); border: 1px solid var(--border);
-      color: var(--text); font-family: 'JetBrains Mono', monospace;
-      font-size: 13px; cursor: pointer; transition: all 0.18s;
-      position: relative; overflow: hidden;
-    }
-    .google-btn::before {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(218,119,86,0.05), transparent);
-      opacity: 0; transition: opacity 0.18s;
-    }
-    .google-btn:hover { border-color: rgba(218,119,86,0.5); color: var(--text); }
-    .google-btn:hover::before { opacity: 1; }
-    .google-btn:active { transform: scale(0.99); }
-    .google-btn.loading { opacity: 0.6; pointer-events: none; }
+    /* Google btn */
+    .google-btn { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; padding:14px 20px; border-radius:8px; background:var(--bg-3); border:1px solid var(--border); color:var(--text); font-family:'JetBrains Mono',monospace; font-size:13px; cursor:pointer; transition:all 0.18s; position:relative; overflow:hidden; }
+    .google-btn::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(218,119,86,0.05),transparent); opacity:0; transition:opacity 0.18s; }
+    .google-btn:hover { border-color:rgba(218,119,86,0.5); }
+    .google-btn:hover::before { opacity:1; }
+    .google-btn:active { transform:scale(0.99); }
+    .google-btn.loading { opacity:0.6; pointer-events:none; }
+    .google-btn.loading .btn-spinner { display:block; }
+    .google-btn.loading .btn-icon { display:none; }
+
+    /* Email fields */
+    .field-group { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+    .field-label { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-f); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:4px; }
+    .field-input { width:100%; padding:11px 14px; background:var(--bg-3); border:1px solid var(--border); border-radius:7px; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:13px; outline:none; transition:border-color 0.15s; }
+    .field-input::placeholder { color:var(--text-f); }
+    .field-input:focus { border-color:var(--claude); }
+
+    /* Mode toggle (sign in / register) */
+    .mode-toggle { display:flex; justify-content:center; gap:4px; margin-bottom:18px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-f); }
+    .mode-toggle button { background:none; border:none; cursor:pointer; font-family:'JetBrains Mono',monospace; font-size:11px; padding:2px 6px; border-radius:4px; transition:all 0.15s; }
+    .mode-toggle .mode-btn { color:var(--text-f); }
+    .mode-toggle .mode-btn.active { color:var(--claude); }
+    .mode-toggle .mode-btn:hover { color:var(--text-m); }
+
+    /* Primary btn */
+    .primary-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:13px 20px; border-radius:8px; background:var(--claude); border:none; color:white; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.18s; }
+    .primary-btn:hover { opacity:0.85; transform:translateY(-1px); box-shadow:0 6px 20px rgba(218,119,86,0.35); }
+    .primary-btn:active { transform:scale(0.99); }
+    .primary-btn.loading { opacity:0.6; pointer-events:none; }
+    .primary-btn.loading .btn-spinner { display:block; }
+    .primary-btn.loading .btn-label { display:none; }
+
+    /* Guest btn */
+    .guest-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:13px 20px; border-radius:8px; background:transparent; border:1px solid var(--border); color:var(--text-m); font-family:'JetBrains Mono',monospace; font-size:13px; cursor:pointer; transition:all 0.18s; }
+    .guest-btn:hover { border-color:var(--text-f); color:var(--text); }
+    .guest-btn:active { transform:scale(0.99); }
+    .guest-btn.loading { opacity:0.6; pointer-events:none; }
 
     /* Spinner */
-    .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--claude); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
-    .google-btn.loading .spinner { display: block; }
-    .google-btn.loading .google-icon { display: none; }
+    .btn-spinner { width:15px; height:15px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 0.7s linear infinite; display:none; flex-shrink:0; }
+    .guest-btn .btn-spinner { border-color:rgba(139,148,158,0.3); border-top-color:var(--text-m); }
+    .google-btn .btn-spinner { border-color:var(--border); border-top-color:var(--claude); }
     @keyframes spin { to{transform:rotate(360deg)} }
 
-    .divider {
-      display: flex; align-items: center; gap: 12px;
-      margin: 24px 0; color: var(--text-f);
-      font-family: 'JetBrains Mono', monospace; font-size: 10px;
-    }
-    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border-s); }
+    /* Guest info */
+    .guest-info { background:rgba(227,179,65,0.06); border:1px solid rgba(227,179,65,0.18); border-radius:8px; padding:12px 14px; margin-bottom:20px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--yellow); line-height:1.7; }
+    .guest-info strong { display:block; margin-bottom:2px; }
+
+    /* Error / success */
+    .auth-msg { font-family:'JetBrains Mono',monospace; font-size:11px; min-height:18px; margin-top:12px; display:flex; align-items:center; gap:6px; }
+    .auth-msg.error { color:var(--red); }
+    .auth-msg.error:not(:empty)::before { content:'//'; color:var(--text-f); }
+    .auth-msg.success { color:var(--green); }
+    .auth-msg.success:not(:empty)::before { content:'✓'; }
+
+    /* Divider */
+    .divider { display:flex; align-items:center; gap:12px; margin:20px 0; color:var(--text-f); font-family:'JetBrains Mono',monospace; font-size:10px; }
+    .divider::before,.divider::after { content:''; flex:1; height:1px; background:var(--border-s); }
 
     /* Info pills */
-    .info-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .info-pill {
-      display: flex; align-items: center; gap: 5px;
-      font-family: 'JetBrains Mono', monospace; font-size: 10px;
-      color: var(--text-f); padding: 4px 10px; border-radius: 12px;
-      background: var(--bg-3); border: 1px solid var(--border-s);
-    }
-    .info-pill .dot-sm { width: 5px; height: 5px; border-radius: 50%; }
+    .info-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:20px; }
+    .info-pill { display:flex; align-items:center; gap:5px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-f); padding:4px 10px; border-radius:12px; background:var(--bg-3); border:1px solid var(--border-s); }
+    .dot-sm { width:5px; height:5px; border-radius:50%; display:inline-block; }
 
-    /* Error */
-    .auth-error {
-      font-family: 'JetBrains Mono', monospace; font-size: 11px;
-      color: var(--red); margin-top: 14px; min-height: 16px;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .auth-error:not(:empty)::before { content: '//'; color: var(--text-f); }
+    /* Footer */
+    .card-footer-note { text-align:center; margin-top:24px; padding-top:20px; border-top:1px solid var(--border-s); font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-f); line-height:1.8; }
+    .card-footer-note a { color:var(--text-m); text-decoration:none; transition:color 0.15s; }
+    .card-footer-note a:hover { color:var(--claude); }
+    .bottom-brand { text-align:center; margin-top:20px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-f); }
+    .bottom-brand span { color:var(--claude); }
 
-    /* Footer note */
-    .card-footer-note {
-      text-align: center; margin-top: 28px; padding-top: 24px;
-      border-top: 1px solid var(--border-s);
-      font-family: 'JetBrains Mono', monospace; font-size: 10px;
-      color: var(--text-f); line-height: 1.8;
-    }
-    .card-footer-note a { color: var(--text-m); text-decoration: none; transition: color 0.15s; }
-    .card-footer-note a:hover { color: var(--claude); }
-
-    /* Bottom brand */
-    .bottom-brand {
-      text-align: center; margin-top: 24px;
-      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-f);
-    }
-    .bottom-brand span { color: var(--claude); }
-
-    @media (max-width: 480px) {
-      .card-body { padding: 32px 24px 28px; }
-    }
+    @media (max-width:480px) { .card-body { padding:28px 24px; } }
   </style>
 </head>
 <body>
-
 <div class="bg-grid"></div>
 <div class="bg-orb"></div>
 
@@ -194,46 +140,86 @@
 
   <div class="card">
     <div class="card-bar">
-      <div class="card-dots">
-        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
-      </div>
+      <div class="card-dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
       <div class="card-tab">devday — <span>auth.ts</span></div>
     </div>
-
     <div class="card-body">
-      <div class="card-logo">
-        dev<span>day</span>
-        <div class="card-logo-dot"></div>
+      <div class="card-logo">dev<span>day</span><div class="card-logo-dot"></div></div>
+      <div class="card-sub"><span>// welcome.</span> choose how to sign in.</div>
+
+      <!-- Method tabs -->
+      <div class="method-tabs">
+        <button class="method-tab active" onclick="switchTab('google')">Google</button>
+        <button class="method-tab" onclick="switchTab('email')">Email</button>
+        <button class="method-tab" onclick="switchTab('guest')">Guest</button>
       </div>
-      <div class="card-sub">
-        <span>// welcome back.</span> sign in to access your tasks.
+
+      <!-- Google panel -->
+      <div class="method-panel active" id="panel-google">
+        <button class="google-btn" id="googleBtn" onclick="signInGoogle()">
+          <div class="btn-spinner"></div>
+          <svg class="btn-icon" width="18" height="18" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          continue with Google
+        </button>
+        <div class="auth-msg error" id="googleErr"></div>
       </div>
 
-      <div class="code-comment">// authenticate with Google to continue →</div>
-      <button class="google-btn" id="googleBtn" onclick="signInWithGoogle()">
-        <div class="spinner"></div>
-        <svg class="google-icon" width="18" height="18" viewBox="0 0 48 48">
-          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/>
-          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-        </svg>
-        continue with Google
-      </button>
+      <!-- Email panel -->
+      <div class="method-panel" id="panel-email">
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="modeSignin" onclick="setMode('signin')">sign in</button>
+          <span style="color:var(--border)">·</span>
+          <button class="mode-btn" id="modeRegister" onclick="setMode('register')">register</button>
+        </div>
+        <div class="field-group">
+          <div>
+            <div class="field-label">// email</div>
+            <input class="field-input" id="emailInput" type="email" placeholder="you@example.com" autocomplete="email"/>
+          </div>
+          <div>
+            <div class="field-label">// password</div>
+            <input class="field-input" id="passInput" type="password" placeholder="••••••••" autocomplete="current-password"/>
+          </div>
+          <div id="confirmWrap" style="display:none">
+            <div class="field-label">// confirm password</div>
+            <input class="field-input" id="confirmInput" type="password" placeholder="••••••••" autocomplete="new-password"/>
+          </div>
+        </div>
+        <button class="primary-btn" id="emailBtn" onclick="submitEmail()">
+          <div class="btn-spinner"></div>
+          <span class="btn-label" id="emailBtnLabel">sign in</span>
+        </button>
+        <div class="auth-msg error" id="emailErr"></div>
+        <div class="auth-msg success" id="emailOk"></div>
+      </div>
 
-      <div class="auth-error" id="authError"></div>
-
-      <div class="divider">// or</div>
+      <!-- Guest panel -->
+      <div class="method-panel" id="panel-guest">
+        <div class="guest-info">
+          <strong>⚠ heads up</strong>
+          Guest sessions are temporary. Your tasks won't be saved if you clear your browser or sign out. Sign in with Google or Email to keep your data permanently.
+        </div>
+        <button class="guest-btn" id="guestBtn" onclick="signInGuest()">
+          <div class="btn-spinner"></div>
+          <svg class="btn-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          continue as guest
+        </button>
+        <div class="auth-msg error" id="guestErr"></div>
+      </div>
 
       <div class="info-row">
-        <div class="info-pill"><div class="dot-sm" style="background:var(--green)"></div>free forever</div>
-        <div class="info-pill"><div class="dot-sm" style="background:var(--blue)"></div>syncs everywhere</div>
-        <div class="info-pill"><div class="dot-sm" style="background:var(--claude)"></div>private data</div>
-        <div class="info-pill"><div class="dot-sm" style="background:var(--purple)"></div>no spam</div>
+        <div class="info-pill"><span class="dot-sm" style="background:var(--green)"></span>free forever</div>
+        <div class="info-pill"><span class="dot-sm" style="background:var(--blue)"></span>syncs everywhere</div>
+        <div class="info-pill"><span class="dot-sm" style="background:var(--claude)"></span>private data</div>
+        <div class="info-pill"><span class="dot-sm" style="background:var(--purple)"></span>no spam</div>
       </div>
 
       <div class="card-footer-note">
-        by signing in you're just getting access to your own tasks.<br>
         built by <a href="https://github.com/thomazcortez" target="_blank">@thomazcortez</a>
         · <a href="index.html">learn more</a>
       </div>
@@ -255,25 +241,87 @@
     messagingSenderId: "492517359800",
     appId:             "1:492517359800:web:6f06865884a39c416ef44d"
   });
-
   const auth = firebase.auth();
 
-  // if already signed in, go straight to app
-  auth.onAuthStateChanged(user => {
-    if (user) window.location.href = 'app.html';
-  });
+  // Already signed in → skip to app
+  auth.onAuthStateChanged(user => { if (user) window.location.href = 'app.html'; });
 
-  function signInWithGoogle() {
+  // ── Tab switching ──
+  let activeTab = 'google';
+  function switchTab(tab) {
+    document.querySelectorAll('.method-tab').forEach((el, i) => {
+      el.classList.toggle('active', ['google','email','guest'][i] === tab);
+    });
+    document.querySelectorAll('.method-panel').forEach(el => el.classList.remove('active'));
+    document.getElementById('panel-' + tab).classList.add('active');
+    activeTab = tab;
+    clearErrors();
+  }
+  function clearErrors() {
+    ['googleErr','emailErr','emailOk','guestErr'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = '';
+    });
+  }
+
+  // ── Email mode (signin / register) ──
+  let emailMode = 'signin';
+  function setMode(mode) {
+    emailMode = mode;
+    document.getElementById('modeSignin').classList.toggle('active', mode === 'signin');
+    document.getElementById('modeRegister').classList.toggle('active', mode === 'register');
+    document.getElementById('confirmWrap').style.display = mode === 'register' ? 'block' : 'none';
+    document.getElementById('emailBtnLabel').textContent = mode === 'signin' ? 'sign in' : 'create account';
+    document.getElementById('passInput').autocomplete = mode === 'signin' ? 'current-password' : 'new-password';
+    clearErrors();
+  }
+
+  // ── Google ──
+  function signInGoogle() {
     const btn = document.getElementById('googleBtn');
-    const errEl = document.getElementById('authError');
-    errEl.textContent = '';
-    btn.classList.add('loading');
+    const err = document.getElementById('googleErr');
+    err.textContent = ''; btn.classList.add('loading');
     auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
       .then(() => { window.location.href = 'app.html'; })
-      .catch(err => {
-        btn.classList.remove('loading');
-        errEl.textContent = err.message;
-      });
+      .catch(e => { btn.classList.remove('loading'); err.textContent = e.message; });
+  }
+
+  // ── Email / Password ──
+  function submitEmail() {
+    const email   = document.getElementById('emailInput').value.trim();
+    const pass    = document.getElementById('passInput').value;
+    const confirm = document.getElementById('confirmInput').value;
+    const btn     = document.getElementById('emailBtn');
+    const err     = document.getElementById('emailErr');
+    const ok      = document.getElementById('emailOk');
+    err.textContent = ''; ok.textContent = '';
+    if (!email || !pass) { err.textContent = 'email and password required'; return; }
+    if (emailMode === 'register') {
+      if (pass.length < 6) { err.textContent = 'password must be at least 6 characters'; return; }
+      if (pass !== confirm) { err.textContent = 'passwords do not match'; return; }
+    }
+    btn.classList.add('loading');
+    const action = emailMode === 'signin'
+      ? auth.signInWithEmailAndPassword(email, pass)
+      : auth.createUserWithEmailAndPassword(email, pass);
+    action
+      .then(() => { window.location.href = 'app.html'; })
+      .catch(e => { btn.classList.remove('loading'); err.textContent = e.message; });
+  }
+
+  // Allow Enter key to submit email form
+  ['emailInput','passInput','confirmInput'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') submitEmail(); });
+  });
+
+  // ── Guest ──
+  function signInGuest() {
+    const btn = document.getElementById('guestBtn');
+    const err = document.getElementById('guestErr');
+    err.textContent = ''; btn.classList.add('loading');
+    auth.signInAnonymously()
+      .then(() => { window.location.href = 'app.html'; })
+      .catch(e => { btn.classList.remove('loading'); err.textContent = e.message; });
   }
 </script>
 </body>
