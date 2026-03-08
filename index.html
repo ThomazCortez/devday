@@ -495,8 +495,77 @@
     .intro-loader-text { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); }
     .intro-loader-text span { color: var(--claude); }
     .intro-tagline { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); letter-spacing: 0.06em; }
-    .app-wrapper { opacity: 0; transition: opacity 0.7s ease; }
-    .app-wrapper.visible { opacity: 1; }
+
+    /* ── Mobile / Responsive ── */
+    @media (max-width: 768px) {
+
+      /* Titlebar */
+      .titlebar { padding: 0 12px; }
+      .titlebar-title { display: none; }
+      .status-bar { display: none; }
+
+      /* Hamburger toggle */
+      .sidebar-toggle {
+        display: flex; align-items: center; justify-content: center;
+        width: 28px; height: 28px; border: 1px solid var(--border);
+        border-radius: 5px; background: none; cursor: pointer;
+        color: var(--text-muted); flex-shrink: 0;
+      }
+      .sidebar-toggle:hover { border-color: var(--claude); color: var(--claude); }
+
+      /* Sidebar becomes a slide-in drawer */
+      .sidebar {
+        position: fixed; left: 0; top: 38px; bottom: 0;
+        width: 260px; z-index: 500;
+        background: var(--bg-2); border-right: 1px solid var(--border);
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        overflow-y: auto;
+      }
+      .sidebar.open { transform: translateX(0); }
+
+      /* Dim overlay behind sidebar */
+      .sidebar-overlay {
+        display: none; position: fixed; inset: 0; top: 38px;
+        background: rgba(0,0,0,0.55); z-index: 499;
+      }
+      .sidebar-overlay.open { display: block; }
+
+      /* Main area full width */
+      .layout { min-height: calc(100vh - 38px); }
+      .main { padding: 20px 16px; }
+
+      /* Page title smaller */
+      .page-title { font-size: 20px; }
+      .page-title .comment { font-size: 12px; }
+      .page-meta { font-size: 12px; margin-bottom: 18px; }
+
+      /* Input */
+      .task-input { font-size: 14px; }
+      .tags-row { flex-wrap: wrap; margin-left: 0; }
+
+      /* Task items */
+      .task-item { padding: 10px 10px; gap: 8px; }
+      .task-text { font-size: 13px; }
+
+      /* Kanban — stack columns vertically */
+      #kanbanView { flex-direction: column; }
+      #kanbanView.visible { flex-direction: column; padding: 0 0 24px; gap: 12px; }
+      .kb-col-header { position: static; }
+
+      /* Pomodoro float — move to bottom left so it doesn't cover tasks */
+      .pomo-float { bottom: 16px !important; right: 16px !important; left: auto !important; top: auto !important; width: 220px !important; }
+
+      /* Calendar popup — keep on screen */
+      #calPopup { width: 220px !important; }
+
+      /* Pagination */
+      .pagination { flex-direction: column; gap: 8px; align-items: flex-start; }
+    }
+
+    /* Hide hamburger on desktop */
+    .sidebar-toggle { display: none; }
+
   </style>
 </head>
 <body>
@@ -524,6 +593,9 @@
 
   <div class="titlebar">
     <div class="titlebar-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect y="1" width="14" height="1.5" rx="0.75" fill="currentColor"/><rect y="6" width="14" height="1.5" rx="0.75" fill="currentColor"/><rect y="11" width="14" height="1.5" rx="0.75" fill="currentColor"/></svg>
+      </button>
       <div class="window-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
       <div class="titlebar-title">tasks<span>.md</span> — devday</div>
     </div>
@@ -538,6 +610,8 @@
       </button>
     </div>
   </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
   <div class="layout">
     <aside class="sidebar">
@@ -1198,6 +1272,7 @@
   function setFilter(btn,filter) {
     document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active'); currentFilter=filter; currentPage=1; renderTasks();
+    if (window.innerWidth <= 768) toggleSidebar();
   }
 
   function getFiltered() {
@@ -1300,6 +1375,11 @@
   }
 
   function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('open');
+  }
 
   // ── Celebration ──
   const CELEBRATIONS = [
