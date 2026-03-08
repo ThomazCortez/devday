@@ -266,6 +266,29 @@
     /* kb card overdue left border */
     .kb-card.overdue-card:not([data-status-done]) { border-left-color: var(--red) !important; }
 
+    /* ── Pagination ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 16px; padding: 10px 2px;
+      border-top: 1px solid var(--border-soft);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .pagination.hidden { display: none; }
+    .page-info { font-size: 11px; color: var(--text-faint); letter-spacing: 0.05em; }
+    .page-info span { color: var(--text-muted); }
+    .page-btns { display: flex; align-items: center; gap: 3px; }
+    .page-btn {
+      min-width: 28px; height: 28px; padding: 0 6px;
+      border: 1px solid var(--border); border-radius: 5px; background: none;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: var(--text-muted); cursor: pointer; transition: all 0.12s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .page-btn:hover:not(:disabled) { border-color: var(--claude); color: var(--claude); }
+    .page-btn.active { background: var(--claude); border-color: var(--claude); color: white; font-weight: 700; }
+    .page-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+    .page-btn.arrow { font-size: 13px; }
+
     /* ── List Drag Reorder ── */
     .drag-handle {
       flex-shrink: 0; width: 16px; display: flex; align-items: center; justify-content: center;
@@ -639,6 +662,10 @@
             <div>}</div>
           </div>
         </div>
+        <div class="pagination hidden" id="pagination">
+          <div class="page-info">page <span id="pageLabel">1</span> of <span id="pageTotalLabel">1</span></div>
+          <div class="page-btns" id="pageBtns"></div>
+        </div>
       </div>
 
       <div id="kanbanView">
@@ -720,23 +747,61 @@
   </div>
 </div>
 
+<script type="module">
+  // ── Firebase ──
+  import { initializeApp }                        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyCha8LZ-7nbpF5IFwZj7SOxPe1H_l8ZAU0",
+    authDomain:        "devdaydb.firebaseapp.com",
+    databaseURL:       "https://devdaydb-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId:         "devdaydb",
+    storageBucket:     "devdaydb.firebasestorage.app",
+    messagingSenderId: "492517359800",
+    appId:             "1:492517359800:web:6f06865884a39c416ef44d"
+  };
+
+  const _app = initializeApp(firebaseConfig);
+  const _db  = getDatabase(_app);
+  const _ref = ref(_db, 'tasks');
+
+  // expose to global scope for the rest of the script
+  window._dbSave = (tasks) => set(_ref, tasks);
+  window._dbListen = (cb)  => onValue(_ref, snap => {
+    const val = snap.val();
+    cb(Array.isArray(val) ? val : val ? Object.values(val) : []);
+  });
+</script>
+
 <script>
-  let tasks         = JSON.parse(localStorage.getItem('devday-tasks') || '[]');
+  let tasks         = [];
   let selectedTag   = null;
   let selectedDue   = null;  // 'YYYY-MM-DD'
+  let currentPage   = 1;
+  const PAGE_SIZE   = 8;
   let currentFilter = 'all';
   let currentView   = 'list';
   let dragId        = null;
 
-  tasks = tasks.map(t => ({ ...t, status: t.status || (t.done ? 'done' : 'todo') }));
+  function normalizeTasks(arr) {
+    return arr.map(t => ({ ...t, status: t.status || (t.done ? 'done' : 'todo') }));
+  }
 
   function init() {
     setDate();
-    renderTasks();
     startClock();
     fetchWeather();
     initPomo();
     document.getElementById('taskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+    // load tasks from Firebase and keep in sync across devices
+    window._dbListen(remote => {
+      tasks = normalizeTasks(remote);
+      renderTasks();
+      if (currentView === 'kanban') renderKanban();
+      updateCounts();
+    });
   }
 
   function setDate() {
@@ -1102,13 +1167,13 @@
   function pickDay(iso) { setDue(iso); closeCalendar(); }
 
   // ── Tasks ──
-  function save() { localStorage.setItem('devday-tasks', JSON.stringify(tasks)); }
+  function save() { window._dbSave(tasks); }
 
   function addTask() {
     const input=document.getElementById('taskInput'), text=input.value.trim();
     if (!text) return;
     tasks.unshift({id:Date.now(),text,tag:selectedTag,due:selectedDue,done:false,status:'todo'});
-    save(); input.value='';
+    save(); input.value=''; currentPage=1;
     // reset due
     setDue(null);
     renderTasks(); if(currentView==='kanban')renderKanban();
@@ -1132,7 +1197,7 @@
 
   function setFilter(btn,filter) {
     document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active'); currentFilter=filter; renderTasks();
+    btn.classList.add('active'); currentFilter=filter; currentPage=1; renderTasks();
   }
 
   function getFiltered() {
@@ -1147,11 +1212,16 @@
 
   function renderTasks() {
     const list=document.getElementById('taskList'), empty=document.getElementById('emptyState');
-    // preserve tasks array order — no auto-sort
     const filtered = getFiltered();
-    list.innerHTML=filtered.map((t,i)=>{
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage-1)*PAGE_SIZE;
+    const paged = filtered.slice(start, start+PAGE_SIZE);
+
+    list.innerHTML=paged.map((t,i)=>{
       const dm = dueMeta(t.due);
       const isOverdue = !t.done && dm?.cls==='overdue';
+      const globalIdx = start + i;
       return `
       <div class="task-item ${t.done?'done':''} ${isOverdue?'overdue-task':''}" data-id="${t.id}">
         <span class="drag-handle" onmousedown="onListHandleDown(event,${t.id})">
@@ -1164,7 +1234,7 @@
             <circle cx="7" cy="11" r="1.2" fill="currentColor"/>
           </svg>
         </span>
-        <span class="line-gutter">${i+1}</span>
+        <span class="line-gutter">${globalIdx+1}</span>
         <button class="check-btn" onclick="toggleDone(${t.id})">
           <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5l2.5 2.5 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
@@ -1181,7 +1251,37 @@
       </div>`;
     }).join('');
     empty.classList.toggle('visible', tasks.length===0);
+    renderPagination(filtered.length, totalPages);
     updateCounts();
+  }
+
+  function renderPagination(total, totalPages) {
+    const bar = document.getElementById('pagination');
+    if (totalPages <= 1) { bar.classList.add('hidden'); return; }
+    bar.classList.remove('hidden');
+    document.getElementById('pageLabel').textContent = currentPage;
+    document.getElementById('pageTotalLabel').textContent = totalPages;
+    const btns = document.getElementById('pageBtns');
+    let html = `<button class="page-btn arrow" onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+    // show at most 5 page numbers with ellipsis
+    const range = [];
+    for (let p=1; p<=totalPages; p++) {
+      if (p===1 || p===totalPages || (p>=currentPage-1 && p<=currentPage+1)) range.push(p);
+      else if (range[range.length-1]!=='…') range.push('…');
+    }
+    range.forEach(p => {
+      if (p==='…') html+=`<span style="color:var(--text-faint);font-size:11px;padding:0 2px;font-family:'JetBrains Mono',monospace">…</span>`;
+      else html+=`<button class="page-btn ${p===currentPage?'active':''}" onclick="goToPage(${p})">${p}</button>`;
+    });
+    html+=`<button class="page-btn arrow" onclick="goToPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+    btns.innerHTML = html;
+  }
+
+  function goToPage(p) {
+    const filtered = getFiltered();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    currentPage = Math.max(1, Math.min(totalPages, p));
+    renderTasks();
   }
 
   function updateCounts() {
@@ -1453,7 +1553,7 @@
     {text:`<span class="cmt">// initializing your productivity environment...</span>`,delay:240},
     {text:`<span class="kw">const</span> day <span class="op">=</span> <span class="kw">new</span> <span class="cls">Day</span><span class="op">(</span>{ mode: <span class="str">'focused'</span>, distractions: <span class="num">0</span> }<span class="op">)</span>`,delay:460},
     {text:``,delay:640},
-    {text:`<span class="fn">day</span><span class="op">.</span><span class="fn">tasks</span><span class="op">.</span><span class="fn">load</span><span class="op">()</span>        <span class="cmt">// ✓ synced from localStorage</span>`,delay:720},
+    {text:`<span class="fn">day</span><span class="op">.</span><span class="fn">tasks</span><span class="op">.</span><span class="fn">load</span><span class="op">()</span>        <span class="cmt">// ✓ synced from firebase</span>`,delay:720},
     {text:`<span class="fn">day</span><span class="op">.</span><span class="fn">weather</span><span class="op">.</span><span class="fn">fetch</span><span class="op">()</span>      <span class="cmt">// ✓ connected to open-meteo</span>`,delay:940},
     {text:`<span class="fn">day</span><span class="op">.</span><span class="fn">clock</span><span class="op">.</span><span class="fn">start</span><span class="op">()</span>        <span class="cmt">// ✓ ticking</span>`,delay:1160},
     {text:``,delay:1340},
