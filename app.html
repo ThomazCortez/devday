@@ -106,7 +106,7 @@
       border-bottom: 1px solid var(--border-soft);
     }
     .pomo-float-header:active { cursor: grabbing; }
-    .pomo-float-header:hover { background: #252b35; }
+    .pomo-float-header:hover { background: var(--bg-2); }
     .pomo-float-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); }
     .pomo-float-right { display: flex; align-items: center; gap: 6px; }
     .pomo-float-chevron { font-size: 8px; color: var(--text-faint); transition: transform 0.25s ease; line-height: 1; cursor: pointer; padding: 2px 4px; }
@@ -186,7 +186,7 @@
       border-bottom: 1px solid var(--border-soft);
     }
     .note-float-header:active { cursor: grabbing; }
-    .note-float-header:hover { background: #252b35; }
+    .note-float-header:hover { background: var(--bg-2); }
     .note-float-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); }
     .note-float-title span { color: var(--blue); }
     .note-float-actions { display: flex; align-items: center; gap: 2px; }
@@ -897,7 +897,7 @@
     .widget-row:hover { border-color: var(--border); }
     .widget-row-left { display: flex; align-items: center; gap: 12px; }
     .widget-row-icon { font-size: 16px; width: 24px; text-align: center; }
-    .widget-row-info {}
+    .widget-row-info { display: flex; flex-direction: column; }
     .widget-row-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text); font-weight: 500; }
     .widget-row-desc { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); margin-top: 2px; }
     /* Toggle switch */
@@ -1041,7 +1041,75 @@
     .about-divider { border: none; border-top: 1px solid var(--border-soft); margin: 20px 0; }
     .about-author { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); }
     .about-author span { color: var(--text-muted); }
-    /* ── Font size ── */
+    /* ── Theme Picker ── */
+    .theme-picker { display: flex; gap: 12px; flex-wrap: wrap; }
+    .theme-card {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      cursor: pointer; user-select: none;
+    }
+    .theme-preview {
+      width: 88px; height: 64px; border-radius: 10px;
+      border: 2px solid var(--border); overflow: hidden;
+      position: relative; transition: border-color 0.15s, box-shadow 0.15s;
+      display: flex; flex-direction: column;
+    }
+    .theme-card:hover .theme-preview { border-color: var(--text-muted); }
+    .theme-card.active .theme-preview { border-color: var(--claude); box-shadow: 0 0 0 3px var(--claude-dim); }
+    /* preview bar */
+    .theme-preview-bar { height: 14px; display: flex; align-items: center; padding: 0 6px; gap: 3px; flex-shrink: 0; }
+    .theme-preview-dot { width: 4px; height: 4px; border-radius: 50%; }
+    /* preview body */
+    .theme-preview-body { flex: 1; padding: 5px 6px; display: flex; flex-direction: column; gap: 3px; }
+    .theme-preview-line { height: 3px; border-radius: 2px; }
+    .theme-preview-line.short { width: 55%; }
+    .theme-preview-line.medium { width: 75%; }
+    .theme-preview-input { height: 10px; border-radius: 3px; margin-top: 3px; border: 1px solid; }
+    /* dark theme preview */
+    .theme-preview.dark { background: #0D1117; }
+    .theme-preview.dark .theme-preview-bar { background: #161B22; border-bottom: 1px solid #30363D; }
+    .theme-preview.dark .theme-preview-dot { background: #30363D; }
+    .theme-preview.dark .theme-preview-line { background: #3D444D; }
+    .theme-preview.dark .theme-preview-input { background: #161B22; border-color: #30363D; }
+    /* light theme preview */
+    .theme-preview.light { background: #F6F8FA; }
+    .theme-preview.light .theme-preview-bar { background: #FFFFFF; border-bottom: 1px solid #D0D7DE; }
+    .theme-preview.light .theme-preview-dot { background: #D0D7DE; }
+    .theme-preview.light .theme-preview-line { background: #D0D7DE; }
+    .theme-preview.light .theme-preview-input { background: #FFFFFF; border-color: #D0D7DE; }
+    .theme-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); letter-spacing: 0.06em; }
+    .theme-card.active .theme-label { color: var(--claude); }
+
+    /* ── Light theme overrides ── */
+    body.theme-light {
+      --bg:          #F6F8FA;
+      --bg-2:        #FFFFFF;
+      --bg-3:        #F0F2F4;
+      --border:      #D0D7DE;
+      --border-soft: #E8EAED;
+      --border-s:    #E8EAED;
+      --text:        #1F2328;
+      --text-muted:  #57606A;
+      --text-faint:  #ADBAC7;
+      --text-m:      #57606A;
+    }
+    body.theme-light .titlebar { background: #FFFFFF; }
+    body.theme-light .sidebar  { background: #F6F8FA; border-color: #D0D7DE; }
+    body.theme-light .task-item { background: #FFFFFF; border-color: #D0D7DE; }
+    body.theme-light .task-item:hover { background: #F6F8FA; border-color: #C0C8D2; }
+    body.theme-light .input-block { background: #FFFFFF; border-color: #D0D7DE; }
+    body.theme-light .pomo-float,
+    body.theme-light .note-float { background: #FFFFFF; border-color: #D0D7DE; }
+    body.theme-light .pomo-float-header,
+    body.theme-light .note-float-header,
+    body.theme-light .note-float-inner { background: #F0F2F4; }
+    body.theme-light .settings-modal { background: #FFFFFF; border-color: #D0D7DE; }
+    body.theme-light .settings-nav,
+    body.theme-light .settings-titlebar { background: #F0F2F4; }
+    body.theme-light .kb-card { background: #FFFFFF; border-color: #D0D7DE; }
+    body.theme-light .kb-col-header { background: #F0F2F4; border-color: #D0D7DE; }
+    body.theme-light .statusbar { opacity: 0.95; }
+
+
     body.font-sm .task-text   { font-size: 12px; }
     body.font-sm .task-tag    { font-size: 9px; }
     body.font-sm .add-input   { font-size: 12px; }
@@ -1500,10 +1568,14 @@
 
   // ── Seven-Segment Clock ──
   let SEG_ON = '#DA7756', SEG_OFF = '#1C1009', SEG_GLOW = 'drop-shadow(0 0 4px rgba(218,119,86,0.8))';
+
+  function getSegOff() {
+    return document.body.classList.contains('theme-light') ? '#D8DCE0' : '#1C1009';
+  }
   const SEG_MAP = { '0':[1,1,1,1,1,1,0],'1':[0,1,1,0,0,0,0],'2':[1,1,0,1,1,0,1],'3':[1,1,1,1,0,0,1],'4':[0,1,1,0,0,1,1],'5':[1,0,1,1,0,1,1],'6':[1,0,1,1,1,1,1],'7':[1,1,1,0,0,0,0],'8':[1,1,1,1,1,1,1],'9':[1,1,1,1,0,1,1] };
 
   function digitSVG(ch) {
-    const s = SEG_MAP[ch]||[0,0,0,0,0,0,0], c = i => s[i]?SEG_ON:SEG_OFF, f = s.some(x=>x)?`filter="${SEG_GLOW}"`:'';
+    const s = SEG_MAP[ch]||[0,0,0,0,0,0,0], c = i => s[i]?SEG_ON:getSegOff(), f = s.some(x=>x)?`filter="${SEG_GLOW}"`:'';
     return `<svg width="26" height="44" viewBox="0 0 20 38" xmlns="http://www.w3.org/2000/svg" ${f}>
       <polygon points="3,1 17,1 15,4 5,4" fill="${c(0)}"/>
       <polygon points="18,2 18,17 15,15 15,5" fill="${c(1)}"/>
@@ -1516,7 +1588,7 @@
   }
 
   function colonSVG(lit) {
-    const col = lit?SEG_ON:SEG_OFF, f = lit?`filter="${SEG_GLOW}"`:'' ;
+    const col = lit?SEG_ON:getSegOff(), f = lit?`filter="${SEG_GLOW}"`:'' ;
     return `<svg width="14" height="44" viewBox="0 0 10 38" xmlns="http://www.w3.org/2000/svg" ${f}><circle cx="5" cy="12" r="2.8" fill="${col}"/><circle cx="5" cy="26" r="2.8" fill="${col}"/></svg>`;
   }
 
@@ -1548,7 +1620,7 @@
       const on = grid[row][col]===1;
       ctx.beginPath(); ctx.arc(pad+col*cW+cW/2, pad+row*cH+cH/2, r, 0, Math.PI*2);
       if (on) { ctx.fillStyle=accent; ctx.shadowColor=accent; ctx.shadowBlur=size>50?7:4; }
-      else    { ctx.fillStyle='#21262D'; ctx.shadowBlur=0; }
+      else    { ctx.fillStyle=document.body.classList.contains('theme-light')?'#D8DCE0':'#21262D'; ctx.shadowBlur=0; }
       ctx.fill();
     }
   }
@@ -2739,6 +2811,11 @@
   }
 
   function syncSettingsUI() {
+    // Theme
+    const theme = localStorage.getItem('settings_theme') || 'dark';
+    document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('theme-card-' + theme)?.classList.add('active');
+
     // Accent swatches
     const swatchContainer = document.getElementById('accentSwatches');
     const currentAccent = localStorage.getItem('settings_accent') || '#DA7756';
@@ -2784,6 +2861,7 @@
     SEG_ON   = hex;
     SEG_GLOW = `drop-shadow(0 0 4px rgba(${r},${g},${b},0.8))`;
     renderAsciiClock();
+    updatePomoDisplay();
     // Redraw all weather dot canvases
     document.querySelectorAll('canvas[data-icon]').forEach(c => drawWeatherDots(c, c.dataset.icon));
     // Update pomodoro float glow
@@ -2793,6 +2871,21 @@
     document.querySelectorAll('.pomo-session-dot.done').forEach(dot => {
       dot.style.boxShadow = `0 0 6px rgba(${r},${g},${b},0.55)`;
     });
+  }
+
+  function setTheme(theme) {
+    localStorage.setItem('settings_theme', theme);
+    applyTheme(theme);
+    syncSettingsUI();
+  }
+
+  function applyTheme(theme) {
+    document.body.classList.remove('theme-light', 'theme-dark');
+    if (theme === 'light') document.body.classList.add('theme-light');
+    // Redraw canvas-based widgets with correct off-colors
+    renderAsciiClock();
+    updatePomoDisplay();
+    document.querySelectorAll('canvas[data-icon]').forEach(c => drawWeatherDots(c, c.dataset.icon));
   }
 
   function setFontSize(size) {
@@ -2851,6 +2944,7 @@
     if (accent) applyAccentColor(accent);
     applyFontSize(localStorage.getItem('settings_font_size') || 'md');
     applyDensity(localStorage.getItem('settings_density') || 'comfortable');
+    applyTheme(localStorage.getItem('settings_theme') || 'dark');
     // Apply default view
     const dv = localStorage.getItem('settings_default_view');
     if (dv && dv !== currentView) switchView(dv);
@@ -2945,6 +3039,48 @@
         <!-- Appearance -->
         <div class="settings-section" id="stab-appearance">
           <div class="settings-section-title">// <span>appearance</span></div>
+
+          <!-- Theme picker -->
+          <div class="setting-row" style="align-items:flex-start">
+            <div class="setting-label">
+              <div class="setting-label-name">Color mode</div>
+              <div class="setting-label-desc">Choose the app's color theme</div>
+            </div>
+            <div class="setting-control">
+              <div class="theme-picker">
+                <div class="theme-card active" id="theme-card-dark" onclick="setTheme('dark')">
+                  <div class="theme-preview dark">
+                    <div class="theme-preview-bar">
+                      <div class="theme-preview-dot"></div>
+                      <div class="theme-preview-dot"></div>
+                      <div class="theme-preview-dot"></div>
+                    </div>
+                    <div class="theme-preview-body">
+                      <div class="theme-preview-line short"></div>
+                      <div class="theme-preview-line medium"></div>
+                      <div class="theme-preview-input"></div>
+                    </div>
+                  </div>
+                  <span class="theme-label">Dark</span>
+                </div>
+                <div class="theme-card" id="theme-card-light" onclick="setTheme('light')">
+                  <div class="theme-preview light">
+                    <div class="theme-preview-bar">
+                      <div class="theme-preview-dot"></div>
+                      <div class="theme-preview-dot"></div>
+                      <div class="theme-preview-dot"></div>
+                    </div>
+                    <div class="theme-preview-body">
+                      <div class="theme-preview-line short"></div>
+                      <div class="theme-preview-line medium"></div>
+                      <div class="theme-preview-input"></div>
+                    </div>
+                  </div>
+                  <span class="theme-label">Light</span>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="setting-row">
             <div class="setting-label">
               <div class="setting-label-name">Accent color</div>
