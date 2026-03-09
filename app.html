@@ -128,6 +128,144 @@
     }
     .pomo-float.collapsed .pomo-float-body { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; pointer-events: none; }
 
+    /* ── Notepad Float ── */
+    .note-float {
+      position: fixed;
+      top: 68px; right: 20px;
+      width: 300px;
+      min-width: 220px; max-width: 560px; min-height: 160px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(88,166,255,0.08);
+      z-index: 200; overflow: visible;
+      transition: box-shadow 0.2s;
+      user-select: none;
+      display: flex; flex-direction: column;
+    }
+    .note-float:hover { box-shadow: 0 14px 48px rgba(0,0,0,0.65), 0 0 0 1px rgba(88,166,255,0.2); }
+    .note-float.dragging { box-shadow: 0 20px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(88,166,255,0.3); transition: none; }
+    .note-float.resizing { box-shadow: 0 20px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(88,166,255,0.3); transition: none; }
+    /* clip inner body to rounded corners */
+    .note-float-inner { overflow: hidden; border-radius: 14px; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+    /* Resize handles */
+    .note-resize {
+      position: absolute; z-index: 10;
+    }
+    /* Edges */
+    .note-resize.e  { right: -5px;  top: 14px; bottom: 14px; width: 10px; cursor: ew-resize; }
+    .note-resize.w  { left: -5px;   top: 14px; bottom: 14px; width: 10px; cursor: ew-resize; }
+    .note-resize.s  { bottom: -5px; left: 14px; right: 14px; height: 10px; cursor: ns-resize; }
+    /* Corners */
+    .note-resize.se { right: -5px;  bottom: -5px; width: 18px; height: 18px; cursor: se-resize; }
+    .note-resize.sw { left: -5px;   bottom: -5px; width: 18px; height: 18px; cursor: sw-resize; }
+    .note-resize.ne { right: -5px;  top: -5px;    width: 18px; height: 18px; cursor: ne-resize; }
+    .note-resize.nw { left: -5px;   top: -5px;    width: 18px; height: 18px; cursor: nw-resize; }
+    /* Visible corner dots */
+    .note-resize.se::after, .note-resize.sw::after,
+    .note-resize.ne::after, .note-resize.nw::after {
+      content: '';
+      position: absolute; inset: 3px;
+      border-radius: 3px;
+      background: var(--border);
+      opacity: 0; transition: opacity 0.15s;
+    }
+    .note-float:hover .note-resize.se::after,
+    .note-float:hover .note-resize.sw::after,
+    .note-float:hover .note-resize.ne::after,
+    .note-float:hover .note-resize.nw::after { opacity: 1; }
+    .note-resize.se:hover::after, .note-resize.sw:hover::after,
+    .note-resize.ne:hover::after, .note-resize.nw:hover::after { background: var(--blue); opacity: 1 !important; }
+
+    /* Header */
+    .note-float-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 10px 9px 14px;
+      cursor: grab; background: var(--bg-3);
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .note-float-header:active { cursor: grabbing; }
+    .note-float-header:hover { background: #252b35; }
+    .note-float-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); }
+    .note-float-title span { color: var(--blue); }
+    .note-float-actions { display: flex; align-items: center; gap: 2px; }
+    .note-float-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-faint); padding: 3px 6px; border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1;
+    }
+    .note-float-btn:hover { color: var(--text); background: var(--bg-2); }
+    .note-float-btn.collapse-btn { transition: color 0.15s, background 0.15s, transform 0.22s; }
+    .note-float.collapsed .collapse-btn { transform: rotate(-90deg); }
+
+    /* Body */
+    .note-float-body { overflow: hidden; flex: 1; min-height: 0; transition: opacity 0.2s ease; opacity: 1; display: flex; flex-direction: column; }
+    .note-float.collapsed .note-float-body { display: none; }
+    .note-float.collapsed { min-height: 0; }
+
+    /* Tab bar */
+    .note-tabs-bar {
+      display: flex; align-items: center;
+      padding: 6px 8px 0; gap: 3px; overflow-x: auto;
+      scrollbar-width: none; border-bottom: 1px solid var(--border-soft);
+      background: var(--bg-3); flex-shrink: 0;
+    }
+    .note-tabs-bar::-webkit-scrollbar { display: none; }
+    .note-tab {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px 5px; border-radius: 6px 6px 0 0;
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      color: var(--text-faint); cursor: pointer; white-space: nowrap;
+      border: 1px solid transparent; border-bottom: none;
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0; max-width: 100px; position: relative;
+    }
+    .note-tab:hover { color: var(--text-m); background: var(--bg-2); }
+    .note-tab.active { color: var(--blue); background: var(--bg-2); border-color: var(--border-soft); }
+    .note-tab-label { overflow: hidden; text-overflow: ellipsis; max-width: 70px; }
+    .note-tab-rename-input {
+      background: transparent; border: none; outline: none;
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      color: var(--blue); width: 60px; padding: 0;
+    }
+    .note-tab-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-faint); font-size: 10px; padding: 0 0 0 2px;
+      line-height: 1; transition: color 0.12s; opacity: 0;
+    }
+    .note-tab:hover .note-tab-close,
+    .note-tab.active .note-tab-close { opacity: 1; }
+    .note-tab-close:hover { color: var(--red); }
+    .note-tab-add {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-faint); font-size: 14px; padding: 2px 6px;
+      border-radius: 5px; transition: color 0.15s, background 0.15s;
+      line-height: 1; flex-shrink: 0;
+    }
+    .note-tab-add:hover { color: var(--blue); background: rgba(88,166,255,0.08); }
+
+    /* Textarea */
+    .note-float-textarea {
+      width: 100%; flex: 1; min-height: 80px;
+      background: transparent; border: none; outline: none; resize: none;
+      padding: 12px 14px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      line-height: 1.7; color: var(--text-m);
+      caret-color: var(--blue); user-select: text;
+    }
+    .note-float-textarea::placeholder { color: var(--text-faint); font-style: italic; }
+
+    /* Footer */
+    .note-float-footer {
+      padding: 5px 12px 7px; display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid var(--border-soft); flex-shrink: 0;
+    }
+    .note-float-chars { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-faint); letter-spacing: 0.06em; }
+    .note-float-saved { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--green); opacity: 0; letter-spacing: 0.06em; transition: opacity 0.4s ease; }
+    .note-float-saved.show { opacity: 1; }
+
     .pomodoro-mode-badges { display: flex; gap: 4px; }
     .pomo-mode-btn { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text-faint); cursor: pointer; transition: all 0.15s; }
     .pomo-mode-btn.active { background: var(--claude-dim); color: var(--claude); border-color: var(--claude); }
@@ -646,6 +784,7 @@
 
       /* Pomodoro float — move to bottom left so it doesn't cover tasks */
       .pomo-float { bottom: 16px !important; right: 16px !important; left: auto !important; top: auto !important; width: 220px !important; }
+      .note-float { top: 60px !important; right: 8px !important; left: auto !important; bottom: auto !important; width: 220px !important; height: 260px !important; }
 
       /* Calendar popup — keep on screen */
       #calPopup { width: 220px !important; }
@@ -1046,6 +1185,39 @@
   </div>
 </div>
 
+<!-- Notepad Float -->
+<div class="note-float" id="noteFloat">
+  <!-- Resize handles -->
+  <div class="note-resize e"  data-dir="e"></div>
+  <div class="note-resize w"  data-dir="w"></div>
+  <div class="note-resize s"  data-dir="s"></div>
+  <div class="note-resize se" data-dir="se"></div>
+  <div class="note-resize sw" data-dir="sw"></div>
+  <div class="note-resize ne" data-dir="ne"></div>
+  <div class="note-resize nw" data-dir="nw"></div>
+  <div class="note-float-inner">
+    <div class="note-float-header" id="noteFloatHeader">
+      <span class="note-float-title">// <span>scratch.md</span></span>
+      <div class="note-float-actions">
+        <button class="note-float-btn collapse-btn" id="noteCollapseBtn" onclick="toggleNoteFloat()" title="collapse">▾</button>
+      </div>
+    </div>
+    <div class="note-float-body" id="noteFloatBody">
+      <div class="note-tabs-bar" id="noteTabsBar">
+        <!-- tabs injected by JS -->
+        <button class="note-tab-add" onclick="addNoteTab()" title="new tab">+</button>
+      </div>
+      <textarea class="note-float-textarea" id="notepadTA"
+        placeholder="// scratch notes, ideas, links...&#10;// won't disappear on you."
+        oninput="onNotepadInput()" spellcheck="false"></textarea>
+      <div class="note-float-footer">
+        <span class="note-float-chars" id="notepadChars">0 chars</span>
+        <span class="note-float-saved" id="notepadSaved">✓ saved</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Celebration -->
 <div class="celebrate-overlay" id="celebrateOverlay" onclick="closeCelebration(event)">
   <div class="celebrate-card" id="celebrateCard">
@@ -1165,6 +1337,7 @@
     startClock();
     fetchWeather();
     initPomo();
+    initNotepad();
     document.getElementById('taskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
 
     // load tasks from Firebase and keep in sync across devices
@@ -2100,37 +2273,333 @@
         </label>
       </div>
 
+      <div class="widget-row">
+        <div class="widget-row-left">
+          <div class="widget-row-icon">📝</div>
+          <div class="widget-row-info">
+            <div class="widget-row-name">Notepad</div>
+            <div class="widget-row-desc">floating scratch notes</div>
+          </div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="toggleNotepad" onchange="applyWidgets()" checked/>
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+
     </div>
   </div>
 </div>
 
 <script>
   // ── Widgets config ──
-  const WIDGET_KEYS = { clock: 'wd_clock', weather: 'wd_weather', pomo: 'wd_pomo' };
+  const WIDGET_KEYS = { clock: 'wd_clock', weather: 'wd_weather', pomo: 'wd_pomo', notepad: 'wd_notepad' };
 
   function loadWidgetPrefs() {
     const clock   = localStorage.getItem(WIDGET_KEYS.clock)   !== 'false';
     const weather = localStorage.getItem(WIDGET_KEYS.weather) !== 'false';
     const pomo    = localStorage.getItem(WIDGET_KEYS.pomo)    !== 'false';
+    const notepad = localStorage.getItem(WIDGET_KEYS.notepad) !== 'false';
     document.getElementById('toggleClock').checked   = clock;
     document.getElementById('toggleWeather').checked = weather;
     document.getElementById('togglePomo').checked    = pomo;
+    document.getElementById('toggleNotepad').checked = notepad;
     setWidgetVisible('clockWrap',   clock);
     setWidgetVisible('weatherWrap', weather);
     setWidgetVisible('pomoFloat',   pomo);
+    setWidgetVisible('noteFloat',   notepad);
   }
 
   function applyWidgets() {
     const clock   = document.getElementById('toggleClock').checked;
     const weather = document.getElementById('toggleWeather').checked;
     const pomo    = document.getElementById('togglePomo').checked;
+    const notepad = document.getElementById('toggleNotepad').checked;
     localStorage.setItem(WIDGET_KEYS.clock,   clock);
     localStorage.setItem(WIDGET_KEYS.weather, weather);
     localStorage.setItem(WIDGET_KEYS.pomo,    pomo);
+    localStorage.setItem(WIDGET_KEYS.notepad, notepad);
     setWidgetVisible('clockWrap',   clock);
     setWidgetVisible('weatherWrap', weather);
     setWidgetVisible('pomoFloat',   pomo);
+    setWidgetVisible('noteFloat',   notepad);
   }
+
+  // ── Notepad (tabbed) ──
+  let _notepadTimer  = null;
+  let _noteTabs      = [];   // [{id, name, content}]
+  let _noteActiveId  = null;
+
+  function _noteKey()   { return _userRef ? 'notepad_tabs_' + firebase.auth().currentUser?.uid : 'notepad_tabs_guest'; }
+
+  function loadNoteTabs() {
+    try {
+      const raw = localStorage.getItem(_noteKey());
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) {
+          _noteTabs    = parsed;
+          _noteActiveId = _noteTabs[0].id;
+          renderNoteTabs();
+          renderNoteContent();
+          updateNotepadChars();
+          return;
+        }
+      }
+    } catch(e) {}
+    // Default first tab
+    _noteTabs    = [{ id: Date.now(), name: 'scratch', content: '' }];
+    _noteActiveId = _noteTabs[0].id;
+    renderNoteTabs();
+    renderNoteContent();
+  }
+
+  function saveNoteTabs() {
+    localStorage.setItem(_noteKey(), JSON.stringify(_noteTabs));
+    const saved = document.getElementById('notepadSaved');
+    if (saved) { saved.classList.add('show'); setTimeout(() => saved.classList.remove('show'), 1800); }
+  }
+
+  function renderNoteTabs() {
+    const bar = document.getElementById('noteTabsBar');
+    if (!bar) return;
+    // Build tab pills
+    const html = _noteTabs.map(t => `
+      <div class="note-tab ${t.id === _noteActiveId ? 'active' : ''}" data-tab-id="${t.id}" onclick="switchNoteTab(${t.id})">
+        <span class="note-tab-label" ondblclick="startRenameTab(${t.id}, event)" title="double-click to rename">${escHtml(t.name)}</span>
+        <button class="note-tab-close" onclick="deleteNoteTab(${t.id}, event)" title="close tab">×</button>
+      </div>
+    `).join('');
+    // Inject before the + button
+    bar.innerHTML = html + '<button class="note-tab-add" onclick="addNoteTab()" title="new tab">+</button>';
+    // Scroll active tab into view
+    const active = bar.querySelector('.note-tab.active');
+    if (active) active.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+  }
+
+  function renderNoteContent() {
+    const ta = document.getElementById('notepadTA');
+    if (!ta) return;
+    const tab = _noteTabs.find(t => t.id === _noteActiveId);
+    ta.value = tab ? tab.content : '';
+    ta.placeholder = `// ${tab?.name || 'scratch'}...`;
+    updateNotepadChars();
+  }
+
+  function switchNoteTab(id) {
+    // Save current before switching
+    _flushCurrentTab();
+    _noteActiveId = id;
+    renderNoteTabs();
+    renderNoteContent();
+  }
+
+  function addNoteTab() {
+    _flushCurrentTab();
+    const id   = Date.now();
+    const name = 'tab ' + (_noteTabs.length + 1);
+    _noteTabs.push({ id, name, content: '' });
+    _noteActiveId = id;
+    saveNoteTabs();
+    renderNoteTabs();
+    renderNoteContent();
+    // Immediately enter rename mode on new tab
+    setTimeout(() => startRenameTab(id), 60);
+  }
+
+  function deleteNoteTab(id, e) {
+    e.stopPropagation();
+    if (_noteTabs.length === 1) {
+      // Just clear the last tab instead of deleting it
+      _noteTabs[0].content = '';
+      renderNoteContent();
+      saveNoteTabs();
+      return;
+    }
+    const idx = _noteTabs.findIndex(t => t.id === id);
+    _noteTabs = _noteTabs.filter(t => t.id !== id);
+    if (_noteActiveId === id) {
+      _noteActiveId = _noteTabs[Math.max(0, idx - 1)].id;
+    }
+    saveNoteTabs();
+    renderNoteTabs();
+    renderNoteContent();
+  }
+
+  function startRenameTab(id, e) {
+    if (e) e.stopPropagation();
+    const bar = document.getElementById('noteTabsBar');
+    const tabEl = bar?.querySelector(`[data-tab-id="${id}"] .note-tab-label`);
+    if (!tabEl) return;
+    const tab = _noteTabs.find(t => t.id === id);
+    if (!tab) return;
+    const input = document.createElement('input');
+    input.className = 'note-tab-rename-input';
+    input.value = tab.name;
+    input.maxLength = 20;
+    tabEl.replaceWith(input);
+    input.focus(); input.select();
+    const commit = () => {
+      const newName = input.value.trim() || tab.name;
+      tab.name = newName;
+      saveNoteTabs();
+      renderNoteTabs();
+    };
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') { input.blur(); }
+      if (ev.key === 'Escape') { tab.name = tab.name; renderNoteTabs(); }
+      ev.stopPropagation();
+    });
+    input.addEventListener('click', ev => ev.stopPropagation());
+  }
+
+  function _flushCurrentTab() {
+    const ta  = document.getElementById('notepadTA');
+    const tab = _noteTabs.find(t => t.id === _noteActiveId);
+    if (ta && tab) tab.content = ta.value;
+  }
+
+  function toggleNoteFloat() {
+    const el = document.getElementById('noteFloat');
+    if (!el) return;
+    const isCollapsed = el.classList.contains('collapsed');
+    if (isCollapsed) {
+      el.classList.remove('collapsed');
+      el.style.height = (el._savedHeight || 310) + 'px';
+    } else {
+      el._savedHeight = el.offsetHeight;
+      el.style.height = '';
+      el.classList.add('collapsed');
+    }
+  }
+
+  function onNotepadInput() {
+    updateNotepadChars();
+    clearTimeout(_notepadTimer);
+    _notepadTimer = setTimeout(() => {
+      _flushCurrentTab();
+      saveNoteTabs();
+    }, 1000);
+    document.getElementById('notepadSaved')?.classList.remove('show');
+  }
+
+  function updateNotepadChars() {
+    const ta = document.getElementById('notepadTA');
+    const el = document.getElementById('notepadChars');
+    if (!ta || !el) return;
+    const len = ta.value.length;
+    el.textContent = `${len} char${len !== 1 ? 's' : ''}`;
+  }
+
+  // Notepad drag + resize
+  (function initNoteFloat() {
+    const el     = document.getElementById('noteFloat');
+    const header = document.getElementById('noteFloatHeader');
+    if (!el || !header) return;
+
+    const MIN_W = 220, MAX_W = 560, MIN_H = 160;
+
+    // ── Drag ──
+    let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0, moved = false;
+
+    function ensureTopLeft() {
+      const r = el.getBoundingClientRect();
+      el.style.top  = r.top  + 'px'; el.style.left = r.left + 'px';
+      el.style.bottom = 'auto'; el.style.right = 'auto';
+    }
+
+    header.addEventListener('mousedown', e => {
+      if (e.target.closest('button')) return;
+      e.preventDefault(); ensureTopLeft();
+      dragging = true; moved = false;
+      startX = e.clientX; startY = e.clientY;
+      origLeft = parseInt(el.style.left); origTop = parseInt(el.style.top);
+      el.classList.add('dragging');
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup',   onDragUp);
+    });
+
+    function onDragMove(e) {
+      if (!dragging) return;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+      const maxX = window.innerWidth  - el.offsetWidth;
+      const maxY = window.innerHeight - el.offsetHeight;
+      el.style.left = Math.max(0, Math.min(maxX, origLeft + dx)) + 'px';
+      el.style.top  = Math.max(0, Math.min(maxY, origTop  + dy)) + 'px';
+    }
+
+    function onDragUp() {
+      if (!dragging) return;
+      dragging = false; el.classList.remove('dragging');
+      if (!moved) toggleNoteFloat();
+      document.removeEventListener('mousemove', onDragMove);
+      document.removeEventListener('mouseup',   onDragUp);
+    }
+
+    // Set initial height as inline so CSS has no hardcoded fallback
+    el.style.height = '310px';
+
+    // ── Resize ──
+    let resizing = false, resizeDir = '', resX = 0, resY = 0;
+    let resOrigW = 0, resOrigH = 0, resOrigL = 0, resOrigT = 0;
+
+    el.querySelectorAll('.note-resize').forEach(handle => {
+      handle.addEventListener('mousedown', e => {
+        if (el.classList.contains('collapsed')) return; // no resize when collapsed
+        e.preventDefault(); e.stopPropagation();
+        ensureTopLeft();
+        resizing  = true;
+        resizeDir = handle.dataset.dir;
+        resX = e.clientX; resY = e.clientY;
+        resOrigW = el.offsetWidth;
+        resOrigH = el.offsetHeight;
+        resOrigL = parseInt(el.style.left) || 0;
+        resOrigT = parseInt(el.style.top)  || 0;
+        el.classList.add('resizing');
+        document.body.style.cursor = getComputedStyle(handle).cursor;
+        document.addEventListener('mousemove', onResizeMove);
+        document.addEventListener('mouseup',   onResizeUp);
+      });
+    });
+
+    function onResizeMove(e) {
+      if (!resizing) return;
+      const dx = e.clientX - resX, dy = e.clientY - resY;
+      let w = resOrigW, h = resOrigH, l = resOrigL, t = resOrigT;
+
+      if (resizeDir.includes('e')) w = Math.min(MAX_W, Math.max(MIN_W, resOrigW + dx));
+      if (resizeDir.includes('s')) h = Math.max(MIN_H, resOrigH + dy);
+      if (resizeDir.includes('w')) {
+        const newW = Math.min(MAX_W, Math.max(MIN_W, resOrigW - dx));
+        l = resOrigL + (resOrigW - newW);
+        w = newW;
+      }
+      if (resizeDir.includes('n')) {
+        const newH = Math.max(MIN_H, resOrigH - dy);
+        t = resOrigT + (resOrigH - newH);
+        h = newH;
+      }
+
+      el.style.width  = w + 'px';
+      el.style.height = h + 'px';
+      el.style.left   = l + 'px';
+      el.style.top    = t + 'px';
+    }
+
+    function onResizeUp() {
+      if (!resizing) return;
+      resizing = false;
+      el.classList.remove('resizing');
+      document.body.style.cursor = '';
+      document.removeEventListener('mousemove', onResizeMove);
+      document.removeEventListener('mouseup',   onResizeUp);
+    }
+  })();
+
+  // Load tabs once auth is ready (called after sign-in)
+  function initNotepad() { loadNoteTabs(); }
 
   function setWidgetVisible(id, visible) {
     const el = document.getElementById(id);
