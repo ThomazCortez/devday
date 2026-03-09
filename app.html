@@ -409,29 +409,119 @@
     .tag-btn.active[data-tag="health"]   { background: var(--tag-health-bg);   color: var(--tag-health-ink);   border-color: var(--tag-health-ink); }
 
     /* ── Task List ── */
-    .task-list { display: flex; flex-direction: column; gap: 1px; }
-    .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: 6px; border: 1px solid transparent; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); animation: fadeSlide 0.25s ease both; }
-    @keyframes fadeSlide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
-    .task-item:hover { background: var(--bg-2); border-color: var(--border); }
-    .task-item.done { opacity: 0.4; }
-    .task-item.removing { opacity: 0; transform: translateX(10px); max-height: 0; padding: 0; overflow: hidden; transition: all 0.25s ease; }
-    .line-gutter { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-faint); user-select: none; width: 24px; text-align: right; flex-shrink: 0; padding-top: 3px; }
-    .check-btn { width: 18px; height: 18px; border-radius: 3px; border: 1px solid var(--border); background: transparent; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; margin-top: 2px; }
-    .check-btn:hover { border-color: var(--green); }
+    .task-list { display: flex; flex-direction: column; gap: 6px; }
+    @keyframes fadeSlide { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+
+    .task-item {
+      background: var(--bg-2);
+      border: 1px solid var(--border-s);
+      border-radius: 10px;
+      padding: 12px 12px 12px 14px;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+      animation: fadeSlide 0.22s ease both;
+      flex-wrap: wrap;
+      display: flex; align-items: flex-start; gap: 10px;
+      position: relative;
+    }
+    .task-item:hover {
+      border-color: var(--border);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      background: #191e27;
+    }
+    .task-item.done { opacity: 0.45; }
+    .task-item.overdue-task:not(.done) { border-color: rgba(255,123,114,0.3); border-left: 3px solid var(--red); }
+    .task-item.removing { opacity: 0; transform: translateX(12px); max-height: 0; padding: 0; margin: 0; overflow: hidden; transition: all 0.25s ease; }
+
+    /* Left accent bar on hover */
+    .task-item::before {
+      content: ''; position: absolute; left: 0; top: 6px; bottom: 6px;
+      width: 2px; border-radius: 2px; background: var(--claude);
+      opacity: 0; transition: opacity 0.18s;
+    }
+    .task-item:hover::before { opacity: 1; }
+    .task-item.overdue-task:not(.done)::before { background: var(--red); opacity: 1; }
+
+    /* Drag handle */
+    .drag-handle { color: var(--text-faint); opacity: 0.25; cursor: grab; flex-shrink: 0; padding-top: 3px; transition: opacity 0.15s; }
+    .task-item:hover .drag-handle { opacity: 0.7; color: var(--text-muted); }
+    .drag-handle:active { cursor: grabbing; }
+
+    /* Line number */
+    .line-gutter { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); user-select: none; width: 20px; text-align: right; flex-shrink: 0; padding-top: 3px; opacity: 0.5; }
+
+    /* Checkbox */
+    .check-btn { width: 20px; height: 20px; border-radius: 5px; border: 1.5px solid var(--border); background: var(--bg-3); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; margin-top: 1px; }
+    .check-btn:hover { border-color: var(--green); background: rgba(63,185,80,0.08); }
     .task-item.done .check-btn { background: var(--green); border-color: var(--green); }
     .check-btn svg { opacity: 0; transition: opacity 0.15s; }
     .task-item.done .check-btn svg { opacity: 1; }
+
+    /* Task body */
     .task-body { flex: 1; min-width: 0; }
-    .task-text { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: var(--text); line-height: 1.5; word-break: break-word; }
+    .task-text { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); line-height: 1.55; word-break: break-word; }
     .task-item.done .task-text { text-decoration: line-through; color: var(--text-faint); }
-    .task-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
-    .task-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 4px; }
+    .task-meta { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+    .task-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.04em; }
     .task-tag.work     { background: var(--tag-work-bg);     color: var(--tag-work-ink); }
     .task-tag.personal { background: var(--tag-personal-bg); color: var(--tag-personal-ink); }
     .task-tag.health   { background: var(--tag-health-bg);   color: var(--tag-health-ink); }
-    .delete-btn { background: none; border: none; cursor: pointer; opacity: 0; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: opacity 0.15s, background 0.15s; flex-shrink: 0; margin-top: 1px; }
-    .task-item:hover .delete-btn { opacity: 1; }
-    .delete-btn:hover { background: rgba(255,123,114,0.12); }
+
+    /* Action buttons row — always visible */
+    .task-actions {
+      display: flex; align-items: center; gap: 2px; flex-shrink: 0; margin-top: 1px;
+    }
+    .notes-btn {
+      background: none; border: none; cursor: pointer;
+      padding: 4px 6px; border-radius: 5px;
+      color: var(--text-faint);
+      display: flex; align-items: center; gap: 3px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .notes-btn:hover { color: var(--claude); background: var(--claude-dim); }
+    .notes-btn.has-notes { color: var(--claude); }
+    .notes-btn.open { color: var(--claude); background: var(--claude-dim); }
+    .notes-btn.has-notes:not(.open)::before {
+      content: ''; display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+      background: var(--claude); flex-shrink: 0; margin-right: 1px;
+    }
+    .notes-btn svg.chevron { transition: transform 0.2s ease; }
+    .notes-btn.open svg.chevron { transform: rotate(180deg); }
+
+    .delete-btn {
+      background: none; border: none; cursor: pointer;
+      padding: 4px 6px; border-radius: 5px;
+      color: var(--text-faint);
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.15s, background 0.15s;
+    }
+    .delete-btn:hover { color: var(--red); background: rgba(255,123,114,0.1); }
+
+    /* Notes expand area */
+    .task-notes-area {
+      overflow: hidden; max-height: 0;
+      transition: max-height 0.28s ease, opacity 0.22s ease;
+      opacity: 0; width: 100%;
+    }
+    .task-notes-area.open { max-height: 180px; opacity: 1; }
+    .notes-row { padding: 8px 4px 4px 52px; }
+    .notes-textarea {
+      width: 100%; background: var(--bg-3);
+      border: 1px solid var(--border-s);
+      border-radius: 7px; padding: 9px 12px; resize: none;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6;
+      color: var(--text-m); outline: none; min-height: 76px; max-height: 140px;
+      transition: border-color 0.15s; box-sizing: border-box;
+    }
+    .notes-textarea::placeholder { color: var(--text-faint); font-style: italic; }
+    .notes-textarea:focus { border-color: rgba(218,119,86,0.45); }
+
+    /* Kanban notes */
+    .kb-notes-preview {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint);
+      margin-top: 6px; line-height: 1.5; font-style: italic;
+      white-space: pre-wrap; word-break: break-word;
+      border-left: 2px solid var(--border); padding-left: 8px;
+    }
 
     /* ── Empty State ── */
     .empty-state { padding: 40px 0; display: none; }
@@ -546,7 +636,7 @@
       .tags-row { flex-wrap: wrap; margin-left: 0; }
 
       /* Task items */
-      .task-item { padding: 10px 10px; gap: 8px; }
+      .task-item { padding: 10px 10px 10px 12px; gap: 8px; }
       .task-text { font-size: 13px; }
 
       /* Kanban — stack columns vertically */
@@ -1067,7 +1157,7 @@
   let dragId        = null;
 
   function normalizeTasks(arr) {
-    return arr.map(t => ({ ...t, status: t.status || (t.done ? 'done' : 'todo') }));
+    return arr.map(t => ({ ...t, status: t.status || (t.done ? 'done' : 'todo'), notes: t.notes || '' }));
   }
 
   function init() {
@@ -1079,6 +1169,7 @@
 
     // load tasks from Firebase and keep in sync across devices
     dbListen(remote => {
+      if (_editingNote) return; // don't re-render while user is typing in a note
       tasks = normalizeTasks(remote);
       renderTasks();
       if (currentView === 'kanban') renderKanban();
@@ -1451,6 +1542,57 @@
   // ── Tasks ──
   function save() { dbSave(tasks); }
 
+  // ── Task Notes ──
+  const _openNotes = new Set();
+  let _noteSaveTimer = null;
+  let _editingNote = false;
+
+  function toggleNotes(id) {
+    if (_openNotes.has(id)) {
+      _openNotes.delete(id);
+    } else {
+      _openNotes.add(id);
+    }
+    const area = document.getElementById(`notes-area-${id}`);
+    const btn  = document.querySelector(`[data-id="${id}"] .notes-btn`);
+    if (area) area.classList.toggle('open', _openNotes.has(id));
+    if (btn)  btn.classList.toggle('open', _openNotes.has(id));
+    if (_openNotes.has(id)) {
+      setTimeout(() => {
+        const ta = document.getElementById(`notes-ta-${id}`);
+        if (!ta) return;
+        ta.focus();
+        ta.addEventListener('focus', () => { _editingNote = true; });
+        ta.addEventListener('blur',  () => {
+          _editingNote = false;
+          // flush any pending save immediately on blur
+          clearTimeout(_noteSaveTimer);
+          saveNote(id);
+        });
+      }, 50);
+    }
+  }
+
+  function scheduleNoteSave(id) {
+    _editingNote = true;
+    clearTimeout(_noteSaveTimer);
+    _noteSaveTimer = setTimeout(() => saveNote(id), 1500);
+  }
+
+  function saveNote(id) {
+    const ta = document.getElementById(`notes-ta-${id}`);
+    if (!ta) return;
+    const t = tasks.find(t => t.id === id);
+    if (!t) return;
+    const val = ta.value;
+    if (t.notes === val) return; // nothing changed
+    t.notes = val;
+    save();
+    // Update dot indicator without re-rendering
+    const btn = document.querySelector(`[data-id="${id}"] .notes-btn`);
+    if (btn) btn.classList.toggle('has-notes', val.trim().length > 0);
+  }
+
   function addTask() {
     const input=document.getElementById('taskInput'), text=input.value.trim();
     if (!text) return;
@@ -1505,6 +1647,8 @@
       const dm = dueMeta(t.due);
       const isOverdue = !t.done && dm?.cls==='overdue';
       const globalIdx = start + i;
+      const hasNotes = t.notes && t.notes.trim().length > 0;
+      const isOpen = _openNotes.has(t.id);
       return `
       <div class="task-item ${t.done?'done':''} ${isOverdue?'overdue-task':''}" data-id="${t.id}">
         <span class="drag-handle" onmousedown="onListHandleDown(event,${t.id})" ontouchstart="onListHandleDown(event,${t.id})">
@@ -1517,7 +1661,6 @@
             <circle cx="7" cy="11" r="1.2" fill="currentColor"/>
           </svg>
         </span>
-        <span class="line-gutter">${globalIdx+1}</span>
         <button class="check-btn" onclick="toggleDone(${t.id})">
           <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5l2.5 2.5 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
@@ -1528,9 +1671,20 @@
             ${dm&&!t.done?`<span class="due-badge ${dm.cls}">${dm.icon} ${dm.label}</span>`:''}
           </div>`:''}
         </div>
-        <button class="delete-btn" onclick="deleteTask(${t.id})">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="#FF7B72" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </button>
+        <div class="task-actions">
+          <button class="notes-btn ${hasNotes?'has-notes':''} ${isOpen?'open':''}" onclick="toggleNotes(${t.id})" title="${hasNotes?'edit notes':'add notes'}">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 3h10M2 6.5h7M2 10h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <svg class="chevron" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="delete-btn" onclick="deleteTask(${t.id})">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="task-notes-area ${isOpen?'open':''}" id="notes-area-${t.id}">
+          <div class="notes-row">
+            <textarea class="notes-textarea" id="notes-ta-${t.id}" placeholder="// add notes, links, context..." oninput="scheduleNoteSave(${t.id})">${escHtml(t.notes||'')}</textarea>
+          </div>
+        </div>
       </div>`;
     }).join('');
     empty.classList.toggle('visible', tasks.length===0);
@@ -1659,6 +1813,7 @@
         return `
         <div class="kb-card ${isOverdue?'overdue-card':''}" data-id="${t.id}" onmousedown="onCardMouseDown(event,${t.id})" ontouchstart="onCardMouseDown(event,${t.id})">
           <div class="kb-card-text">${escHtml(t.text)}</div>
+          ${t.notes && t.notes.trim() ? `<div class="kb-notes-preview">${escHtml(t.notes.trim().slice(0,120))}${t.notes.trim().length>120?'…':''}</div>` : ''}
           ${dm&&!t.done?`<div style="margin:5px 0 2px"><span class="due-badge ${dm.cls}">${dm.icon} ${dm.label}</span></div>`:''}
           <div class="kb-card-footer">
             <span>${t.tag?`<span class="kb-card-tag ${t.tag}">#${t.tag}</span>`:''}</span>
