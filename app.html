@@ -2241,10 +2241,13 @@
     _listDragOffX = x - rect.left;
     _listDragOffY = y - rect.top;
     _listDragClone = row.cloneNode(true);
+    const _cs = getComputedStyle(document.body);
+    const _accent = _cs.getPropertyValue('--claude').trim();
+    const _bg2    = _cs.getPropertyValue('--bg-2').trim();
     Object.assign(_listDragClone.style, {
       position:'fixed', top:rect.top+'px', left:rect.left+'px', width:rect.width+'px',
       margin:'0', pointerEvents:'none', zIndex:'9999', transition:'none',
-      background:'#1a1f2a', border:'1px solid rgba(218,119,86,0.45)',
+      background:_bg2, border:`1px solid ${_accent}70`,
       borderRadius:'6px', boxShadow:'0 8px 28px rgba(0,0,0,0.6)',
       transform:'rotate(0.4deg) scale(1.01)', opacity:'1',
     });
@@ -2312,13 +2315,17 @@
     const card = e.currentTarget, rect = card.getBoundingClientRect();
     _dragOffsetX = x - rect.left; _dragOffsetY = y - rect.top;
     _dragClone = card.cloneNode(true);
+    const _cs2 = getComputedStyle(document.body);
+    const _accent2 = _cs2.getPropertyValue('--claude').trim();
+    const _bg2k    = _cs2.getPropertyValue('--bg-2').trim();
+    const _textk   = _cs2.getPropertyValue('--text').trim();
     Object.assign(_dragClone.style, {
       position:'fixed', top:rect.top+'px', left:rect.left+'px', width:rect.width+'px',
       margin:'0', opacity:'1', pointerEvents:'none', zIndex:'9999',
-      background:'#1a1f2a', border:'1px solid rgba(218,119,86,0.5)',
-      borderLeft:'3px solid #DA7756', borderRadius:'8px', padding:'11px 13px',
-      boxShadow:'0 12px 36px rgba(0,0,0,0.7),0 0 0 1px rgba(218,119,86,0.25)',
-      color:'#E6EDF3', transition:'none', transform:'rotate(1.5deg) scale(1.03)',
+      background:_bg2k, border:`1px solid ${_accent2}80`,
+      borderLeft:`3px solid ${_accent2}`, borderRadius:'8px', padding:'11px 13px',
+      boxShadow:`0 12px 36px rgba(0,0,0,0.7),0 0 0 1px ${_accent2}40`,
+      color:_textk, transition:'none', transform:'rotate(1.5deg) scale(1.03)',
     });
     document.body.appendChild(_dragClone);
     card.classList.add('dragging');
