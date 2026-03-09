@@ -1910,7 +1910,6 @@
     if (!text) return;
     tasks.unshift({id:Date.now(),text,tag:selectedTag,due:selectedDue,done:false,status:'todo'});
     save(); input.value=''; currentPage=1;
-    // reset due
     setDue(null);
     renderTasks(); if(currentView==='kanban')renderKanban();
   }
@@ -2102,7 +2101,7 @@
         kanbanEl.style.display='none';
         renderTasks();
       } else {
-        listEl.style.display='none'; inputEl.style.display='none';
+        listEl.style.display='none';
         kanbanEl.style.display='';
         kanbanEl.classList.add('visible');
         renderKanban();
