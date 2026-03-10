@@ -944,6 +944,7 @@
         <span class="kw">const</span>&nbsp;today&nbsp;=&nbsp;<span class="str">"<span id="metaDate"></span>"</span>&nbsp;<span class="cmt">// <span class="daystr" id="metaDay"></span></span>
       </div>
 
+      <!-- Input is always visible -->
       <div id="inputArea">
         <div class="input-block">
           <div class="input-topbar">
@@ -1223,6 +1224,14 @@
     return `rgba(${r},${g},${b},${a})`;
   }
 
+  // Check if a tag id is currently enabled
+  function isTagEnabled(id) {
+    if (!id) return false;
+    const labels = getLabels();
+    const label = labels.find(l => l.id === id);
+    return label ? label.enabled : false;
+  }
+
   function renderTagButtons() {
     const container = document.getElementById('tagBtnsContainer');
     if (!container) return;
@@ -1338,7 +1347,16 @@
     initNotepad();
     loadPomoState();
     loadNoteState();
+
+    // Apply default tag from settings
+    const defaultTag = localStorage.getItem('settings_default_tag');
+    if (defaultTag && isTagEnabled(defaultTag)) {
+      selectedTag = defaultTag;
+    } else {
+      selectedTag = null;
+    }
     renderTagButtons();
+
     renderSidebarLabels();
     document.getElementById('taskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
 
@@ -1782,10 +1800,20 @@
   function addTask() {
     const input=document.getElementById('taskInput'), text=input.value.trim();
     if (!text) return;
-    tasks.unshift({id:Date.now(),text,tag:selectedTag,due:selectedDue,done:false,status:'todo'});
+
+    // Determine tag to use: selectedTag, or default from settings if enabled
+    let tagToUse = selectedTag;
+    if (!tagToUse) {
+      const defaultTag = localStorage.getItem('settings_default_tag');
+      if (defaultTag && isTagEnabled(defaultTag)) {
+        tagToUse = defaultTag;
+      }
+    }
+
+    tasks.unshift({id:Date.now(),text,tag:tagToUse,due:selectedDue,done:false,status:'todo'});
     save(); input.value=''; currentPage=1;
     setDue(null);
-    selectedTag = null;
+    // Keep selectedTag as is (user may want to keep using same tag)
     renderTagButtons();
     renderTasks(); if(currentView==='kanban')renderKanban();
   }
@@ -1982,11 +2010,13 @@
     setTimeout(() => {
       currentView = view;
       if (view==='list') {
-        listEl.style.display=''; inputEl.style.display='';
+        listEl.style.display='';          // show list
+        inputEl.style.display='';          // keep input visible
         kanbanEl.classList.remove('visible'); kanbanEl.style.display='none';
         renderTasks();
       } else {
-        listEl.style.display='none'; inputEl.style.display='none';
+        listEl.style.display='none';
+        inputEl.style.display='';          // keep input visible for kanban!
         kanbanEl.style.display=''; kanbanEl.classList.add('visible');
         renderKanban();
       }
@@ -2596,6 +2626,7 @@
     [4,8,12,16].forEach(n => document.getElementById('ps-' + n)?.classList.toggle('active', n === ps));
 
     const dt = localStorage.getItem('settings_default_tag') || '';
+    // Highlight the active default tag button
     ['','work','personal','health'].forEach(t => document.getElementById('dt-' + (t||'none'))?.classList.toggle('active', t === dt));
 
     renderLabelsManager();
@@ -2642,7 +2673,17 @@
 
   function setPageSize(n) { localStorage.setItem('settings_page_size', n); PAGE_SIZE_current = n; currentPage = 1; renderTasks(); syncSettingsUI(); }
 
-  function setDefaultTag(tag) { localStorage.setItem('settings_default_tag', tag); syncSettingsUI(); }
+  function setDefaultTag(tag) {
+    localStorage.setItem('settings_default_tag', tag);
+    // Update selectedTag and button highlight if the tag is enabled
+    if (tag && isTagEnabled(tag)) {
+      selectedTag = tag;
+    } else {
+      selectedTag = null;
+    }
+    renderTagButtons();
+    syncSettingsUI();
+  }
 
   function saveDisplayName() {
     const val = document.getElementById('settingsDisplayName').value.trim();
