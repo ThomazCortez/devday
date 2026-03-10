@@ -205,9 +205,22 @@
     .note-float.collapsed .collapse-btn { transform: rotate(-90deg); }
 
     /* Body */
-    .note-float-body { overflow: hidden; flex: 1; min-height: 0; transition: opacity 0.2s ease; opacity: 1; display: flex; flex-direction: column; }
-    .note-float.collapsed .note-float-body { display: none; }
-    .note-float.collapsed { min-height: 0; }
+    .note-float-body {
+      overflow: hidden; flex: 1; min-height: 0;
+      display: flex; flex-direction: column;
+      max-height: 600px;
+      opacity: 1;
+      transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.3s ease;
+    }
+    .note-float.collapsed .note-float-body {
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .note-float.collapsed {
+      height: auto !important;
+      min-height: 0 !important;
+    }
 
     /* Tab bar */
     .note-tabs-bar {
@@ -1747,54 +1760,60 @@
   }
 
   (function initPomoFloat() {
-    const el = document.getElementById('pomoFloat');
-    const header = el.querySelector('.pomo-float-header');
-    let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
+  const el     = document.getElementById('pomoFloat');
+  const header = el.querySelector('.pomo-float-header');
+  let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0, moved = false;
 
-    // Convert bottom/right to top/left on first drag so position is stable
-    function ensureTopLeft() {
-      if (el.style.top) return;
-      const r = el.getBoundingClientRect();
-      el.style.top    = r.top  + 'px';
-      el.style.left   = r.left + 'px';
-      el.style.bottom = 'auto';
-      el.style.right  = 'auto';
-    }
+  function getPos(e) {
+    const src = (e.touches && e.touches.length) ? e.touches[0] : (e.changedTouches && e.changedTouches.length) ? e.changedTouches[0] : e;
+    return { x: src.clientX, y: src.clientY };
+  }
 
-    header.addEventListener('mousedown', e => {
-      // Only drag from header itself, not the buttons inside
-      if (e.target.closest('button')) return;
-      e.preventDefault();
-      ensureTopLeft();
-      dragging = true;
-      startX = e.clientX; startY = e.clientY;
-      origLeft = parseInt(el.style.left); origTop = parseInt(el.style.top);
-      el.classList.add('dragging');
-      document.addEventListener('mousemove', onPomoMove);
-      document.addEventListener('mouseup',   onPomoUp);
-    });
+  function ensureTopLeft() {
+    const r = el.getBoundingClientRect();
+    el.style.top = r.top + 'px'; el.style.left = r.left + 'px';
+    el.style.bottom = 'auto';    el.style.right  = 'auto';
+  }
 
-    function onPomoMove(e) {
-      if (!dragging) return;
-      const dx = e.clientX - startX, dy = e.clientY - startY;
-      // Clamp to viewport
-      const maxX = window.innerWidth  - el.offsetWidth;
-      const maxY = window.innerHeight - el.offsetHeight;
-      el.style.left = Math.max(0, Math.min(maxX, origLeft + dx)) + 'px';
-      el.style.top  = Math.max(0, Math.min(maxY, origTop  + dy)) + 'px';
-    }
+  function onDown(e) {
+    if (e.target.closest('button')) return;
+    e.preventDefault();
+    ensureTopLeft();
+    const {x, y} = getPos(e);
+    dragging = true; moved = false;
+    startX = x; startY = y;
+    origLeft = parseInt(el.style.left) || 0;
+    origTop  = parseInt(el.style.top)  || 0;
+    el.classList.add('dragging');
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+    document.addEventListener('touchmove', onMove, {passive: false});
+    document.addEventListener('touchend',  onUp);
+  }
 
-    function onPomoUp(e) {
-      if (!dragging) return;
-      dragging = false;
-      el.classList.remove('dragging');
-      // If barely moved, treat as a collapse toggle click
-      const dx = Math.abs(e.clientX - startX), dy = Math.abs(e.clientY - startY);
-      if (dx < 4 && dy < 4) togglePomoFloat();
-      document.removeEventListener('mousemove', onPomoMove);
-      document.removeEventListener('mouseup',   onPomoUp);
-    }
-  })();
+  function onMove(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    const {x, y} = getPos(e);
+    const dx = x - startX, dy = y - startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+    el.style.left = Math.max(0, Math.min(window.innerWidth  - el.offsetWidth,  origLeft + dx)) + 'px';
+    el.style.top  = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, origTop  + dy)) + 'px';
+  }
+
+  function onUp() {
+    if (!dragging) return;
+    dragging = false; el.classList.remove('dragging');
+    if (!moved) togglePomoFloat();
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup',   onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend',  onUp);
+  }
+
+  header.addEventListener('mousedown',  onDown);
+  header.addEventListener('touchstart', onDown, {passive: false});
+})();
 
   function updatePomoDisplay() {
     const mins=String(Math.floor(pomoSecsLeft/60)).padStart(2,'0'), secs=String(pomoSecsLeft%60).padStart(2,'0');
@@ -2629,7 +2648,6 @@
       el.style.height = (el._savedHeight || 310) + 'px';
     } else {
       el._savedHeight = el.offsetHeight;
-      el.style.height = '';
       el.classList.add('collapsed');
     }
   }
@@ -2654,109 +2672,124 @@
 
   // Notepad drag + resize
   (function initNoteFloat() {
-    const el     = document.getElementById('noteFloat');
-    const header = document.getElementById('noteFloatHeader');
-    if (!el || !header) return;
+  const el     = document.getElementById('noteFloat');
+  const header = document.getElementById('noteFloatHeader');
+  if (!el || !header) return;
 
-    const MIN_W = 220, MAX_W = 560, MIN_H = 160;
+  const MIN_W = 220, MAX_W = 560, MIN_H = 160;
 
-    // ── Drag ──
-    let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0, moved = false;
+  function getPos(e) {
+    const src = (e.touches && e.touches.length) ? e.touches[0] : (e.changedTouches && e.changedTouches.length) ? e.changedTouches[0] : e;
+    return { x: src.clientX, y: src.clientY };
+  }
 
-    function ensureTopLeft() {
-      const r = el.getBoundingClientRect();
-      el.style.top  = r.top  + 'px'; el.style.left = r.left + 'px';
-      el.style.bottom = 'auto'; el.style.right = 'auto';
+  function ensureTopLeft() {
+    const r = el.getBoundingClientRect();
+    el.style.top  = r.top  + 'px'; el.style.left = r.left + 'px';
+    el.style.bottom = 'auto';       el.style.right  = 'auto';
+  }
+
+  // ── Drag ──
+  let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0, moved = false;
+
+  function onDragDown(e) {
+    if (e.target.closest('button')) return;
+    e.preventDefault();
+    ensureTopLeft();
+    const {x, y} = getPos(e);
+    dragging = true; moved = false;
+    startX = x; startY = y;
+    origLeft = parseInt(el.style.left) || 0;
+    origTop  = parseInt(el.style.top)  || 0;
+    el.classList.add('dragging');
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('mouseup',   onDragUp);
+    document.addEventListener('touchmove', onDragMove, {passive: false});
+    document.addEventListener('touchend',  onDragUp);
+  }
+
+  function onDragMove(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    const {x, y} = getPos(e);
+    const dx = x - startX, dy = y - startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+    el.style.left = Math.max(0, Math.min(window.innerWidth  - el.offsetWidth,  origLeft + dx)) + 'px';
+    el.style.top  = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, origTop  + dy)) + 'px';
+  }
+
+  function onDragUp() {
+    if (!dragging) return;
+    dragging = false; el.classList.remove('dragging');
+    if (!moved) toggleNoteFloat();
+    document.removeEventListener('mousemove', onDragMove);
+    document.removeEventListener('mouseup',   onDragUp);
+    document.removeEventListener('touchmove', onDragMove);
+    document.removeEventListener('touchend',  onDragUp);
+  }
+
+  header.addEventListener('mousedown',  onDragDown);
+  header.addEventListener('touchstart', onDragDown, {passive: false});
+
+  el.style.height = '310px';
+
+  // ── Resize ──
+  let resizing = false, resizeDir = '', resX = 0, resY = 0;
+  let resOrigW = 0, resOrigH = 0, resOrigL = 0, resOrigT = 0;
+
+  el.querySelectorAll('.note-resize').forEach(handle => {
+    function onResizeDown(e) {
+      if (el.classList.contains('collapsed')) return;
+      e.preventDefault(); e.stopPropagation();
+      ensureTopLeft();
+      const {x, y} = getPos(e);
+      resizing = true; resizeDir = handle.dataset.dir;
+      resX = x; resY = y;
+      resOrigW = el.offsetWidth;  resOrigH = el.offsetHeight;
+      resOrigL = parseInt(el.style.left) || 0;
+      resOrigT = parseInt(el.style.top)  || 0;
+      el.classList.add('resizing');
+      document.body.style.cursor = getComputedStyle(handle).cursor;
+      document.addEventListener('mousemove', onResizeMove);
+      document.addEventListener('mouseup',   onResizeUp);
+      document.addEventListener('touchmove', onResizeMove, {passive: false});
+      document.addEventListener('touchend',  onResizeUp);
     }
+    handle.addEventListener('mousedown',  onResizeDown);
+    handle.addEventListener('touchstart', onResizeDown, {passive: false});
+  });
 
-    header.addEventListener('mousedown', e => {
-      if (e.target.closest('button')) return;
-      e.preventDefault(); ensureTopLeft();
-      dragging = true; moved = false;
-      startX = e.clientX; startY = e.clientY;
-      origLeft = parseInt(el.style.left); origTop = parseInt(el.style.top);
-      el.classList.add('dragging');
-      document.addEventListener('mousemove', onDragMove);
-      document.addEventListener('mouseup',   onDragUp);
-    });
+  function onResizeMove(e) {
+    if (!resizing) return;
+    e.preventDefault();
+    const {x, y} = getPos(e);
+    const dx = x - resX, dy = y - resY;
+    let w = resOrigW, h = resOrigH, l = resOrigL, t = resOrigT;
 
-    function onDragMove(e) {
-      if (!dragging) return;
-      const dx = e.clientX - startX, dy = e.clientY - startY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
-      const maxX = window.innerWidth  - el.offsetWidth;
-      const maxY = window.innerHeight - el.offsetHeight;
-      el.style.left = Math.max(0, Math.min(maxX, origLeft + dx)) + 'px';
-      el.style.top  = Math.max(0, Math.min(maxY, origTop  + dy)) + 'px';
+    if (resizeDir.includes('e')) w = Math.min(MAX_W, Math.max(MIN_W, resOrigW + dx));
+    if (resizeDir.includes('s')) h = Math.max(MIN_H, resOrigH + dy);
+    if (resizeDir.includes('w')) {
+      const nw = Math.min(MAX_W, Math.max(MIN_W, resOrigW - dx));
+      l = resOrigL + (resOrigW - nw); w = nw;
     }
-
-    function onDragUp() {
-      if (!dragging) return;
-      dragging = false; el.classList.remove('dragging');
-      if (!moved) toggleNoteFloat();
-      document.removeEventListener('mousemove', onDragMove);
-      document.removeEventListener('mouseup',   onDragUp);
+    if (resizeDir.includes('n')) {
+      const nh = Math.max(MIN_H, resOrigH - dy);
+      t = resOrigT + (resOrigH - nh); h = nh;
     }
+    el.style.width = w + 'px'; el.style.height = h + 'px';
+    el.style.left  = l + 'px'; el.style.top    = t + 'px';
+  }
 
-    // Set initial height as inline so CSS has no hardcoded fallback
-    el.style.height = '310px';
-
-    // ── Resize ──
-    let resizing = false, resizeDir = '', resX = 0, resY = 0;
-    let resOrigW = 0, resOrigH = 0, resOrigL = 0, resOrigT = 0;
-
-    el.querySelectorAll('.note-resize').forEach(handle => {
-      handle.addEventListener('mousedown', e => {
-        if (el.classList.contains('collapsed')) return; // no resize when collapsed
-        e.preventDefault(); e.stopPropagation();
-        ensureTopLeft();
-        resizing  = true;
-        resizeDir = handle.dataset.dir;
-        resX = e.clientX; resY = e.clientY;
-        resOrigW = el.offsetWidth;
-        resOrigH = el.offsetHeight;
-        resOrigL = parseInt(el.style.left) || 0;
-        resOrigT = parseInt(el.style.top)  || 0;
-        el.classList.add('resizing');
-        document.body.style.cursor = getComputedStyle(handle).cursor;
-        document.addEventListener('mousemove', onResizeMove);
-        document.addEventListener('mouseup',   onResizeUp);
-      });
-    });
-
-    function onResizeMove(e) {
-      if (!resizing) return;
-      const dx = e.clientX - resX, dy = e.clientY - resY;
-      let w = resOrigW, h = resOrigH, l = resOrigL, t = resOrigT;
-
-      if (resizeDir.includes('e')) w = Math.min(MAX_W, Math.max(MIN_W, resOrigW + dx));
-      if (resizeDir.includes('s')) h = Math.max(MIN_H, resOrigH + dy);
-      if (resizeDir.includes('w')) {
-        const newW = Math.min(MAX_W, Math.max(MIN_W, resOrigW - dx));
-        l = resOrigL + (resOrigW - newW);
-        w = newW;
-      }
-      if (resizeDir.includes('n')) {
-        const newH = Math.max(MIN_H, resOrigH - dy);
-        t = resOrigT + (resOrigH - newH);
-        h = newH;
-      }
-
-      el.style.width  = w + 'px';
-      el.style.height = h + 'px';
-      el.style.left   = l + 'px';
-      el.style.top    = t + 'px';
-    }
-
-    function onResizeUp() {
-      if (!resizing) return;
-      resizing = false;
-      el.classList.remove('resizing');
-      document.body.style.cursor = '';
-      document.removeEventListener('mousemove', onResizeMove);
-      document.removeEventListener('mouseup',   onResizeUp);
-    }
-  })();
+  function onResizeUp() {
+    if (!resizing) return;
+    resizing = false; el.classList.remove('resizing');
+    document.body.style.cursor = '';
+    document.removeEventListener('mousemove', onResizeMove);
+    document.removeEventListener('mouseup',   onResizeUp);
+    document.removeEventListener('touchmove', onResizeMove);
+    document.removeEventListener('touchend',  onResizeUp);
+  }
+})();
 
   // Load tabs once auth is ready (called after sign-in)
   function initNotepad() { loadNoteTabs(); }
