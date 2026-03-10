@@ -1468,6 +1468,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
 <script>
+  const POMO_POS_KEY   = 'devday_pomo_pos';
+  const NOTE_POS_KEY   = 'devday_note_pos';   // stores top, left, width, height, collapsed
+
   // ── Firebase init ──
   const _firebaseConfig = {
     apiKey:            "AIzaSyCha8LZ-7nbpF5IFwZj7SOxPe1H_l8ZAU0",
@@ -1573,6 +1576,8 @@
     fetchWeather();
     initPomo();
     initNotepad();
+    loadPomoState();   
+    loadNoteState();   
     document.getElementById('taskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
 
     // load tasks from Firebase and keep in sync across devices
@@ -1585,6 +1590,74 @@
       updateCounts();
     });
   }
+
+  function savePomoState() {
+  const el = document.getElementById('pomoFloat');
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  const state = {
+    top: rect.top,
+    left: rect.left,
+    collapsed: el.classList.contains('collapsed')
+  };
+  localStorage.setItem(POMO_POS_KEY, JSON.stringify(state));
+}
+
+function loadPomoState() {
+  const data = localStorage.getItem(POMO_POS_KEY);
+  if (!data) return;
+  try {
+    const state = JSON.parse(data);
+    const el = document.getElementById('pomoFloat');
+    if (!el) return;
+    el.style.top = state.top + 'px';
+    el.style.left = state.left + 'px';
+    el.style.bottom = 'auto';
+    el.style.right = 'auto';
+    if (state.collapsed) {
+      el.classList.add('collapsed');
+    } else {
+      el.classList.remove('collapsed');
+    }
+  } catch(e) {}
+}
+
+function saveNoteState() {
+  const el = document.getElementById('noteFloat');
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  const state = {
+    top: rect.top,
+    left: rect.left,
+    width: el.offsetWidth,
+    height: el.offsetHeight,
+    collapsed: el.classList.contains('collapsed')
+  };
+  localStorage.setItem(NOTE_POS_KEY, JSON.stringify(state));
+}
+
+function loadNoteState() {
+  const data = localStorage.getItem(NOTE_POS_KEY);
+  if (!data) return;
+  try {
+    const state = JSON.parse(data);
+    const el = document.getElementById('noteFloat');
+    if (!el) return;
+    el.style.top = state.top + 'px';
+    el.style.left = state.left + 'px';
+    el.style.width = state.width + 'px';
+    el.style.height = state.height + 'px';
+    el.style.bottom = 'auto';
+    el.style.right = 'auto';
+    if (state.collapsed) {
+      el.classList.add('collapsed');
+      // remember the expanded height for later uncollapse
+      el._savedHeight = state.height;
+    } else {
+      el.classList.remove('collapsed');
+    }
+  } catch(e) {}
+}
 
   function setDate() {
     const now    = new Date();
@@ -1759,6 +1832,7 @@
   // ── Pomodoro Float: collapse + drag ──
   function togglePomoFloat() {
     document.getElementById('pomoFloat').classList.toggle('collapsed');
+    savePomoState(); // remember new collapsed state
   }
 
   (function initPomoFloat() {
@@ -1804,14 +1878,18 @@
   }
 
   function onUp() {
-    if (!dragging) return;
-    dragging = false; el.classList.remove('dragging');
-    if (!moved) togglePomoFloat();
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup',   onUp);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend',  onUp);
+  if (!dragging) return;
+  dragging = false; el.classList.remove('dragging');
+  if (!moved) {
+    togglePomoFloat(); // this will also save inside togglePomoFloat
+  } else {
+    savePomoState();   // save position after dragging
   }
+  document.removeEventListener('mousemove', onMove);
+  document.removeEventListener('mouseup',   onUp);
+  document.removeEventListener('touchmove', onMove);
+  document.removeEventListener('touchend',  onUp);
+}
 
   header.addEventListener('mousedown',  onDown);
   header.addEventListener('touchstart', onDown, {passive: false});
@@ -2668,6 +2746,7 @@
       el._savedHeight = el.offsetHeight;
       el.classList.add('collapsed');
     }
+    saveNoteState(); 
   }
 
   function onNotepadInput() {
@@ -2739,7 +2818,11 @@
   function onDragUp() {
     if (!dragging) return;
     dragging = false; el.classList.remove('dragging');
-    if (!moved) toggleNoteFloat();
+    if (!moved) {
+      toggleNoteFloat(); // this will save inside
+    } else {
+      saveNoteState();   // save position after dragging
+    }
     document.removeEventListener('mousemove', onDragMove);
     document.removeEventListener('mouseup',   onDragUp);
     document.removeEventListener('touchmove', onDragMove);
@@ -2806,6 +2889,7 @@
     document.removeEventListener('mouseup',   onResizeUp);
     document.removeEventListener('touchmove', onResizeMove);
     document.removeEventListener('touchend',  onResizeUp);
+    saveNoteState(); // remember new size/position
   }
 })();
 
