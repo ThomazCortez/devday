@@ -595,7 +595,7 @@
     }
     .task-item.done { opacity: 0.45; }
     .task-item.overdue-task:not(.done) { border-color: rgba(255,123,114,0.3); border-left: 3px solid var(--red); }
-    .task-item.removing { opacity: 0; transform: translateX(12px); max-height: 0; padding: 0; margin: 0; overflow: hidden; transition: all 0.25s ease; }
+    .task-item.removing { opacity: 0; transform: translateX(14px) scale(0.98); pointer-events: none; transition: opacity 0.22s ease, transform 0.22s ease; }
 
     /* Left accent bar on hover */
     .task-item::before {
@@ -1483,6 +1483,7 @@
   const _auth = firebase.auth();
   let   _userRef = null;
   let   _activeListener = null;
+  const _deletingIds = new Set();
 
   function dbSave(tasks) {
     if (_userRef) _userRef.set(tasks);
@@ -1576,7 +1577,8 @@
 
     // load tasks from Firebase and keep in sync across devices
     dbListen(remote => {
-      if (_editingNote) return; // don't re-render while user is typing in a note
+      if (_editingNote) return;
+      if (_deletingIds.size > 0) return; // ← add this line
       tasks = normalizeTasks(remote);
       renderTasks();
       if (currentView === 'kanban') renderKanban();
@@ -2027,8 +2029,18 @@
   }
 
   function deleteTask(id) {
-    const el=document.querySelector(`[data-id="${id}"]`);
-    if (el) { el.classList.add('removing'); setTimeout(()=>{tasks=tasks.filter(t=>t.id!==id);save();renderTasks();if(currentView==='kanban')renderKanban();},260); }
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) {
+      _deletingIds.add(id);
+      el.classList.add('removing');
+      setTimeout(() => {
+        tasks = tasks.filter(t => t.id !== id);
+        save();
+        _deletingIds.delete(id);
+        renderTasks();
+        if (currentView === 'kanban') renderKanban();
+      }, 230);
+    }
   }
 
   function toggleTag(btn) {
