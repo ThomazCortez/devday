@@ -2487,14 +2487,18 @@
   const WIDGET_KEYS = { clock: 'wd_clock', weather: 'wd_weather', pomo: 'wd_pomo', notepad: 'wd_notepad' };
 
   function loadWidgetPrefs() {
+    // clock & weather: default true (missing = true)
     const clock   = localStorage.getItem(WIDGET_KEYS.clock)   !== 'false';
     const weather = localStorage.getItem(WIDGET_KEYS.weather) !== 'false';
-    const pomo    = localStorage.getItem(WIDGET_KEYS.pomo)    !== 'false';
-    const notepad = localStorage.getItem(WIDGET_KEYS.notepad) !== 'false';
+    // pomo & notepad: default false (missing = false)
+    const pomo    = localStorage.getItem(WIDGET_KEYS.pomo)    === 'true';
+    const notepad = localStorage.getItem(WIDGET_KEYS.notepad) === 'true';
+
     document.getElementById('toggleClock').checked   = clock;
     document.getElementById('toggleWeather').checked = weather;
     document.getElementById('togglePomo').checked    = pomo;
     document.getElementById('toggleNotepad').checked = notepad;
+
     setWidgetVisible('clockWrap',   clock);
     setWidgetVisible('weatherWrap', weather);
     setWidgetVisible('pomoFloat',   pomo);
