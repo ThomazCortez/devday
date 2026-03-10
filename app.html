@@ -26,15 +26,15 @@
       --yellow:      #E3B341;
       --claude:      #DA7756;
       --claude-dim:  rgba(218,119,86,0.15);
-      --claude-border: rgba(218,119,86,0.45);
-      --claude-glow:   rgba(218,119,86,0.18);
-      --claude-glow2:  rgba(218,119,86,0.13);
       --tag-work-bg:      rgba(88,166,255,0.12);
       --tag-work-ink:     #58A6FF;
       --tag-personal-bg:  rgba(188,140,255,0.12);
       --tag-personal-ink: #BC8CFF;
       --tag-health-bg:    rgba(63,185,80,0.12);
       --tag-health-ink:   #3FB950;
+      --claude-border: rgba(218,119,86,0.45);
+      --claude-glow:   rgba(218,119,86,0.18);
+      --claude-glow2:  rgba(218,119,86,0.13);
     }
 
     body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
@@ -143,17 +143,13 @@
       border-radius: 14px;
       box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(88,166,255,0.08);
       z-index: 200; overflow: visible;
-      /* height + box-shadow transitions */
-      transition: height 0.28s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s;
+      transition: box-shadow 0.2s;
       user-select: none;
       display: flex; flex-direction: column;
     }
     .note-float:hover { box-shadow: 0 14px 48px rgba(0,0,0,0.65), 0 0 0 1px rgba(88,166,255,0.2); }
     .note-float.dragging { box-shadow: 0 20px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(88,166,255,0.3); transition: none; }
     .note-float.resizing { box-shadow: 0 20px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(88,166,255,0.3); transition: none; }
-    .note-float.collapsed {
-      min-height: 0 !important;
-    }
     /* clip inner body to rounded corners */
     .note-float-inner { overflow: hidden; border-radius: 14px; flex: 1; display: flex; flex-direction: column; min-height: 0; }
 
@@ -161,13 +157,16 @@
     .note-resize {
       position: absolute; z-index: 10;
     }
+    /* Edges */
     .note-resize.e  { right: -5px;  top: 14px; bottom: 14px; width: 10px; cursor: ew-resize; }
     .note-resize.w  { left: -5px;   top: 14px; bottom: 14px; width: 10px; cursor: ew-resize; }
     .note-resize.s  { bottom: -5px; left: 14px; right: 14px; height: 10px; cursor: ns-resize; }
+    /* Corners */
     .note-resize.se { right: -5px;  bottom: -5px; width: 18px; height: 18px; cursor: se-resize; }
     .note-resize.sw { left: -5px;   bottom: -5px; width: 18px; height: 18px; cursor: sw-resize; }
     .note-resize.ne { right: -5px;  top: -5px;    width: 18px; height: 18px; cursor: ne-resize; }
     .note-resize.nw { left: -5px;   top: -5px;    width: 18px; height: 18px; cursor: nw-resize; }
+    /* Visible corner dots */
     .note-resize.se::after, .note-resize.sw::after,
     .note-resize.ne::after, .note-resize.nw::after {
       content: '';
@@ -189,7 +188,6 @@
       padding: 9px 10px 9px 14px;
       cursor: grab; background: var(--bg-3);
       border-bottom: 1px solid var(--border-soft);
-      flex-shrink: 0;
     }
     .note-float-header:active { cursor: grabbing; }
     .note-float-header:hover { background: var(--bg-2); }
@@ -206,16 +204,22 @@
     .note-float-btn.collapse-btn { transition: color 0.15s, background 0.15s, transform 0.22s; }
     .note-float.collapsed .collapse-btn { transform: rotate(-90deg); }
 
-    /* Body — always flex, animated via opacity */
+    /* Body */
     .note-float-body {
       overflow: hidden; flex: 1; min-height: 0;
       display: flex; flex-direction: column;
+      max-height: 600px;
       opacity: 1;
-      transition: opacity 0.2s ease;
+      transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.3s ease;
     }
     .note-float.collapsed .note-float-body {
+      max-height: 0;
       opacity: 0;
       pointer-events: none;
+    }
+    .note-float.collapsed {
+      height: auto !important;
+      min-height: 0 !important;
     }
 
     /* Tab bar */
@@ -237,7 +241,7 @@
     }
     .note-tab:hover { color: var(--text-m); background: var(--bg-2); }
     .note-tab.active {
-      color: var(--claude);
+      color: var(--claude);          
       background: var(--bg-2);
       border-color: var(--border-soft);
     }
@@ -245,7 +249,7 @@
     .note-tab-rename-input {
       background: transparent; border: none; outline: none;
       font-family: 'JetBrains Mono', monospace; font-size: 10px;
-      color: var(--claude); width: 60px; padding: 0;
+      color: var(--claude);width: 60px; padding: 0;
     }
     .note-tab-close {
       background: none; border: none; cursor: pointer;
@@ -275,7 +279,7 @@
     .note-float-textarea::placeholder { color: var(--text-faint); font-style: italic; }
 
     /* Footer */
-    .note-float-footer {
+    .note-float-footer { 
       padding: 5px 12px 7px; display: flex; align-items: center; justify-content: space-between;
       border-top: 1px solid var(--border-soft); flex-shrink: 0;
     }
@@ -287,6 +291,7 @@
     .pomo-mode-btn { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text-faint); cursor: pointer; transition: all 0.15s; }
     .pomo-mode-btn.active { background: var(--claude-dim); color: var(--claude); border-color: var(--claude); }
 
+    /* ring-wrap has explicit height = SVG height so nothing overflows */
     .pomodoro-ring-wrap {
       position: relative;
       width: 148px;
@@ -457,6 +462,7 @@
       margin: 1px 0; box-shadow: 0 0 6px rgba(218,119,86,0.5);
       pointer-events: none;
     }
+    /* kb drop indicator within column */
     .kb-drop-indicator {
       height: 2px; background: var(--claude); border-radius: 1px;
       margin: 2px 0; box-shadow: 0 0 6px rgba(218,119,86,0.5);
@@ -508,8 +514,13 @@
 
     /* ── Kanban Card ── */
     .kb-card { background: var(--bg-2); border: 1px solid var(--border); border-left: 3px solid transparent; border-radius: 8px; padding: 11px 13px; cursor: grab; position: relative; animation: fadeSlide 0.22s ease both; transition: border-color 0.2s ease, border-left-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s cubic-bezier(0.4,0,0.2,1); }
-    /* FIX: use CSS variables so hover matches the accent color */
-    .kb-card:hover { border-color: var(--claude-border); border-left-color: var(--claude); background: #191e27; transform: translateY(-2px); box-shadow: 0 0 0 1px var(--claude-glow), 0 6px 20px var(--claude-glow2), 0 2px 8px rgba(0,0,0,0.4); }
+    .kb-card:hover {
+      border-color: var(--claude-border);
+      border-left-color: var(--claude);
+      background: #191e27;
+      transform: translateY(-2px);
+      box-shadow: 0 0 0 1px var(--claude-glow), 0 6px 20px var(--claude-glow2), 0 2px 8px rgba(0,0,0,0.4);
+    }
     .kb-card.dragging { opacity: 0.15; cursor: grabbing; transform: scale(0.97); border-style: dashed; border-color: var(--claude); border-left-color: var(--claude); box-shadow: none; }
     .kb-card-text { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); line-height: 1.5; word-break: break-word; }
     .kb-col[data-status="done"] .kb-card-text { text-decoration: line-through; color: var(--text-faint); }
@@ -586,6 +597,7 @@
     .task-item.overdue-task:not(.done) { border-color: rgba(255,123,114,0.3); border-left: 3px solid var(--red); }
     .task-item.removing { opacity: 0; transform: translateX(12px); max-height: 0; padding: 0; margin: 0; overflow: hidden; transition: all 0.25s ease; }
 
+    /* Left accent bar on hover */
     .task-item::before {
       content: ''; position: absolute; left: 0; top: 6px; bottom: 6px;
       width: 2px; border-radius: 2px; background: var(--claude);
@@ -594,18 +606,22 @@
     .task-item:hover::before { opacity: 1; }
     .task-item.overdue-task:not(.done)::before { background: var(--red); opacity: 1; }
 
+    /* Drag handle */
     .drag-handle { color: var(--text-faint); opacity: 0.25; cursor: grab; flex-shrink: 0; padding-top: 3px; transition: opacity 0.15s; }
     .task-item:hover .drag-handle { opacity: 0.7; color: var(--text-muted); }
     .drag-handle:active { cursor: grabbing; }
 
+    /* Line number */
     .line-gutter { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); user-select: none; width: 20px; text-align: right; flex-shrink: 0; padding-top: 3px; opacity: 0.5; }
 
+    /* Checkbox */
     .check-btn { width: 20px; height: 20px; border-radius: 5px; border: 1.5px solid var(--border); background: var(--bg-3); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; margin-top: 1px; }
     .check-btn:hover { border-color: var(--green); background: rgba(63,185,80,0.08); }
     .task-item.done .check-btn { background: var(--green); border-color: var(--green); }
     .check-btn svg { opacity: 0; transition: opacity 0.15s; }
     .task-item.done .check-btn svg { opacity: 1; }
 
+    /* Task body */
     .task-body { flex: 1; min-width: 0; }
     .task-text { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); line-height: 1.55; word-break: break-word; }
     .task-item.done .task-text { text-decoration: line-through; color: var(--text-faint); }
@@ -615,6 +631,7 @@
     .task-tag.personal { background: var(--tag-personal-bg); color: var(--tag-personal-ink); }
     .task-tag.health   { background: var(--tag-health-bg);   color: var(--tag-health-ink); }
 
+    /* Action buttons row — always visible */
     .task-actions {
       display: flex; align-items: center; gap: 2px; flex-shrink: 0; margin-top: 1px;
     }
@@ -644,6 +661,7 @@
     }
     .delete-btn:hover { color: var(--red); background: rgba(255,123,114,0.1); }
 
+    /* Notes expand area */
     .task-notes-area {
       overflow: hidden; max-height: 0;
       transition: max-height 0.28s ease, opacity 0.22s ease;
@@ -662,6 +680,7 @@
     .notes-textarea::placeholder { color: var(--text-faint); font-style: italic; }
     .notes-textarea:focus { border-color: rgba(218,119,86,0.45); }
 
+    /* Kanban notes */
     .kb-notes-preview {
       font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint);
       margin-top: 6px; line-height: 1.5; font-style: italic;
@@ -735,9 +754,13 @@
 
     /* ── Mobile / Responsive ── */
     @media (max-width: 768px) {
+
+      /* Titlebar */
       .titlebar { padding: 0 12px; }
       .titlebar-title { display: none; }
       .status-bar { display: none; }
+
+      /* Hamburger toggle */
       .sidebar-toggle {
         display: flex; align-items: center; justify-content: center;
         width: 28px; height: 28px; border: 1px solid var(--border);
@@ -745,6 +768,8 @@
         color: var(--text-muted); flex-shrink: 0;
       }
       .sidebar-toggle:hover { border-color: var(--claude); color: var(--claude); }
+
+      /* Sidebar becomes a slide-in drawer */
       .sidebar {
         position: fixed; left: 0; top: 38px; bottom: 0;
         width: 260px; z-index: 500;
@@ -754,31 +779,51 @@
         overflow-y: auto;
       }
       .sidebar.open { transform: translateX(0); }
+
+      /* Dim overlay behind sidebar */
       .sidebar-overlay {
         display: none; position: fixed; inset: 0; top: 38px;
         background: rgba(0,0,0,0.55); z-index: 499;
       }
       .sidebar-overlay.open { display: block; }
+
+      /* Main area full width */
       .layout { min-height: calc(100vh - 38px); }
       .main { padding: 20px 16px; }
+
+      /* Page title smaller */
       .page-title { font-size: 20px; }
       .page-title .comment { font-size: 12px; }
       .page-meta { font-size: 12px; margin-bottom: 18px; }
+
+      /* Input */
       .task-input { font-size: 14px; }
       .tags-row { flex-wrap: wrap; margin-left: 0; }
+
+      /* Task items */
       .task-item { padding: 10px 10px 10px 12px; gap: 8px; }
       .task-text { font-size: 13px; }
+
+      /* Kanban — stack columns vertically */
       #kanbanView { flex-direction: column; }
       #kanbanView.visible { flex-direction: column; padding: 0 0 24px; gap: 12px; }
       .kb-col-header { position: static; }
+
+      /* Pomodoro float — move to bottom left so it doesn't cover tasks */
       .pomo-float { bottom: 16px !important; right: 16px !important; left: auto !important; top: auto !important; width: 220px !important; }
-      .note-float { top: 60px !important; right: 8px !important; left: auto !important; bottom: auto !important; width: 220px !important; }
+      .note-float { top: 60px !important; right: 8px !important; left: auto !important; bottom: auto !important; width: 220px !important; height: 260px !important; }
+
+      /* Calendar popup — keep on screen */
       #calPopup { width: 220px !important; }
+
+      /* Pagination */
       .pagination { flex-direction: column; gap: 8px; align-items: flex-start; }
     }
 
+    /* Hide hamburger on desktop */
     .sidebar-toggle { display: none; }
 
+    /* ── User pill ── */
     /* ── User pill + dropdown ── */
     .user-pill-wrap { position: relative; }
     .user-pill {
@@ -804,6 +849,7 @@
     }
     .user-pill.open .pill-chevron { transform: rotate(180deg); }
 
+    /* Dropdown */
     .user-dropdown {
       position: absolute; top: calc(100% + 8px); right: 0;
       background: var(--bg-2); border: 1px solid var(--border);
@@ -881,6 +927,7 @@
     .widget-row-info { display: flex; flex-direction: column; }
     .widget-row-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text); font-weight: 500; }
     .widget-row-desc { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); margin-top: 2px; }
+    /* Toggle switch */
     .toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
     .toggle input { opacity: 0; width: 0; height: 0; }
     .toggle-track {
@@ -895,6 +942,7 @@
     }
     .toggle input:checked + .toggle-track { background: var(--claude-dim); border-color: var(--claude); }
     .toggle input:checked + .toggle-track::after { transform: translateX(16px); background: var(--claude); }
+
 
     /* ── Settings Panel ── */
     .settings-backdrop {
@@ -1034,18 +1082,22 @@
     }
     .theme-card:hover .theme-preview { border-color: var(--text-muted); }
     .theme-card.active .theme-preview { border-color: var(--claude); box-shadow: 0 0 0 3px var(--claude-dim); }
+    /* preview bar */
     .theme-preview-bar { height: 14px; display: flex; align-items: center; padding: 0 6px; gap: 3px; flex-shrink: 0; }
     .theme-preview-dot { width: 4px; height: 4px; border-radius: 50%; }
+    /* preview body */
     .theme-preview-body { flex: 1; padding: 5px 6px; display: flex; flex-direction: column; gap: 3px; }
     .theme-preview-line { height: 3px; border-radius: 2px; }
     .theme-preview-line.short { width: 55%; }
     .theme-preview-line.medium { width: 75%; }
     .theme-preview-input { height: 10px; border-radius: 3px; margin-top: 3px; border: 1px solid; }
+    /* dark theme preview */
     .theme-preview.dark { background: #0D1117; }
     .theme-preview.dark .theme-preview-bar { background: #161B22; border-bottom: 1px solid #30363D; }
     .theme-preview.dark .theme-preview-dot { background: #30363D; }
     .theme-preview.dark .theme-preview-line { background: #3D444D; }
     .theme-preview.dark .theme-preview-input { background: #161B22; border-color: #30363D; }
+    /* light theme preview */
     .theme-preview.light { background: #F6F8FA; }
     .theme-preview.light .theme-preview-bar { background: #FFFFFF; border-bottom: 1px solid #D0D7DE; }
     .theme-preview.light .theme-preview-dot { background: #D0D7DE; }
@@ -1084,6 +1136,7 @@
     body.theme-light .kb-col-header { background: #F0F2F4; border-color: #D0D7DE; }
     body.theme-light .statusbar { opacity: 0.95; }
 
+
     body.font-sm .task-text   { font-size: 12px; }
     body.font-sm .task-tag    { font-size: 9px; }
     body.font-sm .add-input   { font-size: 12px; }
@@ -1092,6 +1145,7 @@
     body.font-lg .task-tag    { font-size: 11px; }
     body.font-lg .add-input   { font-size: 15px; }
 
+    /* ── Density ── */
     body.density-compact  .task-item { padding: 7px 12px 7px 14px; }
     body.density-compact  .task-list { gap: 3px; }
     body.density-comfortable .task-item { padding: 12px 12px 12px 14px; }
@@ -1170,9 +1224,13 @@
 
   <div class="layout">
     <aside class="sidebar">
+
+      <!-- Clock -->
       <div class="ascii-clock-wrap" id="clockWrap">
         <div class="seg-clock" id="segClock"></div>
       </div>
+
+      <!-- Weather -->
       <div class="weather-wrap" id="weatherWrap">
         <div class="weather-header">// <span id="weatherLocation">weather.live</span></div>
         <div class="weather-loading" id="weatherLoading">fetching data...</div>
@@ -1188,6 +1246,8 @@
           <div class="weather-forecast" id="wForecast"></div>
         </div>
       </div>
+
+      <!-- Explorer -->
       <div class="sidebar-section" style="margin-top:12px">Explorer</div>
       <button class="sidebar-item active" onclick="setFilter(this,'all')">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="#7D8590"/><rect x="9" y="2" width="5" height="5" rx="1" fill="#7D8590"/><rect x="2" y="9" width="5" height="5" rx="1" fill="#7D8590"/><rect x="9" y="9" width="5" height="5" rx="1" fill="#7D8590"/></svg>
@@ -1224,6 +1284,7 @@
         <div class="sidebar-progress-label"><span>progress</span><span id="progressPct">0%</span></div>
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
       </div>
+
     </aside>
 
     <main class="main">
@@ -1360,6 +1421,7 @@
 
 <!-- Notepad Float -->
 <div class="note-float" id="noteFloat">
+  <!-- Resize handles -->
   <div class="note-resize e"  data-dir="e"></div>
   <div class="note-resize w"  data-dir="w"></div>
   <div class="note-resize s"  data-dir="s"></div>
@@ -1376,6 +1438,7 @@
     </div>
     <div class="note-float-body" id="noteFloatBody">
       <div class="note-tabs-bar" id="noteTabsBar">
+        <!-- tabs injected by JS -->
         <button class="note-tab-add" onclick="addNoteTab()" title="new tab">+</button>
       </div>
       <textarea class="note-float-textarea" id="notepadTA"
@@ -1405,6 +1468,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
 <script>
+  // ── Firebase init ──
   const _firebaseConfig = {
     apiKey:            "AIzaSyCha8LZ-7nbpF5IFwZj7SOxPe1H_l8ZAU0",
     authDomain:        "devdaydb.firebaseapp.com",
@@ -1420,7 +1484,10 @@
   let   _userRef = null;
   let   _activeListener = null;
 
-  function dbSave(tasks) { if (_userRef) _userRef.set(tasks); }
+  function dbSave(tasks) {
+    if (_userRef) _userRef.set(tasks);
+  }
+
   function dbListen(cb) {
     if (_activeListener && _userRef) _userRef.off('value', _activeListener);
     _activeListener = _userRef.on('value', snap => {
@@ -1428,40 +1495,51 @@
       cb(Array.isArray(val) ? val : val ? Object.values(val) : []);
     });
   }
+
   function dbDetach() {
     if (_activeListener && _userRef) { _userRef.off('value', _activeListener); _activeListener = null; }
     _userRef = null;
   }
 
+  // ── Auth ──
+  // ── User dropdown ──
   function toggleUserMenu() {
     const pill = document.getElementById('userPillBtn');
     const dd   = document.getElementById('userDropdown');
     const open = dd.classList.toggle('open');
     pill.classList.toggle('open', open);
   }
-  function openSettings() { closeUserMenu(); openSettingsPanel(); }
+  function openSettings() {
+    closeUserMenu();
+    openSettingsPanel();
+  }
   function closeUserMenu() {
     document.getElementById('userDropdown')?.classList.remove('open');
     document.getElementById('userPillBtn')?.classList.remove('open');
   }
+  // close on outside click
   document.addEventListener('click', e => {
     if (!document.getElementById('userPill')?.contains(e.target)) closeUserMenu();
   });
 
   function signOut() {
-    closeUserMenu(); dbDetach(); tasks = [];
+    closeUserMenu();
+    dbDetach();
+    tasks = [];
     _auth.signOut().then(() => { window.location.href = 'login.html'; });
   }
 
   _auth.onAuthStateChanged(user => {
     if (user) {
+      // signed in — set up per-user db path
       _userRef = _db.ref('users/' + user.uid + '/tasks');
-      const pill     = document.getElementById('userPill');
-      const nameEl   = document.getElementById('userName');
-      const avatarEl = document.getElementById('userAvatar');
-      const emailEl  = document.getElementById('dropdownEmail');
+      // update user pill
+      const pill    = document.getElementById('userPill');
+      const nameEl  = document.getElementById('userName');
+      const avatarEl= document.getElementById('userAvatar');
+      const emailEl = document.getElementById('dropdownEmail');
       pill.style.display = 'block';
-      nameEl.textContent = user.displayName?.split(' ')[0] || 'user';
+      nameEl.textContent  = user.displayName?.split(' ')[0] || 'user';
       if (emailEl) emailEl.textContent = user.email || user.displayName || 'guest';
       if (user.photoURL) {
         avatarEl.innerHTML = `<img src="${user.photoURL}" alt="avatar"/>`;
@@ -1470,13 +1548,13 @@
       }
       init();
     } else {
+      // not signed in — redirect to login
       window.location.href = 'login.html';
     }
   });
-
   let tasks         = [];
   let selectedTag   = null;
-  let selectedDue   = null;
+  let selectedDue   = null;  // 'YYYY-MM-DD'
   let currentPage   = 1;
   const PAGE_SIZE   = 8;
   let PAGE_SIZE_current = 8;
@@ -1489,10 +1567,16 @@
   }
 
   function init() {
-    setDate(); startClock(); fetchWeather(); initPomo(); initNotepad();
+    setDate();
+    startClock();
+    fetchWeather();
+    initPomo();
+    initNotepad();
     document.getElementById('taskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+    // load tasks from Firebase and keep in sync across devices
     dbListen(remote => {
-      if (_editingNote) return;
+      if (_editingNote) return; // don't re-render while user is typing in a note
       tasks = normalizeTasks(remote);
       renderTasks();
       if (currentView === 'kanban') renderKanban();
@@ -1509,8 +1593,12 @@
     document.getElementById('bcDate').textContent   = `${months[now.getMonth()]}-${String(now.getDate()).padStart(2,'0')}`;
   }
 
+  // ── Seven-Segment Clock ──
   let SEG_ON = '#DA7756', SEG_OFF = '#1C1009', SEG_GLOW = 'drop-shadow(0 0 4px rgba(218,119,86,0.8))';
-  function getSegOff() { return document.body.classList.contains('theme-light') ? '#D8DCE0' : '#1C1009'; }
+
+  function getSegOff() {
+    return document.body.classList.contains('theme-light') ? '#D8DCE0' : '#1C1009';
+  }
   const SEG_MAP = { '0':[1,1,1,1,1,1,0],'1':[0,1,1,0,0,0,0],'2':[1,1,0,1,1,0,1],'3':[1,1,1,1,0,0,1],'4':[0,1,1,0,0,1,1],'5':[1,0,1,1,0,1,1],'6':[1,0,1,1,1,1,1],'7':[1,1,1,0,0,0,0],'8':[1,1,1,1,1,1,1],'9':[1,1,1,1,0,1,1] };
 
   function digitSVG(ch) {
@@ -1538,6 +1626,7 @@
   }
   function startClock() { renderAsciiClock(); setInterval(renderAsciiClock, 1000); }
 
+  // ── Weather ──
   const DOT_ICONS = {
     clear:         [[0,0,0,1,0,0,0,0,0],[0,0,0,0,0,1,0,0,0],[0,1,0,0,0,0,0,1,0],[0,0,0,1,1,1,0,0,0],[1,0,1,1,1,1,1,0,1],[0,0,0,1,1,1,0,0,0],[0,1,0,0,0,0,0,1,0],[0,0,0,0,0,1,0,0,0],[0,0,0,1,0,0,0,0,0]],
     partly_cloudy: [[0,0,0,1,0,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,1,1,1,1,1,0,0],[0,1,0,0,0,0,0,1,0],[0,0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,1,1],[0,0,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0]],
@@ -1549,7 +1638,7 @@
   };
 
   function drawWeatherDots(canvasEl, iconKey) {
-    canvasEl.dataset.icon = iconKey;
+    canvasEl.dataset.icon = iconKey; // remember for accent color redraws
     const grid = DOT_ICONS[iconKey]||DOT_ICONS.clear, ctx = canvasEl.getContext('2d'), size = canvasEl.width;
     const pad = size*0.06, cW = (size-pad*2)/9, cH = (size-pad*2)/9, r = cW*0.38;
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--claude').trim();
@@ -1665,67 +1754,66 @@
     }
   }
 
+  // ── Pomodoro Float: collapse + drag ──
   function togglePomoFloat() {
     document.getElementById('pomoFloat').classList.toggle('collapsed');
   }
 
-  // ── Pomodoro Float: drag (mouse + touch) ──
   (function initPomoFloat() {
-    const el     = document.getElementById('pomoFloat');
-    const header = el.querySelector('.pomo-float-header');
-    let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0, moved = false;
+  const el     = document.getElementById('pomoFloat');
+  const header = el.querySelector('.pomo-float-header');
+  let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0, moved = false;
 
-    function getPos(e) {
-      const src = (e.touches && e.touches.length) ? e.touches[0]
-                : (e.changedTouches && e.changedTouches.length) ? e.changedTouches[0] : e;
-      return { x: src.clientX, y: src.clientY };
-    }
+  function getPos(e) {
+    const src = (e.touches && e.touches.length) ? e.touches[0] : (e.changedTouches && e.changedTouches.length) ? e.changedTouches[0] : e;
+    return { x: src.clientX, y: src.clientY };
+  }
 
-    function ensureTopLeft() {
-      const r = el.getBoundingClientRect();
-      el.style.top = r.top + 'px'; el.style.left = r.left + 'px';
-      el.style.bottom = 'auto';    el.style.right  = 'auto';
-    }
+  function ensureTopLeft() {
+    const r = el.getBoundingClientRect();
+    el.style.top = r.top + 'px'; el.style.left = r.left + 'px';
+    el.style.bottom = 'auto';    el.style.right  = 'auto';
+  }
 
-    function onDown(e) {
-      if (e.target.closest('button')) return;
-      e.preventDefault();
-      ensureTopLeft();
-      const {x, y} = getPos(e);
-      dragging = true; moved = false;
-      startX = x; startY = y;
-      origLeft = parseInt(el.style.left) || 0;
-      origTop  = parseInt(el.style.top)  || 0;
-      el.classList.add('dragging');
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup',   onUp);
-      document.addEventListener('touchmove', onMove, {passive: false});
-      document.addEventListener('touchend',  onUp);
-    }
+  function onDown(e) {
+    if (e.target.closest('button')) return;
+    e.preventDefault();
+    ensureTopLeft();
+    const {x, y} = getPos(e);
+    dragging = true; moved = false;
+    startX = x; startY = y;
+    origLeft = parseInt(el.style.left) || 0;
+    origTop  = parseInt(el.style.top)  || 0;
+    el.classList.add('dragging');
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+    document.addEventListener('touchmove', onMove, {passive: false});
+    document.addEventListener('touchend',  onUp);
+  }
 
-    function onMove(e) {
-      if (!dragging) return;
-      e.preventDefault();
-      const {x, y} = getPos(e);
-      const dx = x - startX, dy = y - startY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
-      el.style.left = Math.max(0, Math.min(window.innerWidth  - el.offsetWidth,  origLeft + dx)) + 'px';
-      el.style.top  = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, origTop  + dy)) + 'px';
-    }
+  function onMove(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    const {x, y} = getPos(e);
+    const dx = x - startX, dy = y - startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+    el.style.left = Math.max(0, Math.min(window.innerWidth  - el.offsetWidth,  origLeft + dx)) + 'px';
+    el.style.top  = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, origTop  + dy)) + 'px';
+  }
 
-    function onUp() {
-      if (!dragging) return;
-      dragging = false; el.classList.remove('dragging');
-      if (!moved) togglePomoFloat();
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup',   onUp);
-      document.removeEventListener('touchmove', onMove);
-      document.removeEventListener('touchend',  onUp);
-    }
+  function onUp() {
+    if (!dragging) return;
+    dragging = false; el.classList.remove('dragging');
+    if (!moved) togglePomoFloat();
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup',   onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend',  onUp);
+  }
 
-    header.addEventListener('mousedown',  onDown);
-    header.addEventListener('touchstart', onDown, {passive: false});
-  })();
+  header.addEventListener('mousedown',  onDown);
+  header.addEventListener('touchstart', onDown, {passive: false});
+})();
 
   function updatePomoDisplay() {
     const mins=String(Math.floor(pomoSecsLeft/60)).padStart(2,'0'), secs=String(pomoSecsLeft%60).padStart(2,'0');
@@ -1754,6 +1842,28 @@
     document.getElementById('pomoPlayIcon').innerHTML = playing
       ? '<rect x="4" y="3" width="3" height="10" rx="1" fill="currentColor"/><rect x="9" y="3" width="3" height="10" rx="1" fill="currentColor"/>'
       : '<path d="M5 3l9 5-9 5V3z" fill="currentColor"/>';
+  }
+
+  // ── Due Date Helpers ──
+  function todayStr() {
+    const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function dueMeta(due) {
+    if (!due) return null;
+    const today = todayStr();
+    const diff  = Math.round((new Date(due+'T00:00:00') - new Date(today+'T00:00:00')) / 86400000);
+    if (diff < 0)  return { cls:'overdue',  label:`overdue ${Math.abs(diff)}d`,  icon:'⚠' };
+    if (diff === 0) return { cls:'today',   label:'today',                        icon:'◈' };
+    if (diff === 1) return { cls:'soon',    label:'tomorrow',                     icon:'◷' };
+    if (diff <= 6)  return { cls:'soon',    label:`in ${diff}d`,                  icon:'◷' };
+    return { cls:'upcoming', label: fmtDate(due), icon:'◈' };
+  }
+
+  function fmtDate(iso) {
+    const [y,m,d] = iso.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(m)-1]} ${parseInt(d)}`;
   }
 
   // ── Due Date Helpers ──
@@ -1787,6 +1897,7 @@
 
   function clearDue() { setDue(null); closeCalendar(); }
 
+  // ── Custom Calendar ──
   let calYear=0, calMonth=0;
 
   function toggleCalendar() {
@@ -1796,9 +1907,10 @@
     calYear=now.getFullYear(); calMonth=now.getMonth();
     if (selectedDue) { const [y,m]=selectedDue.split('-'); calYear=+y; calMonth=+m-1; }
     renderCalendar();
+    // position: just above the button, aligned to its left
     const btn=document.getElementById('dueBtnDisplay');
     const rect=btn.getBoundingClientRect();
-    pop.style.display='block';
+    pop.style.display='block'; // briefly show to measure height
     const popH=pop.offsetHeight;
     pop.style.display='';
     pop.style.left=rect.left+'px';
@@ -1829,8 +1941,15 @@
     for(let i=0;i<firstDay;i++) html+=`<div class="cal-day cal-empty"></div>`;
     for(let d=1;d<=daysInMonth;d++){
       const iso=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isPast  = iso<today, isToday = iso===today, isSel = iso===selectedDue;
-      const cls=['cal-day',isPast?'cal-past':'',isToday?'cal-today':'',isSel?'cal-selected':''].join(' ').trim();
+      const isPast  = iso<today;
+      const isToday = iso===today;
+      const isSel   = iso===selectedDue;
+      const cls=[
+        'cal-day',
+        isPast  ? 'cal-past'    : '',
+        isToday ? 'cal-today'   : '',
+        isSel   ? 'cal-selected': '',
+      ].join(' ').trim();
       const click = isPast ? '' : `onclick="pickDay('${iso}')"`;
       html+=`<div class="${cls}" ${click}>${d}</div>`;
     }
@@ -1842,12 +1961,17 @@
   // ── Tasks ──
   function save() { dbSave(tasks); }
 
+  // ── Task Notes ──
   const _openNotes = new Set();
   let _noteSaveTimer = null;
   let _editingNote = false;
 
   function toggleNotes(id) {
-    if (_openNotes.has(id)) { _openNotes.delete(id); } else { _openNotes.add(id); }
+    if (_openNotes.has(id)) {
+      _openNotes.delete(id);
+    } else {
+      _openNotes.add(id);
+    }
     const area = document.getElementById(`notes-area-${id}`);
     const btn  = document.querySelector(`[data-id="${id}"] .notes-btn`);
     if (area) area.classList.toggle('open', _openNotes.has(id));
@@ -1860,6 +1984,7 @@
         ta.addEventListener('focus', () => { _editingNote = true; });
         ta.addEventListener('blur',  () => {
           _editingNote = false;
+          // flush any pending save immediately on blur
           clearTimeout(_noteSaveTimer);
           saveNote(id);
         });
@@ -1879,9 +2004,10 @@
     const t = tasks.find(t => t.id === id);
     if (!t) return;
     const val = ta.value;
-    if (t.notes === val) return;
+    if (t.notes === val) return; // nothing changed
     t.notes = val;
     save();
+    // Update dot indicator without re-rendering
     const btn = document.querySelector(`[data-id="${id}"] .notes-btn`);
     if (btn) btn.classList.toggle('has-notes', val.trim().length > 0);
   }
@@ -1938,6 +2064,7 @@
     list.innerHTML=paged.map((t,i)=>{
       const dm = dueMeta(t.due);
       const isOverdue = !t.done && dm?.cls==='overdue';
+      const globalIdx = start + i;
       const hasNotes = t.notes && t.notes.trim().length > 0;
       const isOpen = _openNotes.has(t.id);
       return `
@@ -1991,6 +2118,7 @@
     document.getElementById('pageTotalLabel').textContent = totalPages;
     const btns = document.getElementById('pageBtns');
     let html = `<button class="page-btn arrow" onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+    // show at most 5 page numbers with ellipsis
     const range = [];
     for (let p=1; p<=totalPages; p++) {
       if (p===1 || p===totalPages || (p>=currentPage-1 && p<=currentPage+1)) range.push(p);
@@ -2069,16 +2197,20 @@
     const listEl=document.getElementById('listView'), kanbanEl=document.getElementById('kanbanView'), inputEl=document.getElementById('inputArea');
     document.getElementById('btnList').classList.toggle('active',   view==='list');
     document.getElementById('btnKanban').classList.toggle('active', view==='kanban');
+
     listEl.classList.add('fading'); kanbanEl.classList.add('fading'); inputEl.classList.add('fading');
+
     setTimeout(() => {
       currentView = view;
       if (view==='list') {
         listEl.style.display=''; inputEl.style.display='';
-        kanbanEl.classList.remove('visible'); kanbanEl.style.display='none';
+        kanbanEl.classList.remove('visible');
+        kanbanEl.style.display='none';
         renderTasks();
       } else {
         listEl.style.display='none';
-        kanbanEl.style.display=''; kanbanEl.classList.add('visible');
+        kanbanEl.style.display='';
+        kanbanEl.classList.add('visible');
         renderKanban();
       }
       listEl.classList.remove('fading'); kanbanEl.classList.remove('fading'); inputEl.classList.remove('fading');
@@ -2094,7 +2226,8 @@
       if(!items.length){col.innerHTML=`<div class="kb-col-empty">// empty</div>`;return;}
       const next={todo:'doing',doing:'done',done:null}, prev={todo:null,doing:'todo',done:'doing'};
       col.innerHTML=items.map(t=>{
-        const dm=dueMeta(t.due), isOverdue=!t.done&&dm?.cls==='overdue';
+        const dm=dueMeta(t.due);
+        const isOverdue=!t.done&&dm?.cls==='overdue';
         return `
         <div class="kb-card ${isOverdue?'overdue-card':''}" data-id="${t.id}" onmousedown="onCardMouseDown(event,${t.id})" ontouchstart="onCardMouseDown(event,${t.id})">
           <div class="kb-card-text">${escHtml(t.text)}</div>
@@ -2122,6 +2255,7 @@
 
   function deleteKbCard(id){tasks=tasks.filter(t=>t.id!==id);save();renderKanban();updateCounts();}
 
+  // ── Shared drag helpers (mouse + touch) ──
   function getXY(e) {
     const src = e.touches ? e.touches[0] : e;
     return { x: src.clientX, y: src.clientY };
@@ -2137,7 +2271,8 @@
     const {x, y} = getXY(e);
     const row = e.currentTarget.closest('.task-item');
     const rect = row.getBoundingClientRect();
-    _listDragOffX = x - rect.left; _listDragOffY = y - rect.top;
+    _listDragOffX = x - rect.left;
+    _listDragOffY = y - rect.top;
     _listDragClone = row.cloneNode(true);
     const _cs = getComputedStyle(document.body);
     const _accent = _cs.getPropertyValue('--claude').trim();
@@ -2192,7 +2327,9 @@
         if (_listDropBeforeId !== null) {
           const toIdx = tasks.findIndex(t => t.id === _listDropBeforeId);
           tasks.splice(toIdx === -1 ? tasks.length : toIdx, 0, task);
-        } else { tasks.push(task); }
+        } else {
+          tasks.push(task);
+        }
         save();
       }
     }
@@ -2200,7 +2337,7 @@
     renderTasks();
   }
 
-  // ── Kanban Drag ──
+  // ── Kanban Drag (between columns + within-column reorder) ──
   let _dragClone=null, _dragOffsetX=0, _dragOffsetY=0, _dragOverCol=null, _dragOverCardId=null;
 
   function onCardMouseDown(e, id) {
@@ -2255,7 +2392,9 @@
       const colCards = col.querySelector('.kb-cards');
       if (insertBefore) colCards.insertBefore(ind, insertBefore);
       else              colCards.appendChild(ind);
-    } else { _dragOverCol = null; _dragOverCardId = null; }
+    } else {
+      _dragOverCol = null; _dragOverCardId = null;
+    }
   }
 
   function onDragMouseUp() {
@@ -2268,7 +2407,8 @@
       const t = tasks.find(t => t.id === dragId);
       if (t) {
         const wasDone = t.status === 'done';
-        t.status = _dragOverCol; t.done = _dragOverCol === 'done';
+        t.status = _dragOverCol;
+        t.done   = _dragOverCol === 'done';
         const fromIdx = tasks.findIndex(t => t.id === dragId);
         tasks.splice(fromIdx, 1);
         if (_dragOverCardId !== null) {
@@ -2328,6 +2468,7 @@
   if(shouldShowIntro()){runIntro();}
   else{document.getElementById('introScreen').remove();document.getElementById('appWrapper').classList.add('visible');}
 </script>
+<!-- Widgets now in Settings panel -->
 
 <script>
   // ── Widgets config ──
@@ -2365,10 +2506,10 @@
 
   // ── Notepad (tabbed) ──
   let _notepadTimer  = null;
-  let _noteTabs      = [];
+  let _noteTabs      = [];   // [{id, name, content}]
   let _noteActiveId  = null;
 
-  function _noteKey() { return _userRef ? 'notepad_tabs_' + firebase.auth().currentUser?.uid : 'notepad_tabs_guest'; }
+  function _noteKey()   { return _userRef ? 'notepad_tabs_' + firebase.auth().currentUser?.uid : 'notepad_tabs_guest'; }
 
   function loadNoteTabs() {
     try {
@@ -2376,14 +2517,20 @@
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length) {
-          _noteTabs = parsed; _noteActiveId = _noteTabs[0].id;
-          renderNoteTabs(); renderNoteContent(); updateNotepadChars(); return;
+          _noteTabs    = parsed;
+          _noteActiveId = _noteTabs[0].id;
+          renderNoteTabs();
+          renderNoteContent();
+          updateNotepadChars();
+          return;
         }
       }
     } catch(e) {}
-    _noteTabs = [{ id: Date.now(), name: 'scratch', content: '' }];
+    // Default first tab
+    _noteTabs    = [{ id: Date.now(), name: 'scratch', content: '' }];
     _noteActiveId = _noteTabs[0].id;
-    renderNoteTabs(); renderNoteContent();
+    renderNoteTabs();
+    renderNoteContent();
   }
 
   function saveNoteTabs() {
@@ -2395,13 +2542,16 @@
   function renderNoteTabs() {
     const bar = document.getElementById('noteTabsBar');
     if (!bar) return;
+    // Build tab pills
     const html = _noteTabs.map(t => `
       <div class="note-tab ${t.id === _noteActiveId ? 'active' : ''}" data-tab-id="${t.id}" onclick="switchNoteTab(${t.id})">
         <span class="note-tab-label" ondblclick="startRenameTab(${t.id}, event)" title="double-click to rename">${escHtml(t.name)}</span>
         <button class="note-tab-close" onclick="deleteNoteTab(${t.id}, event)" title="close tab">×</button>
       </div>
     `).join('');
+    // Inject before the + button
     bar.innerHTML = html + '<button class="note-tab-add" onclick="addNoteTab()" title="new tab">+</button>';
+    // Scroll active tab into view
     const active = bar.querySelector('.note-tab.active');
     if (active) active.scrollIntoView({ inline: 'nearest', block: 'nearest' });
   }
@@ -2415,24 +2565,44 @@
     updateNotepadChars();
   }
 
-  function switchNoteTab(id) { _flushCurrentTab(); _noteActiveId = id; renderNoteTabs(); renderNoteContent(); }
+  function switchNoteTab(id) {
+    // Save current before switching
+    _flushCurrentTab();
+    _noteActiveId = id;
+    renderNoteTabs();
+    renderNoteContent();
+  }
 
   function addNoteTab() {
     _flushCurrentTab();
-    const id = Date.now(), name = 'tab ' + (_noteTabs.length + 1);
+    const id   = Date.now();
+    const name = 'tab ' + (_noteTabs.length + 1);
     _noteTabs.push({ id, name, content: '' });
     _noteActiveId = id;
-    saveNoteTabs(); renderNoteTabs(); renderNoteContent();
+    saveNoteTabs();
+    renderNoteTabs();
+    renderNoteContent();
+    // Immediately enter rename mode on new tab
     setTimeout(() => startRenameTab(id), 60);
   }
 
   function deleteNoteTab(id, e) {
     e.stopPropagation();
-    if (_noteTabs.length === 1) { _noteTabs[0].content = ''; renderNoteContent(); saveNoteTabs(); return; }
+    if (_noteTabs.length === 1) {
+      // Just clear the last tab instead of deleting it
+      _noteTabs[0].content = '';
+      renderNoteContent();
+      saveNoteTabs();
+      return;
+    }
     const idx = _noteTabs.findIndex(t => t.id === id);
     _noteTabs = _noteTabs.filter(t => t.id !== id);
-    if (_noteActiveId === id) _noteActiveId = _noteTabs[Math.max(0, idx - 1)].id;
-    saveNoteTabs(); renderNoteTabs(); renderNoteContent();
+    if (_noteActiveId === id) {
+      _noteActiveId = _noteTabs[Math.max(0, idx - 1)].id;
+    }
+    saveNoteTabs();
+    renderNoteTabs();
+    renderNoteContent();
   }
 
   function startRenameTab(id, e) {
@@ -2443,13 +2613,21 @@
     const tab = _noteTabs.find(t => t.id === id);
     if (!tab) return;
     const input = document.createElement('input');
-    input.className = 'note-tab-rename-input'; input.value = tab.name; input.maxLength = 20;
-    tabEl.replaceWith(input); input.focus(); input.select();
-    const commit = () => { tab.name = input.value.trim() || tab.name; saveNoteTabs(); renderNoteTabs(); };
+    input.className = 'note-tab-rename-input';
+    input.value = tab.name;
+    input.maxLength = 20;
+    tabEl.replaceWith(input);
+    input.focus(); input.select();
+    const commit = () => {
+      const newName = input.value.trim() || tab.name;
+      tab.name = newName;
+      saveNoteTabs();
+      renderNoteTabs();
+    };
     input.addEventListener('blur', commit);
     input.addEventListener('keydown', ev => {
       if (ev.key === 'Enter') { input.blur(); }
-      if (ev.key === 'Escape') { renderNoteTabs(); }
+      if (ev.key === 'Escape') { tab.name = tab.name; renderNoteTabs(); }
       ev.stopPropagation();
     });
     input.addEventListener('click', ev => ev.stopPropagation());
@@ -2461,35 +2639,26 @@
     if (ta && tab) tab.content = ta.value;
   }
 
-  // ── Notepad collapse — height-driven smooth animation ──
   function toggleNoteFloat() {
     const el = document.getElementById('noteFloat');
     if (!el) return;
-    const hdr = el.querySelector('.note-float-header');
-    const hdrH = hdr ? hdr.getBoundingClientRect().height : 38;
-
-    if (el.classList.contains('collapsed')) {
-      // Opening: remove collapsed first so body becomes visible, then restore height
+    const isCollapsed = el.classList.contains('collapsed');
+    if (isCollapsed) {
       el.classList.remove('collapsed');
       el.style.height = (el._savedHeight || 310) + 'px';
     } else {
-      // Closing: snapshot current height, set it explicitly, then in next frame
-      // animate down to header height while collapsed class fades the body
       el._savedHeight = el.offsetHeight;
-      el.style.height = el.offsetHeight + 'px'; // lock to px so CSS transition fires
       el.classList.add('collapsed');
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          el.style.height = hdrH + 'px';
-        });
-      });
     }
   }
 
   function onNotepadInput() {
     updateNotepadChars();
     clearTimeout(_notepadTimer);
-    _notepadTimer = setTimeout(() => { _flushCurrentTab(); saveNoteTabs(); }, 1000);
+    _notepadTimer = setTimeout(() => {
+      _flushCurrentTab();
+      saveNoteTabs();
+    }, 1000);
     document.getElementById('notepadSaved')?.classList.remove('show');
   }
 
@@ -2501,124 +2670,128 @@
     el.textContent = `${len} char${len !== 1 ? 's' : ''}`;
   }
 
-  // ── Notepad Float: drag + resize (mouse + touch) ──
+  // Notepad drag + resize
   (function initNoteFloat() {
-    const el     = document.getElementById('noteFloat');
-    const header = document.getElementById('noteFloatHeader');
-    if (!el || !header) return;
+  const el     = document.getElementById('noteFloat');
+  const header = document.getElementById('noteFloatHeader');
+  if (!el || !header) return;
 
-    const MIN_W = 220, MAX_W = 560, MIN_H = 160;
+  const MIN_W = 220, MAX_W = 560, MIN_H = 160;
 
-    function getPos(e) {
-      const src = (e.touches && e.touches.length) ? e.touches[0]
-                : (e.changedTouches && e.changedTouches.length) ? e.changedTouches[0] : e;
-      return { x: src.clientX, y: src.clientY };
-    }
+  function getPos(e) {
+    const src = (e.touches && e.touches.length) ? e.touches[0] : (e.changedTouches && e.changedTouches.length) ? e.changedTouches[0] : e;
+    return { x: src.clientX, y: src.clientY };
+  }
 
-    function ensureTopLeft() {
-      const r = el.getBoundingClientRect();
-      el.style.top  = r.top  + 'px'; el.style.left = r.left + 'px';
-      el.style.bottom = 'auto';       el.style.right  = 'auto';
-    }
+  function ensureTopLeft() {
+    const r = el.getBoundingClientRect();
+    el.style.top  = r.top  + 'px'; el.style.left = r.left + 'px';
+    el.style.bottom = 'auto';       el.style.right  = 'auto';
+  }
 
-    // ── Drag ──
-    let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0, moved = false;
+  // ── Drag ──
+  let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0, moved = false;
 
-    function onDragDown(e) {
-      if (e.target.closest('button')) return;
-      e.preventDefault();
+  function onDragDown(e) {
+    if (e.target.closest('button')) return;
+    e.preventDefault();
+    ensureTopLeft();
+    const {x, y} = getPos(e);
+    dragging = true; moved = false;
+    startX = x; startY = y;
+    origLeft = parseInt(el.style.left) || 0;
+    origTop  = parseInt(el.style.top)  || 0;
+    el.classList.add('dragging');
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('mouseup',   onDragUp);
+    document.addEventListener('touchmove', onDragMove, {passive: false});
+    document.addEventListener('touchend',  onDragUp);
+  }
+
+  function onDragMove(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    const {x, y} = getPos(e);
+    const dx = x - startX, dy = y - startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+    el.style.left = Math.max(0, Math.min(window.innerWidth  - el.offsetWidth,  origLeft + dx)) + 'px';
+    el.style.top  = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, origTop  + dy)) + 'px';
+  }
+
+  function onDragUp() {
+    if (!dragging) return;
+    dragging = false; el.classList.remove('dragging');
+    if (!moved) toggleNoteFloat();
+    document.removeEventListener('mousemove', onDragMove);
+    document.removeEventListener('mouseup',   onDragUp);
+    document.removeEventListener('touchmove', onDragMove);
+    document.removeEventListener('touchend',  onDragUp);
+  }
+
+  header.addEventListener('mousedown',  onDragDown);
+  header.addEventListener('touchstart', onDragDown, {passive: false});
+
+  el.style.height = '310px';
+
+  // ── Resize ──
+  let resizing = false, resizeDir = '', resX = 0, resY = 0;
+  let resOrigW = 0, resOrigH = 0, resOrigL = 0, resOrigT = 0;
+
+  el.querySelectorAll('.note-resize').forEach(handle => {
+    function onResizeDown(e) {
+      if (el.classList.contains('collapsed')) return;
+      e.preventDefault(); e.stopPropagation();
       ensureTopLeft();
       const {x, y} = getPos(e);
-      dragging = true; moved = false;
-      startX = x; startY = y;
-      origLeft = parseInt(el.style.left) || 0;
-      origTop  = parseInt(el.style.top)  || 0;
-      el.classList.add('dragging');
-      document.addEventListener('mousemove', onDragMove);
-      document.addEventListener('mouseup',   onDragUp);
-      document.addEventListener('touchmove', onDragMove, {passive: false});
-      document.addEventListener('touchend',  onDragUp);
+      resizing = true; resizeDir = handle.dataset.dir;
+      resX = x; resY = y;
+      resOrigW = el.offsetWidth;  resOrigH = el.offsetHeight;
+      resOrigL = parseInt(el.style.left) || 0;
+      resOrigT = parseInt(el.style.top)  || 0;
+      el.classList.add('resizing');
+      document.body.style.cursor = getComputedStyle(handle).cursor;
+      document.addEventListener('mousemove', onResizeMove);
+      document.addEventListener('mouseup',   onResizeUp);
+      document.addEventListener('touchmove', onResizeMove, {passive: false});
+      document.addEventListener('touchend',  onResizeUp);
     }
+    handle.addEventListener('mousedown',  onResizeDown);
+    handle.addEventListener('touchstart', onResizeDown, {passive: false});
+  });
 
-    function onDragMove(e) {
-      if (!dragging) return;
-      e.preventDefault();
-      const {x, y} = getPos(e);
-      const dx = x - startX, dy = y - startY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
-      el.style.left = Math.max(0, Math.min(window.innerWidth  - el.offsetWidth,  origLeft + dx)) + 'px';
-      el.style.top  = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, origTop  + dy)) + 'px';
+  function onResizeMove(e) {
+    if (!resizing) return;
+    e.preventDefault();
+    const {x, y} = getPos(e);
+    const dx = x - resX, dy = y - resY;
+    let w = resOrigW, h = resOrigH, l = resOrigL, t = resOrigT;
+
+    if (resizeDir.includes('e')) w = Math.min(MAX_W, Math.max(MIN_W, resOrigW + dx));
+    if (resizeDir.includes('s')) h = Math.max(MIN_H, resOrigH + dy);
+    if (resizeDir.includes('w')) {
+      const nw = Math.min(MAX_W, Math.max(MIN_W, resOrigW - dx));
+      l = resOrigL + (resOrigW - nw); w = nw;
     }
-
-    function onDragUp() {
-      if (!dragging) return;
-      dragging = false; el.classList.remove('dragging');
-      if (!moved) toggleNoteFloat();
-      document.removeEventListener('mousemove', onDragMove);
-      document.removeEventListener('mouseup',   onDragUp);
-      document.removeEventListener('touchmove', onDragMove);
-      document.removeEventListener('touchend',  onDragUp);
+    if (resizeDir.includes('n')) {
+      const nh = Math.max(MIN_H, resOrigH - dy);
+      t = resOrigT + (resOrigH - nh); h = nh;
     }
+    el.style.width = w + 'px'; el.style.height = h + 'px';
+    el.style.left  = l + 'px'; el.style.top    = t + 'px';
+  }
 
-    header.addEventListener('mousedown',  onDragDown);
-    header.addEventListener('touchstart', onDragDown, {passive: false});
+  function onResizeUp() {
+    if (!resizing) return;
+    resizing = false; el.classList.remove('resizing');
+    document.body.style.cursor = '';
+    document.removeEventListener('mousemove', onResizeMove);
+    document.removeEventListener('mouseup',   onResizeUp);
+    document.removeEventListener('touchmove', onResizeMove);
+    document.removeEventListener('touchend',  onResizeUp);
+  }
+})();
 
-    // Set initial explicit height for the transition to work
-    el.style.height = '310px';
-
-    // ── Resize ──
-    let resizing = false, resizeDir = '', resX = 0, resY = 0;
-    let resOrigW = 0, resOrigH = 0, resOrigL = 0, resOrigT = 0;
-
-    el.querySelectorAll('.note-resize').forEach(handle => {
-      function onResizeDown(e) {
-        if (el.classList.contains('collapsed')) return;
-        e.preventDefault(); e.stopPropagation();
-        ensureTopLeft();
-        const {x, y} = getPos(e);
-        resizing = true; resizeDir = handle.dataset.dir;
-        resX = x; resY = y;
-        resOrigW = el.offsetWidth;  resOrigH = el.offsetHeight;
-        resOrigL = parseInt(el.style.left) || 0;
-        resOrigT = parseInt(el.style.top)  || 0;
-        el.classList.add('resizing');
-        document.body.style.cursor = getComputedStyle(handle).cursor;
-        document.addEventListener('mousemove', onResizeMove);
-        document.addEventListener('mouseup',   onResizeUp);
-        document.addEventListener('touchmove', onResizeMove, {passive: false});
-        document.addEventListener('touchend',  onResizeUp);
-      }
-      handle.addEventListener('mousedown',  onResizeDown);
-      handle.addEventListener('touchstart', onResizeDown, {passive: false});
-    });
-
-    function onResizeMove(e) {
-      if (!resizing) return;
-      e.preventDefault();
-      const {x, y} = getPos(e);
-      const dx = x - resX, dy = y - resY;
-      let w = resOrigW, h = resOrigH, l = resOrigL, t = resOrigT;
-
-      if (resizeDir.includes('e')) w = Math.min(MAX_W, Math.max(MIN_W, resOrigW + dx));
-      if (resizeDir.includes('s')) h = Math.max(MIN_H, resOrigH + dy);
-      if (resizeDir.includes('w')) { const nw = Math.min(MAX_W, Math.max(MIN_W, resOrigW - dx)); l = resOrigL + (resOrigW - nw); w = nw; }
-      if (resizeDir.includes('n')) { const nh = Math.max(MIN_H, resOrigH - dy); t = resOrigT + (resOrigH - nh); h = nh; }
-
-      el.style.width = w + 'px'; el.style.height = h + 'px';
-      el.style.left  = l + 'px'; el.style.top    = t + 'px';
-    }
-
-    function onResizeUp() {
-      if (!resizing) return;
-      resizing = false; el.classList.remove('resizing');
-      document.body.style.cursor = '';
-      document.removeEventListener('mousemove', onResizeMove);
-      document.removeEventListener('mouseup',   onResizeUp);
-      document.removeEventListener('touchmove', onResizeMove);
-      document.removeEventListener('touchend',  onResizeUp);
-    }
-  })();
-
+  // Load tabs once auth is ready (called after sign-in)
   function initNotepad() { loadNoteTabs(); }
 
   function setWidgetVisible(id, visible) {
@@ -2627,10 +2800,14 @@
     el.style.transition = 'opacity 0.2s ease';
     el.style.opacity    = visible ? '1' : '0';
     el.style.pointerEvents = visible ? '' : 'none';
-    setTimeout(() => { if (!visible) el.style.display = 'none'; else el.style.display = ''; }, visible ? 0 : 200);
+    setTimeout(() => { if (!visible) el.style.display = 'none'; else { el.style.display = ''; } }, visible ? 0 : 200);
   }
 
-  function openWidgets() { closeUserMenu(); openSettingsPanel('widgets'); }
+  // openWidgets now redirects to settings Widgets tab
+  function openWidgets() {
+    closeUserMenu();
+    openSettingsPanel('widgets');
+  }
 
   // ── Settings Panel ──
   const ACCENT_COLORS = [
@@ -2647,6 +2824,7 @@
   function openSettingsPanel(tab) {
     tab = tab || 'profile';
     switchSettingsTab(tab);
+    // Populate profile info
     const user = firebase.auth().currentUser;
     if (user) {
       document.getElementById('settingsName').textContent = user.displayName || 'user';
@@ -2663,11 +2841,14 @@
         avatarEl.textContent = (user.displayName || 'U')[0].toUpperCase();
       }
     }
+    // Sync settings UI state
     syncSettingsUI();
     document.getElementById('settingsBackdrop').classList.add('open');
   }
 
-  function closeSettings() { document.getElementById('settingsBackdrop').classList.remove('open'); }
+  function closeSettings() {
+    document.getElementById('settingsBackdrop').classList.remove('open');
+  }
 
   function handleSettingsBackdrop(e) {
     if (e.target === document.getElementById('settingsBackdrop')) closeSettings();
@@ -2675,15 +2856,21 @@
 
   function switchSettingsTab(tab) {
     _settingsActiveTab = tab;
-    document.querySelectorAll('.settings-nav-item').forEach(el => { el.classList.toggle('active', el.id === 'snav-' + tab); });
-    document.querySelectorAll('.settings-section').forEach(el => { el.classList.toggle('active', el.id === 'stab-' + tab); });
+    document.querySelectorAll('.settings-nav-item').forEach(el => {
+      el.classList.toggle('active', el.id === 'snav-' + tab);
+    });
+    document.querySelectorAll('.settings-section').forEach(el => {
+      el.classList.toggle('active', el.id === 'stab-' + tab);
+    });
   }
 
   function syncSettingsUI() {
+    // Theme
     const theme = localStorage.getItem('settings_theme') || 'dark';
     document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
     document.getElementById('theme-card-' + theme)?.classList.add('active');
 
+    // Accent swatches
     const swatchContainer = document.getElementById('accentSwatches');
     const currentAccent = localStorage.getItem('settings_accent') || '#DA7756';
     swatchContainer.innerHTML = ACCENT_COLORS.map(c => `
@@ -2693,23 +2880,32 @@
         title="${c.name}"></div>
     `).join('');
 
+    // Font size
     const fs = localStorage.getItem('settings_font_size') || 'md';
     ['sm','md','lg'].forEach(s => document.getElementById('fs-' + s)?.classList.toggle('active', s === fs));
 
+    // Density
     const den = localStorage.getItem('settings_density') || 'comfortable';
     ['compact','comfortable'].forEach(d => document.getElementById('density-' + d)?.classList.toggle('active', d === den));
 
+    // Default view
     const dv = localStorage.getItem('settings_default_view') || 'list';
     ['list','kanban'].forEach(v => document.getElementById('dv-' + v)?.classList.toggle('active', v === dv));
 
+    // Page size
     const ps = parseInt(localStorage.getItem('settings_page_size') || '8');
     [4,8,12,16].forEach(n => document.getElementById('ps-' + n)?.classList.toggle('active', n === ps));
 
+    // Default tag
     const dt = localStorage.getItem('settings_default_tag') || '';
     ['','work','personal','health'].forEach(t => document.getElementById('dt-' + (t||'none'))?.classList.toggle('active', t === dt));
   }
 
-  function setAccentColor(hex) { localStorage.setItem('settings_accent', hex); applyAccentColor(hex); syncSettingsUI(); }
+  function setAccentColor(hex) {
+    localStorage.setItem('settings_accent', hex);
+    applyAccentColor(hex);
+    syncSettingsUI();
+  }
 
   function applyAccentColor(hex) {
     const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
@@ -2718,38 +2914,76 @@
     document.documentElement.style.setProperty('--claude-border', `rgba(${r},${g},${b},0.45)`);
     document.documentElement.style.setProperty('--claude-glow',   `rgba(${r},${g},${b},0.18)`);
     document.documentElement.style.setProperty('--claude-glow2',  `rgba(${r},${g},${b},0.13)`);
+    // Update clock segment colors
     SEG_ON   = hex;
     SEG_GLOW = `drop-shadow(0 0 4px rgba(${r},${g},${b},0.8))`;
     renderAsciiClock();
     updatePomoDisplay();
+    // Redraw all weather dot canvases
     document.querySelectorAll('canvas[data-icon]').forEach(c => drawWeatherDots(c, c.dataset.icon));
+    // Update pomodoro float glow
     const pomoFloat = document.getElementById('pomoFloat');
     if (pomoFloat) pomoFloat.style.boxShadow = `0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(${r},${g},${b},0.10)`;
+    // Update session dot glows
     document.querySelectorAll('.pomo-session-dot.done').forEach(dot => {
       dot.style.boxShadow = `0 0 6px rgba(${r},${g},${b},0.55)`;
     });
   }
 
-  function setTheme(theme) { localStorage.setItem('settings_theme', theme); applyTheme(theme); syncSettingsUI(); }
+  function setTheme(theme) {
+    localStorage.setItem('settings_theme', theme);
+    applyTheme(theme);
+    syncSettingsUI();
+  }
 
   function applyTheme(theme) {
     document.body.classList.remove('theme-light', 'theme-dark');
     if (theme === 'light') document.body.classList.add('theme-light');
-    renderAsciiClock(); updatePomoDisplay();
+    // Redraw canvas-based widgets with correct off-colors
+    renderAsciiClock();
+    updatePomoDisplay();
     document.querySelectorAll('canvas[data-icon]').forEach(c => drawWeatherDots(c, c.dataset.icon));
   }
 
-  function setFontSize(size) { localStorage.setItem('settings_font_size', size); applyFontSize(size); syncSettingsUI(); }
-  function applyFontSize(size) { document.body.classList.remove('font-sm','font-md','font-lg'); document.body.classList.add('font-' + size); }
+  function setFontSize(size) {
+    localStorage.setItem('settings_font_size', size);
+    applyFontSize(size);
+    syncSettingsUI();
+  }
 
-  function setDensity(den) { localStorage.setItem('settings_density', den); applyDensity(den); syncSettingsUI(); }
-  function applyDensity(den) { document.body.classList.remove('density-compact','density-comfortable'); document.body.classList.add('density-' + den); }
+  function applyFontSize(size) {
+    document.body.classList.remove('font-sm','font-md','font-lg');
+    document.body.classList.add('font-' + size);
+  }
 
-  function setDefaultView(view) { localStorage.setItem('settings_default_view', view); syncSettingsUI(); }
+  function setDensity(den) {
+    localStorage.setItem('settings_density', den);
+    applyDensity(den);
+    syncSettingsUI();
+  }
 
-  function setPageSize(n) { localStorage.setItem('settings_page_size', n); PAGE_SIZE_current = n; currentPage = 1; renderTasks(); syncSettingsUI(); }
+  function applyDensity(den) {
+    document.body.classList.remove('density-compact','density-comfortable');
+    document.body.classList.add('density-' + den);
+  }
 
-  function setDefaultTag(tag) { localStorage.setItem('settings_default_tag', tag); syncSettingsUI(); }
+  function setDefaultView(view) {
+    localStorage.setItem('settings_default_view', view);
+    syncSettingsUI();
+  }
+
+  function setPageSize(n) {
+    localStorage.setItem('settings_page_size', n);
+    PAGE_SIZE_current = n;
+    currentPage = 1;
+    renderTasks();
+    syncSettingsUI();
+  }
+
+  function setDefaultTag(tag) {
+    localStorage.setItem('settings_default_tag', tag);
+    syncSettingsUI();
+  }
 
   function saveDisplayName() {
     const val = document.getElementById('settingsDisplayName').value.trim();
@@ -2768,14 +3002,27 @@
     applyFontSize(localStorage.getItem('settings_font_size') || 'md');
     applyDensity(localStorage.getItem('settings_density') || 'comfortable');
     applyTheme(localStorage.getItem('settings_theme') || 'dark');
+    // Apply default view
     const dv = localStorage.getItem('settings_default_view');
     if (dv && dv !== currentView) switchView(dv);
+    // Apply page size
     const ps = parseInt(localStorage.getItem('settings_page_size') || '8');
     PAGE_SIZE_current = ps;
   }
 
-  document.addEventListener('DOMContentLoaded', () => { loadWidgetPrefs(); loadAndApplySettings(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSettings(); } });
+  // Load prefs on startup
+  document.addEventListener('DOMContentLoaded', () => {
+    loadWidgetPrefs();
+    loadAndApplySettings();
+  });
+
+  // Esc key closes settings (and widgets modal)
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeSettings();
+      closeWidgets();
+    }
+  });
 </script>
 
 <!-- Settings Panel -->
@@ -2791,13 +3038,27 @@
       <button class="settings-close" onclick="closeSettings()">✕</button>
     </div>
     <div class="settings-layout">
+
+      <!-- Left nav -->
       <div class="settings-nav">
-        <div class="settings-nav-item active" onclick="switchSettingsTab('profile')" id="snav-profile"><span class="snav-icon">◉</span> Profile</div>
-        <div class="settings-nav-item" onclick="switchSettingsTab('appearance')" id="snav-appearance"><span class="snav-icon">◈</span> Appearance</div>
-        <div class="settings-nav-item" onclick="switchSettingsTab('tasks')" id="snav-tasks"><span class="snav-icon">◧</span> Tasks</div>
-        <div class="settings-nav-item" onclick="switchSettingsTab('widgets')" id="snav-widgets"><span class="snav-icon">◰</span> Widgets</div>
-        <div class="settings-nav-item" onclick="switchSettingsTab('about')" id="snav-about"><span class="snav-icon">◎</span> About</div>
+        <div class="settings-nav-item active" onclick="switchSettingsTab('profile')" id="snav-profile">
+          <span class="snav-icon">◉</span> Profile
+        </div>
+        <div class="settings-nav-item" onclick="switchSettingsTab('appearance')" id="snav-appearance">
+          <span class="snav-icon">◈</span> Appearance
+        </div>
+        <div class="settings-nav-item" onclick="switchSettingsTab('tasks')" id="snav-tasks">
+          <span class="snav-icon">◧</span> Tasks
+        </div>
+        <div class="settings-nav-item" onclick="switchSettingsTab('widgets')" id="snav-widgets">
+          <span class="snav-icon">◰</span> Widgets
+        </div>
+        <div class="settings-nav-item" onclick="switchSettingsTab('about')" id="snav-about">
+          <span class="snav-icon">◎</span> About
+        </div>
       </div>
+
+      <!-- Right content -->
       <div class="settings-content">
 
         <!-- Profile -->
@@ -2835,6 +3096,8 @@
         <!-- Appearance -->
         <div class="settings-section" id="stab-appearance">
           <div class="settings-section-title">// <span>appearance</span></div>
+
+          <!-- Theme picker -->
           <div class="setting-row" style="align-items:flex-start">
             <div class="setting-label">
               <div class="setting-label-name">Color mode</div>
@@ -2844,15 +3107,31 @@
               <div class="theme-picker">
                 <div class="theme-card active" id="theme-card-dark" onclick="setTheme('dark')">
                   <div class="theme-preview dark">
-                    <div class="theme-preview-bar"><div class="theme-preview-dot"></div><div class="theme-preview-dot"></div><div class="theme-preview-dot"></div></div>
-                    <div class="theme-preview-body"><div class="theme-preview-line short"></div><div class="theme-preview-line medium"></div><div class="theme-preview-input"></div></div>
+                    <div class="theme-preview-bar">
+                      <div class="theme-preview-dot"></div>
+                      <div class="theme-preview-dot"></div>
+                      <div class="theme-preview-dot"></div>
+                    </div>
+                    <div class="theme-preview-body">
+                      <div class="theme-preview-line short"></div>
+                      <div class="theme-preview-line medium"></div>
+                      <div class="theme-preview-input"></div>
+                    </div>
                   </div>
                   <span class="theme-label">Dark</span>
                 </div>
                 <div class="theme-card" id="theme-card-light" onclick="setTheme('light')">
                   <div class="theme-preview light">
-                    <div class="theme-preview-bar"><div class="theme-preview-dot"></div><div class="theme-preview-dot"></div><div class="theme-preview-dot"></div></div>
-                    <div class="theme-preview-body"><div class="theme-preview-line short"></div><div class="theme-preview-line medium"></div><div class="theme-preview-input"></div></div>
+                    <div class="theme-preview-bar">
+                      <div class="theme-preview-dot"></div>
+                      <div class="theme-preview-dot"></div>
+                      <div class="theme-preview-dot"></div>
+                    </div>
+                    <div class="theme-preview-body">
+                      <div class="theme-preview-line short"></div>
+                      <div class="theme-preview-line medium"></div>
+                      <div class="theme-preview-input"></div>
+                    </div>
                   </div>
                   <span class="theme-label">Light</span>
                 </div>
@@ -2864,7 +3143,9 @@
               <div class="setting-label-name">Accent color</div>
               <div class="setting-label-desc">Primary highlight color across the app</div>
             </div>
-            <div class="setting-control"><div class="color-swatches" id="accentSwatches"></div></div>
+            <div class="setting-control">
+              <div class="color-swatches" id="accentSwatches"></div>
+            </div>
           </div>
           <div class="setting-row">
             <div class="setting-label">
@@ -2942,19 +3223,43 @@
         <div class="settings-section" id="stab-widgets">
           <div class="settings-section-title">// <span>widgets</span></div>
           <div class="widget-row">
-            <div class="widget-row-left"><div class="widget-row-icon">🕐</div><div class="widget-row-info"><div class="widget-row-name">Clock</div><div class="widget-row-desc">segment display in sidebar</div></div></div>
+            <div class="widget-row-left">
+              <div class="widget-row-icon">🕐</div>
+              <div class="widget-row-info">
+                <div class="widget-row-name">Clock</div>
+                <div class="widget-row-desc">segment display in sidebar</div>
+              </div>
+            </div>
             <label class="toggle"><input type="checkbox" id="toggleClock" onchange="applyWidgets()" checked/><div class="toggle-track"></div></label>
           </div>
           <div class="widget-row" style="margin-top:6px">
-            <div class="widget-row-left"><div class="widget-row-icon">🌤</div><div class="widget-row-info"><div class="widget-row-name">Weather</div><div class="widget-row-desc">live dot-matrix weather</div></div></div>
+            <div class="widget-row-left">
+              <div class="widget-row-icon">🌤</div>
+              <div class="widget-row-info">
+                <div class="widget-row-name">Weather</div>
+                <div class="widget-row-desc">live dot-matrix weather</div>
+              </div>
+            </div>
             <label class="toggle"><input type="checkbox" id="toggleWeather" onchange="applyWidgets()" checked/><div class="toggle-track"></div></label>
           </div>
           <div class="widget-row" style="margin-top:6px">
-            <div class="widget-row-left"><div class="widget-row-icon">🍅</div><div class="widget-row-info"><div class="widget-row-name">Pomodoro</div><div class="widget-row-desc">floating timer widget</div></div></div>
+            <div class="widget-row-left">
+              <div class="widget-row-icon">🍅</div>
+              <div class="widget-row-info">
+                <div class="widget-row-name">Pomodoro</div>
+                <div class="widget-row-desc">floating timer widget</div>
+              </div>
+            </div>
             <label class="toggle"><input type="checkbox" id="togglePomo" onchange="applyWidgets()" checked/><div class="toggle-track"></div></label>
           </div>
           <div class="widget-row" style="margin-top:6px">
-            <div class="widget-row-left"><div class="widget-row-icon">📝</div><div class="widget-row-info"><div class="widget-row-name">Notepad</div><div class="widget-row-desc">floating scratch notes</div></div></div>
+            <div class="widget-row-left">
+              <div class="widget-row-icon">📝</div>
+              <div class="widget-row-info">
+                <div class="widget-row-name">Notepad</div>
+                <div class="widget-row-desc">floating scratch notes</div>
+              </div>
+            </div>
             <label class="toggle"><input type="checkbox" id="toggleNotepad" onchange="applyWidgets()" checked/><div class="toggle-track"></div></label>
           </div>
         </div>
@@ -2964,7 +3269,11 @@
           <div class="settings-section-title">// <span>about</span></div>
           <div class="about-logo">dev<span>day</span></div>
           <div class="about-version">v1.0.0 — a developer-themed daily planner</div>
-          <div class="about-desc">Built with plain HTML, CSS &amp; JavaScript.<br>Inspired by VS Code, GitHub, and Claude.<br>Firebase Realtime DB for sync across devices.</div>
+          <div class="about-desc">
+            Built with plain HTML, CSS &amp; JavaScript.<br>
+            Inspired by VS Code, GitHub, and Claude.<br>
+            Firebase Realtime DB for sync across devices.
+          </div>
           <div class="about-links">
             <a class="about-link" href="https://github.com/thomazcortez/devday" target="_blank">
               <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
@@ -2979,9 +3288,9 @@
           <div class="about-author">made with ♥ by <span>thomaz cortez</span></div>
         </div>
 
-      </div>
-    </div>
-  </div>
-</div>
+      </div><!-- end settings-content -->
+    </div><!-- end settings-layout -->
+  </div><!-- end settings-modal -->
+</div><!-- end settings-backdrop -->
 </body>
 </html>
