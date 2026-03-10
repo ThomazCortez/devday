@@ -706,7 +706,7 @@
     .celebrate-overlay.show { opacity: 1; pointer-events: all; }
     .celebrate-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px; padding: 36px 40px 32px; max-width: 380px; width: 90%; text-align: center; transform: translateY(24px) scale(0.95); transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--border); }
     .celebrate-overlay.show .celebrate-card { transform: translateY(0) scale(1); }
-    .celebrate-ascii { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; color: var(--claude); text-shadow: 0 0 20px rgba(218,119,86,0.4); white-space: pre; margin-bottom: 20px; }
+    .celebrate-ascii { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; color: var(--claude); text-shadow: 0 0 20px rgba(218,119,86,0.4); white-space: pre; margin-bottom: 20px; display: inline-block; text-align: left; }
     .celebrate-title { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
     .celebrate-title span { color: var(--claude); }
     .celebrate-msg { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); line-height: 1.7; margin-bottom: 28px; }
@@ -2175,17 +2175,19 @@
 
   // ── Celebration ──
   const CELEBRATIONS = [
-    {ascii:"  \\o/\n   |\n  / \\",       title:"Task <span>crushed!</span>",   msg:"You're on fire 🔥\nTake a deep breath and enjoy\nthe moment — you earned it."},
-    {ascii:"  (^_^)\n  /||\\\n   /\\",   title:"That's a <span>W!</span>",     msg:"Seriously, great work.\nMaybe grab a coffee ☕\nor stretch for 2 minutes?"},
-    {ascii:"  ★ ★ ★\n \\(•‿•)/\n  _|_|_",title:"<span>Ship</span>ped!",       msg:"One step closer to done.\nYou're building momentum —\nkeep that energy going 💪"},
-    {ascii:"  d(^_^)b\n   ||||\n   d  b", title:"<span>Boom.</span> Done.",    msg:"Locked in and delivering.\nGo hydrate 💧 — your brain\ndeserves it after that focus."},
-    {ascii:"  \\(^o^)/\n   _|_\n  /   \\",title:"Level <span>up!</span>",      msg:"Every task done is progress.\nTreat yourself — even 5 mins\nof something you love counts 🎮"},
-    {ascii:"   .+*+.\n  (>‿<)\n   /|\\",  title:"<span>Clean</span> commit!",  msg:"git commit -m 'nailed it'\nTake a little break, breathe,\nyou're doing amazing 🌟"},
+    {ascii:" \\o/\n  |\n / \\",       title:"Task <span>crushed!</span>",   msg:"You're on fire 🔥\nTake a deep breath and enjoy\nthe moment — you earned it."},
+    {ascii:"(^_^)\n /||\\\n  /\\",   title:"That's a <span>W!</span>",     msg:"Seriously, great work.\nMaybe grab a coffee ☕\nor stretch for 2 minutes?"},
+    {ascii:" ★ ★ ★\n\\(•‿•)/\n _|_|_",title:"<span>Ship</span>ped!",       msg:"One step closer to done.\nYou're building momentum —\nkeep that energy going 💪"},
+    {ascii:"d(^_^)b\n  ||||\n  d  b", title:"<span>Boom.</span> Done.",    msg:"Locked in and delivering.\nGo hydrate 💧 — your brain\ndeserves it after that focus."},
+    {ascii:"\\(^o^)/\n  _|_\n  / \\",title:"Level <span>up!</span>",      msg:"Every task done is progress.\nTreat yourself — even 5 mins\nof something you love counts 🎮"},
+    {ascii:" .+*+.\n(>‿<)\n /|\\",  title:"<span>Clean</span> commit!",  msg:"git commit -m 'nailed it'\nTake a little break, breathe,\nyou're doing amazing 🌟"},
   ];
 
   function showCelebration(taskText) {
     const c=CELEBRATIONS[Math.floor(Math.random()*CELEBRATIONS.length)];
-    document.getElementById('celebrateAscii').textContent=c.ascii;
+    // Clean ASCII: remove trailing spaces from each line
+    const cleanedAscii = c.ascii.split('\n').map(line => line.replace(/\s+$/, '')).join('\n');
+    document.getElementById('celebrateAscii').textContent = cleanedAscii;
     document.getElementById('celebrateTitle').innerHTML=c.title;
     document.getElementById('celebrateMsg').innerHTML=c.msg.replace(/\n/g,'<br>');
     document.getElementById('celebrateTask').innerHTML=`✓ <span>"${escHtml(taskText)}"</span>`;
