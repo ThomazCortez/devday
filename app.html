@@ -2146,6 +2146,10 @@ function loadNoteState() {
   function renderTasks() {
     const list=document.getElementById('taskList'), empty=document.getElementById('emptyState');
     const filtered = getFiltered();
+    filtered.sort((a, b) => {
+      if (a.done === b.done) return 0;       // preserve existing order if same status
+      return a.done ? 1 : -1;                 // undone (false) comes before done (true)
+    });
     const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE_current));
     if (currentPage > totalPages) currentPage = totalPages;
     const start = (currentPage-1)*PAGE_SIZE_current;
