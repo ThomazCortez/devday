@@ -110,15 +110,15 @@
         <div class="weather-header">// <span id="weatherLocation">weather.live</span></div>
         <div class="weather-loading" id="weatherLoading">fetching data...</div>
         <div id="weatherWidget" style="display:none">
-          <div class="weather-top">
-            <canvas id="weatherCanvas" width="90" height="90"></canvas>
-            <div class="weather-temp-block">
+          <div class="wx-current">
+            <canvas id="weatherCanvas" width="72" height="72"></canvas>
+            <div class="wx-right">
               <div class="weather-temp" id="wTemp">--°</div>
               <div class="weather-desc" id="wDesc">--</div>
             </div>
           </div>
-          <div class="weather-badges" id="wBadges"></div>
-          <div class="weather-forecast" id="wForecast"></div>
+          <div class="wx-stats" id="wBadges"></div>
+          <div id="wForecast"></div>
         </div>
       </div>
       <div class="sidebar-section" style="margin-top:12px">Explorer</div>

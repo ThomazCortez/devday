@@ -1,13 +1,96 @@
 // ── Weather Widget ──
 
 const DOT_ICONS = {
-  clear:         [[0,0,0,1,0,0,0,0,0],[0,0,0,0,0,1,0,0,0],[0,1,0,0,0,0,0,1,0],[0,0,0,1,1,1,0,0,0],[1,0,1,1,1,1,1,0,1],[0,0,0,1,1,1,0,0,0],[0,1,0,0,0,0,0,1,0],[0,0,0,0,0,1,0,0,0],[0,0,0,1,0,0,0,0,0]],
-  partly_cloudy: [[0,0,0,1,0,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,1,1,1,1,1,0,0],[0,1,0,0,0,0,0,1,0],[0,0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,1,1],[0,0,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0]],
-  cloudy:        [[0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,1,1,0,0,0,0],[1,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,0],[0,0,1,1,1,1,1,0,0],[0,0,0,0,0,0,0,0,0]],
-  rain:          [[0,0,1,1,1,0,0,0,0],[0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],[0,1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0,1],[0,1,0,1,0,1,0,1,0],[0,0,1,0,1,0,1,0,0]],
-  snow:          [[0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0],[1,0,1,0,0,0,1,0,1],[0,1,0,0,0,0,0,1,0],[1,0,1,0,0,0,1,0,1],[0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0]],
-  storm:         [[0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],[1,1,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,0,0,0,0,0,0],[0,1,1,1,1,0,0,0,0],[0,0,0,1,0,0,0,0,0],[0,0,0,1,0,0,0,0,0]],
-  fog:           [[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0]],
+  // ☀️ Clean sun: solid center + 4 straight rays + 4 diagonal rays
+  clear: [
+    [0,0,0,0,1,0,0,0,0],
+    [0,1,0,0,1,0,0,1,0],
+    [0,0,0,0,0,0,0,0,0],
+    [0,0,0,1,1,1,0,0,0],
+    [1,1,0,1,1,1,0,1,1],
+    [0,0,0,1,1,1,0,0,0],
+    [0,0,0,0,0,0,0,0,0],
+    [0,1,0,0,1,0,0,1,0],
+    [0,0,0,0,1,0,0,0,0],
+  ],
+
+  // ⛅ Sun peeking behind a cloud — sun top-right, cloud bottom-left
+  partly_cloudy: [
+    [0,0,0,0,0,1,0,1,0],
+    [0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,1,1,0],
+    [0,0,1,1,0,0,1,0,1],
+    [0,1,1,1,1,1,0,0,0],
+    [1,1,1,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,1,0,0],
+    [0,0,0,0,0,0,0,0,0],
+  ],
+
+  // ☁️ Puffy cloud centered
+  cloudy: [
+    [0,0,0,0,0,0,0,0,0],
+    [0,0,0,1,1,0,0,0,0],
+    [0,0,1,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,1,0],
+    [1,1,1,1,1,1,1,1,1],
+    [0,1,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,1,0,0],
+    [0,0,0,0,0,0,0,0,0],
+  ],
+
+  // 🌧️ Cloud top, vertical rain drops below
+  rain: [
+    [0,0,1,1,1,1,0,0,0],
+    [0,1,1,1,1,1,1,0,0],
+    [1,1,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,1,0],
+    [0,0,0,0,0,0,0,0,0],
+    [0,1,0,0,1,0,0,1,0],
+    [0,1,0,0,1,0,0,1,0],
+    [0,0,0,0,0,0,0,0,0],
+    [0,0,1,0,0,1,0,0,1],
+  ],
+
+  // ❄️ Snowflake: clear 6-point star shape
+  snow: [
+    [0,0,0,0,1,0,0,0,0],
+    [0,1,0,0,1,0,0,1,0],
+    [0,0,1,0,1,0,1,0,0],
+    [0,0,0,0,0,0,0,0,0],
+    [1,1,1,0,0,0,1,1,1],
+    [0,0,0,0,0,0,0,0,0],
+    [0,0,1,0,1,0,1,0,0],
+    [0,1,0,0,1,0,0,1,0],
+    [0,0,0,0,1,0,0,0,0],
+  ],
+
+  // ⛈️ Cloud + lightning bolt
+  storm: [
+    [0,0,1,1,1,1,0,0,0],
+    [0,1,1,1,1,1,1,0,0],
+    [1,1,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,1,0],
+    [0,0,0,1,1,0,0,0,0],
+    [0,0,1,1,0,0,0,0,0],
+    [0,0,1,1,1,1,0,0,0],
+    [0,0,0,0,1,0,0,0,0],
+    [0,0,0,0,1,0,0,0,0],
+  ],
+
+  // 🌫️ Three clean horizontal lines
+  fog: [
+    [0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0],
+    [1,1,1,1,1,1,1,1,1],
+    [0,0,0,0,0,0,0,0,0],
+    [0,1,1,1,1,1,1,1,0],
+    [0,0,0,0,0,0,0,0,0],
+    [0,0,1,1,1,1,1,0,0],
+    [0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0],
+  ],
 };
 
 function drawWeatherDots(canvasEl, iconKey) {
@@ -89,29 +172,33 @@ async function fetchWeather() {
     document.getElementById('wTemp').textContent = `${Math.round(cur.temperature_2m)}°`;
     document.getElementById('wDesc').textContent = (WX_DESC[code] || 'unknown').replace(/_/g, ' ');
 
-    document.getElementById('wBadges').innerHTML = [
-      { val: `${cur.relative_humidity_2m}%`,         label: 'HUMID', hi: false },
-      { val: `${Math.round(cur.wind_speed_10m)}`,    label: 'KM/H',  hi: false },
-      { val: `${cur.precipitation ?? 0}`,            label: 'MM',    hi: (cur.precipitation ?? 0) > 0 },
-    ].map(b => `<div class="weather-badge ${b.hi ? 'highlight' : ''}">
-      <span class="badge-val">${b.val}</span>
-      <span class="badge-label">${b.label}</span>
-    </div>`).join('');
-
-    const fdays = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-    document.getElementById('wForecast').innerHTML = daily.time.slice(1, 4).map((t, i) => {
-      const d  = new Date(t + 'T12:00:00');
-      const id = `fc-${i}`;
-      setTimeout(() => {
-        const el = document.getElementById(id);
-        if (el) drawWeatherDots(el, codeToIcon(daily.weather_code[i + 1]));
-      }, 50);
-      return `<div class="forecast-row">
-        <span class="forecast-day">${fdays[d.getDay()]}</span>
-        <div class="forecast-dots"><canvas id="${id}" width="36" height="36" style="image-rendering:pixelated"></canvas></div>
-        <span class="forecast-temps"><span class="hi">${Math.round(daily.temperature_2m_max[i + 1])}°</span> / ${Math.round(daily.temperature_2m_min[i + 1])}°</span>
+    // wBadges
+    document.getElementById('wBadges').innerHTML = `
+      <div class="wx-stat">
+        <span class="wx-stat-val">${cur.relative_humidity_2m}%</span>
+        <span class="wx-stat-key">Humid</span>
+      </div>
+      <div class="wx-stat">
+        <span class="wx-stat-val">${Math.round(cur.wind_speed_10m)}</span>
+        <span class="wx-stat-key">km/h</span>
+      </div>
+      <div class="wx-stat">
+        <span class="wx-stat-val ${(cur.precipitation ?? 0) > 0 ? 'rain-active' : ''}">${cur.precipitation ?? 0}mm</span>
+        <span class="wx-stat-key">Rain</span>
       </div>`;
-    }).join('');
+
+    document.getElementById('wForecast').innerHTML = `
+      <div class="wx-tomorrow">
+        <span class="wx-tmr-label">TMR</span>
+        <canvas id="fc-0" width="28" height="28" style="image-rendering:pixelated;flex-shrink:0"></canvas>
+        <span class="wx-tmr-desc">${(WX_DESC[daily.weather_code[1]] || 'unknown').replace(/_/g,' ')}</span>
+        <span class="wx-tmr-temps"><b>${Math.round(daily.temperature_2m_max[1])}°</b> / ${Math.round(daily.temperature_2m_min[1])}°</span>
+      </div>`;
+
+    setTimeout(() => {
+      const el = document.getElementById('fc-0');
+      if (el) drawWeatherDots(el, codeToIcon(daily.weather_code[1]));
+    }, 50);
 
     document.getElementById('weatherLoading').style.display = 'none';
     document.getElementById('weatherWidget').style.display  = 'block';
