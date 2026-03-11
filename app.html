@@ -6,814 +6,15 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
   <title>devday — daily planner</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:          #0D1117;
-      --bg-2:        #161B22;
-      --bg-3:        #21262D;
-      --border:      #30363D;
-      --border-soft: #21262D;
-      --text:        #E6EDF3;
-      --text-muted:  #7D8590;
-      --text-faint:  #3D444D;
-      --green:       #3FB950;
-      --blue:        #58A6FF;
-      --orange:      #F0883E;
-      --red:         #FF7B72;
-      --purple:      #BC8CFF;
-      --yellow:      #E3B341;
-      --claude:      #DA7756;
-      --claude-dim:  rgba(218,119,86,0.15);
-      --tag-work-bg:      rgba(88,166,255,0.12);
-      --tag-work-ink:     #58A6FF;
-      --tag-personal-bg:  rgba(188,140,255,0.12);
-      --tag-personal-ink: #BC8CFF;
-      --tag-health-bg:    rgba(63,185,80,0.12);
-      --tag-health-ink:   #3FB950;
-      --claude-border: rgba(218,119,86,0.45);
-      --claude-glow:   rgba(218,119,86,0.18);
-      --claude-glow2:  rgba(218,119,86,0.13);
-    }
-
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
-
-    /* ── Title Bar ── */
-    .titlebar { width: 100%; background: var(--bg-2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 38px; position: sticky; top: 0; z-index: 100; }
-    .titlebar-left { display: flex; align-items: center; gap: 16px; }
-    .window-dots { display: flex; gap: 6px; }
-    .dot { width: 12px; height: 12px; border-radius: 50%; }
-    .dot.red    { background: #FF5F57; }
-    .dot.yellow { background: #FFBD2E; }
-    .dot.green  { background: #28C840; }
-    .titlebar-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); }
-    .titlebar-title span { color: var(--claude); }
-
-    /* ── Layout ── */
-    .layout { display: flex; width: 100%; min-height: calc(100vh - 62px); padding-bottom: 24px; }
-
-    /* ── Clock ── */
-    .ascii-clock-wrap { padding: 16px 14px 14px; border-bottom: 1px solid var(--border-soft); }
-    .seg-clock { display: flex; align-items: center; justify-content: center; gap: 2px; line-height: 0; }
-    .seg-clock svg { display: block; }
-
-    /* ── Weather ── */
-    .weather-wrap { padding: 14px 14px 16px; border-bottom: 1px solid var(--border-soft); }
-    .weather-header { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px; }
-    .weather-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    #weatherCanvas { flex-shrink: 0; image-rendering: pixelated; }
-    .weather-temp-block { flex: 1; }
-    .weather-temp { font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; color: var(--text); line-height: 1; }
-    .weather-desc { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; }
-    .weather-badges { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 10px; }
-    .weather-badge { background: var(--bg-3); border: 1px solid var(--border-soft); border-radius: 50px; padding: 7px 4px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .badge-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--text); line-height: 1; }
-    .badge-label { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); }
-    .weather-badge.highlight { background: var(--claude); border-color: var(--claude); }
-    .weather-badge.highlight .badge-val, .weather-badge.highlight .badge-label { color: white; }
-    .weather-forecast { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
-    .forecast-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 2px; border-bottom: 1px solid var(--border-soft); }
-    .forecast-row:last-child { border-bottom: none; }
-    .forecast-day { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); width: 30px; }
-    .forecast-dots { flex: 1; display: flex; justify-content: center; }
-    .forecast-temps { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); text-align: right; }
-    .forecast-temps .hi { color: var(--text); }
-    .weather-loading { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); font-style: italic; padding: 4px 0; }
-
-    /* ── Pomodoro Float Widget ── */
-    .pomo-float {
-      position: fixed;
-      bottom: 40px;
-      right: 20px;
-      width: 260px;
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(218,119,86,0.10);
-      z-index: 200;
-      overflow: hidden;
-      transition: box-shadow 0.2s;
-      user-select: none;
-    }
-    .pomo-float:hover { box-shadow: 0 14px 48px rgba(0,0,0,0.65), 0 0 0 1px rgba(218,119,86,0.22); }
-    .pomo-float.dragging { box-shadow: 0 20px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(218,119,86,0.35); transition: none; }
-
-    .pomo-float-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 9px 14px;
-      cursor: grab;
-      background: var(--bg-3);
-      border-bottom: 1px solid var(--border-soft);
-    }
-    .pomo-float-header:active { cursor: grabbing; }
-    .pomo-float-header:hover { background: var(--bg-2); }
-    .pomo-float-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); }
-    .pomo-float-title span { color: var(--claude); }
-    .pomo-float-right { display: flex; align-items: center; gap: 6px; }
-    .pomo-float-chevron { font-size: 8px; color: var(--text-faint); transition: transform 0.25s ease; line-height: 1; cursor: pointer; padding: 2px 4px; }
-    .pomo-float.collapsed .pomo-float-chevron { transform: rotate(-90deg); }
-
-    .pomo-float-mini-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--claude); display: none; letter-spacing: 0.05em; }
-    .pomo-float.collapsed .pomo-float-mini-time { display: block; }
-    .pomo-float.collapsed .pomo-float-title { display: none; }
-
-    .pomo-float-body {
-      padding: 16px 16px 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow: hidden;
-      max-height: 360px;
-      transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.2s ease;
-      opacity: 1;
-    }
-    .pomo-float.collapsed .pomo-float-body { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; pointer-events: none; }
-
-    /* ── Notepad Float ── */
-    .note-float {
-      position: fixed;
-      top: 68px; right: 20px;
-      width: 300px;
-      min-width: 220px; max-width: 560px; min-height: 160px;
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(88,166,255,0.08);
-      z-index: 200; overflow: visible;
-      transition: box-shadow 0.2s;
-      user-select: none;
-      display: flex; flex-direction: column;
-    }
-    .note-float:hover { box-shadow: 0 14px 48px rgba(0,0,0,0.65), 0 0 0 1px rgba(88,166,255,0.2); }
-    .note-float.dragging { box-shadow: 0 20px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(88,166,255,0.3); transition: none; }
-    .note-float.resizing { box-shadow: 0 20px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(88,166,255,0.3); transition: none; }
-    .note-float-inner { overflow: hidden; border-radius: 14px; flex: 1; display: flex; flex-direction: column; min-height: 0; }
-
-    .note-resize { position: absolute; z-index: 10; }
-    .note-resize.e  { right: -5px;  top: 14px; bottom: 14px; width: 10px; cursor: ew-resize; }
-    .note-resize.w  { left: -5px;   top: 14px; bottom: 14px; width: 10px; cursor: ew-resize; }
-    .note-resize.s  { bottom: -5px; left: 14px; right: 14px; height: 10px; cursor: ns-resize; }
-    .note-resize.se { right: -5px;  bottom: -5px; width: 18px; height: 18px; cursor: se-resize; }
-    .note-resize.sw { left: -5px;   bottom: -5px; width: 18px; height: 18px; cursor: sw-resize; }
-    .note-resize.ne { right: -5px;  top: -5px;    width: 18px; height: 18px; cursor: ne-resize; }
-    .note-resize.nw { left: -5px;   top: -5px;    width: 18px; height: 18px; cursor: nw-resize; }
-    .note-resize.se::after, .note-resize.sw::after,
-    .note-resize.ne::after, .note-resize.nw::after {
-      content: ''; position: absolute; inset: 3px; border-radius: 3px;
-      background: var(--border); opacity: 0; transition: opacity 0.15s;
-    }
-    .note-float:hover .note-resize.se::after,
-    .note-float:hover .note-resize.sw::after,
-    .note-float:hover .note-resize.ne::after,
-    .note-float:hover .note-resize.nw::after { opacity: 1; }
-    .note-resize.se:hover::after, .note-resize.sw:hover::after,
-    .note-resize.ne:hover::after, .note-resize.nw:hover::after { background: var(--claude); opacity: 1 !important; }
-
-    .note-float-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 9px 10px 9px 14px;
-      cursor: grab; background: var(--bg-3);
-      border-bottom: 1px solid var(--border-soft);
-    }
-    .note-float-header:active { cursor: grabbing; }
-    .note-float-header:hover { background: var(--bg-2); }
-    .note-float-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-faint); }
-    .note-float-title span { color: var(--claude); }
-    .note-float-actions { display: flex; align-items: center; gap: 2px; }
-    .note-float-btn {
-      background: none; border: none; cursor: pointer;
-      color: var(--text-faint); padding: 3px 6px; border-radius: 4px;
-      transition: color 0.15s, background 0.15s;
-      font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1;
-    }
-    .note-float-btn:hover { color: var(--text); background: var(--bg-2); }
-    .note-float-btn.collapse-btn { transition: color 0.15s, background 0.15s, transform 0.22s; }
-    .note-float.collapsed .collapse-btn { transform: rotate(-90deg); }
-
-    .note-float-body {
-      overflow: hidden; flex: 1; min-height: 0;
-      display: flex; flex-direction: column;
-      max-height: 600px;
-      opacity: 1;
-      transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.3s ease;
-    }
-    .note-float.collapsed .note-float-body { max-height: 0; opacity: 0; pointer-events: none; }
-    .note-float.collapsed { height: auto !important; min-height: 0 !important; }
-
-    .note-tabs-bar {
-      display: flex; align-items: center;
-      padding: 6px 8px 0; gap: 3px; overflow-x: auto;
-      scrollbar-width: none; border-bottom: 1px solid var(--border-soft);
-      background: var(--bg-3); flex-shrink: 0;
-    }
-    .note-tabs-bar::-webkit-scrollbar { display: none; }
-    .note-tab {
-      display: flex; align-items: center; gap: 4px;
-      padding: 4px 10px 5px; border-radius: 6px 6px 0 0;
-      font-family: 'JetBrains Mono', monospace; font-size: 10px;
-      color: var(--text-faint); cursor: pointer; white-space: nowrap;
-      border: 1px solid transparent; border-bottom: none;
-      transition: color 0.15s, background 0.15s;
-      flex-shrink: 0; max-width: 100px; position: relative;
-    }
-    .note-tab:hover { color: var(--text-m); background: var(--bg-2); }
-    .note-tab.active { color: var(--claude); background: var(--bg-2); border-color: var(--border-soft); }
-    .note-tab-label { overflow: hidden; text-overflow: ellipsis; max-width: 70px; }
-    .note-tab-rename-input {
-      background: transparent; border: none; outline: none;
-      font-family: 'JetBrains Mono', monospace; font-size: 10px;
-      color: var(--claude); width: 60px; padding: 0;
-    }
-    .note-tab-close {
-      background: none; border: none; cursor: pointer;
-      color: var(--text-faint); font-size: 10px; padding: 0 0 0 2px;
-      line-height: 1; transition: color 0.12s; opacity: 0;
-    }
-    .note-tab:hover .note-tab-close,
-    .note-tab.active .note-tab-close { opacity: 1; }
-    .note-tab-close:hover { color: var(--red); }
-    .note-tab-add {
-      background: none; border: none; cursor: pointer;
-      color: var(--text-faint); font-size: 14px; padding: 2px 6px;
-      border-radius: 5px; transition: color 0.15s, background 0.15s;
-      line-height: 1; flex-shrink: 0;
-    }
-    .note-tab-add:hover { color: var(--claude); background: var(--claude-dim); }
-
-    .note-float-textarea {
-      width: 100%; flex: 1; min-height: 80px;
-      background: transparent; border: none; outline: none; resize: none;
-      padding: 12px 14px;
-      font-family: 'JetBrains Mono', monospace; font-size: 12px;
-      line-height: 1.7; color: var(--text-m);
-      caret-color: var(--claude); user-select: text;
-    }
-    .note-float-textarea::placeholder { color: var(--text-faint); font-style: italic; }
-
-    .note-float-footer {
-      padding: 5px 12px 7px; display: flex; align-items: center; justify-content: space-between;
-      border-top: 1px solid var(--border-soft); flex-shrink: 0;
-    }
-    .note-float-chars { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-faint); letter-spacing: 0.06em; }
-    .note-float-saved { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--green); opacity: 0; letter-spacing: 0.06em; transition: opacity 0.4s ease; }
-    .note-float-saved.show { opacity: 1; }
-
-    .pomodoro-mode-badges { display: flex; gap: 4px; }
-    .pomo-mode-btn { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text-faint); cursor: pointer; transition: all 0.15s; }
-    .pomo-mode-btn.active { background: var(--claude-dim); color: var(--claude); border-color: var(--claude); }
-
-    .pomodoro-ring-wrap {
-      position: relative; width: 148px; height: 148px;
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 10px; flex-shrink: 0;
-    }
-    .pomodoro-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); pointer-events: none; }
-    .pomo-ring-track { fill: none; stroke: var(--bg-3); stroke-width: 3; }
-    .pomo-ring-fill  { fill: none; stroke: var(--claude); stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.4s ease; }
-    .pomo-ring-fill.break { stroke: var(--green); }
-    .pomodoro-display { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 2px; }
-    .pomodoro-display svg { display: block; }
-    .pomodoro-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; text-align: center; margin-bottom: 10px; transition: color 0.3s; }
-    .pomodoro-label.work  { color: var(--claude); }
-    .pomodoro-label.break { color: var(--green); }
-    .pomodoro-label.idle  { color: var(--text-faint); }
-    .pomodoro-controls { display: flex; align-items: center; justify-content: center; gap: 10px; }
-    .pomo-btn { background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; color: var(--text-muted); }
-    .pomo-btn:hover { border-color: var(--text-muted); color: var(--text); }
-    .pomo-btn.primary { background: var(--claude); border-color: var(--claude); color: white; width: 38px; height: 38px; border-radius: 8px; }
-    .pomo-btn.primary:hover { opacity: 0.85; }
-    .pomo-btn.secondary { width: 30px; height: 30px; }
-    .pomo-btn.primary.active-break { background: var(--green); border-color: var(--green); }
-    .pomodoro-sessions { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; }
-    .pomo-session-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--bg-3); border: 1px solid var(--border); transition: all 0.3s ease; }
-    .pomo-session-dot.done { background: var(--claude); border-color: var(--claude); box-shadow: 0 0 6px rgba(218,119,86,0.55); }
-    @keyframes pomo-pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
-    .pomodoro-display.running { animation: pomo-pulse 2s ease-in-out infinite; }
-
-    /* ── Due Dates ── */
-    .due-btn {
-      font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 10px;
-      border-radius: 4px; border: 1px solid var(--border); background: transparent;
-      color: var(--text-muted); cursor: pointer; transition: all 0.15s;
-      display: flex; align-items: center; gap: 5px;
-    }
-    .due-btn:hover { border-color: var(--text-muted); color: var(--text); }
-    .due-btn.has-date { background: rgba(88,166,255,0.1); color: var(--blue); border-color: var(--blue); }
-    .due-btn svg { flex-shrink: 0; }
-
-    /* ── Custom Calendar Picker ── */
-    .cal-popup {
-      position: fixed; background: var(--bg-2); border: 1px solid var(--border);
-      border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(218,119,86,0.08);
-      z-index: 9999; width: 234px; padding: 12px;
-      font-family: 'JetBrains Mono', monospace;
-      display: none; animation: calFadeIn 0.15s ease both;
-    }
-    .cal-popup.open { display: block; }
-    @keyframes calFadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
-    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .cal-nav {
-      background: none; border: 1px solid var(--border); border-radius: 5px;
-      color: var(--text-muted); cursor: pointer; width: 24px; height: 24px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; transition: all 0.12s;
-    }
-    .cal-nav:hover { border-color: var(--claude); color: var(--claude); }
-    .cal-month-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); }
-    .cal-weekdays { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 4px; }
-    .cal-wd { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); text-align: center; padding: 2px 0 4px; }
-    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
-    .cal-day { font-size: 11px; text-align: center; padding: 5px 2px; border-radius: 5px; cursor: pointer; color: var(--text-muted); border: 1px solid transparent; transition: all 0.1s; line-height: 1; }
-    .cal-day:hover:not(.cal-past):not(.cal-empty) { background: var(--bg-3); border-color: var(--border); color: var(--text); }
-    .cal-day.cal-today { border-color: rgba(218,119,86,0.4); color: var(--claude); }
-    .cal-day.cal-selected { background: var(--claude); border-color: var(--claude); color: white; font-weight: 700; }
-    .cal-day.cal-past { color: var(--text-faint); cursor: not-allowed; opacity: 0.35; }
-    .cal-day.cal-empty { cursor: default; }
-    .cal-clear { margin-top: 10px; width: 100%; background: none; border: 1px solid var(--border); border-radius: 5px; padding: 5px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); cursor: pointer; letter-spacing: 0.06em; transition: all 0.12s; }
-    .cal-clear:hover { border-color: var(--red); color: var(--red); }
-
-    .due-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-    .due-badge.overdue  { background: rgba(255,123,114,0.15); color: var(--red);    border: 1px solid rgba(255,123,114,0.3); }
-    .due-badge.today    { background: rgba(218,119,86,0.15);  color: var(--claude); border: 1px solid rgba(218,119,86,0.3); }
-    .due-badge.soon     { background: rgba(227,179,65,0.12);  color: var(--yellow); border: 1px solid rgba(227,179,65,0.25); }
-    .due-badge.upcoming { background: rgba(88,166,255,0.10);  color: var(--blue);   border: 1px solid rgba(88,166,255,0.2); }
-
-    .task-item.overdue-task:not(.done) { border-color: rgba(255,123,114,0.2); }
-    .task-item.overdue-task:not(.done):hover { border-color: rgba(255,123,114,0.45); }
-    .kb-card.overdue-card:not([data-status-done]) { border-left-color: var(--red) !important; }
-
-    /* ── Pagination ── */
-    .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding: 10px 2px; border-top: 1px solid var(--border-soft); font-family: 'JetBrains Mono', monospace; }
-    .pagination.hidden { display: none; }
-    .page-info { font-size: 11px; color: var(--text-faint); letter-spacing: 0.05em; }
-    .page-info span { color: var(--text-muted); }
-    .page-btns { display: flex; align-items: center; gap: 3px; }
-    .page-btn { min-width: 28px; height: 28px; padding: 0 6px; border: 1px solid var(--border); border-radius: 5px; background: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); cursor: pointer; transition: all 0.12s; display: flex; align-items: center; justify-content: center; }
-    .page-btn:hover:not(:disabled) { border-color: var(--claude); color: var(--claude); }
-    .page-btn.active { background: var(--claude); border-color: var(--claude); color: white; font-weight: 700; }
-    .page-btn:disabled { opacity: 0.25; cursor: not-allowed; }
-    .page-btn.arrow { font-size: 13px; }
-
-    /* ── List Drag Reorder ── */
-    .drag-handle { flex-shrink: 0; width: 16px; display: flex; align-items: center; justify-content: center; cursor: grab; color: var(--text-faint); opacity: 0.35; transition: opacity 0.15s; padding: 2px 0; }
-    .drag-handle:active { cursor: grabbing; }
-    .task-item:hover .drag-handle { opacity: 1; color: var(--text-muted); }
-    .task-item.list-ghost { opacity: 0.25; pointer-events: none; }
-    .list-drop-indicator { height: 2px; background: var(--claude); border-radius: 1px; margin: 1px 0; box-shadow: 0 0 6px rgba(218,119,86,0.5); pointer-events: none; }
-    .kb-drop-indicator { height: 2px; background: var(--claude); border-radius: 1px; margin: 2px 0; box-shadow: 0 0 6px rgba(218,119,86,0.5); pointer-events: none; }
-
-    /* ── Sidebar ── */
-    .sidebar { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); padding-bottom: 24px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
-    .sidebar-section { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); padding: 12px 16px 4px; }
-    .sidebar-item { display: flex; align-items: center; gap: 8px; padding: 6px 16px; font-size: 13px; color: var(--text-muted); cursor: pointer; border: none; border-left: 2px solid transparent; background: none; width: 100%; text-align: left; font-family: 'Inter', sans-serif; transition: all 0.15s; }
-    .sidebar-item:hover { background: var(--bg-3); color: var(--text); }
-    .sidebar-item.active { background: var(--claude-dim); color: var(--claude); border-left-color: var(--claude); }
-    .dot-count { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--bg-3); color: var(--text-muted); padding: 1px 6px; border-radius: 10px; }
-    .sidebar-item.active .dot-count { background: var(--claude-dim); color: var(--claude); }
-    .sidebar-divider { height: 1px; background: var(--border-soft); margin: 8px 16px; }
-    .sidebar-progress { margin: 12px 16px 0; }
-    .sidebar-progress-label { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); margin-bottom: 6px; }
-    .sidebar-progress-label span:last-child { color: var(--green); }
-    .progress-track { height: 3px; background: var(--bg-3); border-radius: 2px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--blue)); border-radius: 2px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); width: 0%; }
-
-    /* ── View Toggle ── */
-    .view-toggle { display: flex; gap: 2px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px; padding: 3px; }
-    .view-btn { background: none; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); transition: all 0.15s; }
-    .view-btn:hover { color: var(--text-muted); }
-    .view-btn.active { background: var(--bg-2); color: var(--claude); }
-    .view-btn svg { flex-shrink: 0; }
-
-    /* ── Kanban ── */
-    #listView, #kanbanView, #inputArea { transition: opacity 0.18s ease; }
-    #listView.fading, #kanbanView.fading, #inputArea.fading { opacity: 0; pointer-events: none; }
-    #kanbanView { display: none; }
-    #kanbanView.visible { display: flex; gap: 16px; padding: 0 4px 24px; }
-    .kb-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
-    .kb-col-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; position: sticky; top: 46px; z-index: 10; }
-    .kb-col-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; gap: 7px; }
-    .kb-col-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .kb-col[data-status="todo"]  .kb-col-dot { background: var(--text-faint); }
-    .kb-col[data-status="doing"] .kb-col-dot { background: var(--yellow); box-shadow: 0 0 6px rgba(227,179,65,0.5); }
-    .kb-col[data-status="done"]  .kb-col-dot { background: var(--green);  box-shadow: 0 0 6px rgba(63,185,80,0.5); }
-    .kb-col[data-status="todo"]  .kb-col-title { color: var(--text-muted); }
-    .kb-col[data-status="doing"] .kb-col-title { color: var(--yellow); }
-    .kb-col[data-status="done"]  .kb-col-title { color: var(--green); }
-    .kb-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); background: var(--bg-3); padding: 1px 7px; border-radius: 10px; }
-    .kb-cards { display: flex; flex-direction: column; gap: 6px; min-height: 60px; padding: 4px 0; transition: background 0.15s; border-radius: 8px; }
-    .kb-cards.drag-over { background: var(--claude-dim); outline: 1px dashed var(--claude); outline-offset: -2px; }
-
-    /* ── Kanban Card ── */
-    .kb-card { background: var(--bg-2); border: 1px solid var(--border); border-left: 3px solid transparent; border-radius: 8px; padding: 11px 13px; cursor: grab; position: relative; animation: fadeSlide 0.22s ease both; transition: border-color 0.2s ease, border-left-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s cubic-bezier(0.4,0,0.2,1); }
-    .kb-card:hover { border-color: var(--claude-border); border-left-color: var(--claude); background: #191e27; transform: translateY(-2px); box-shadow: 0 0 0 1px var(--claude-glow), 0 6px 20px var(--claude-glow2), 0 2px 8px rgba(0,0,0,0.4); }
-    .kb-card.dragging { opacity: 0.15; cursor: grabbing; transform: scale(0.97); border-style: dashed; border-color: var(--claude); border-left-color: var(--claude); box-shadow: none; }
-    .kb-card-text { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); line-height: 1.5; word-break: break-word; }
-    .kb-col[data-status="done"] .kb-card-text { text-decoration: line-through; color: var(--text-faint); }
-    .kb-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
-    .kb-card-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 4px; }
-    .kb-card-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
-    .kb-card:hover .kb-card-actions { opacity: 1; }
-    .kb-action-btn { background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.06em; transition: all 0.12s; }
-    .kb-action-btn.move-btn { color: var(--text-faint); }
-    .kb-action-btn.move-btn:hover { background: var(--bg-3); color: var(--claude); }
-    .kb-action-btn.del-btn  { color: var(--text-faint); }
-    .kb-action-btn.del-btn:hover { background: rgba(255,123,114,0.12); color: var(--red); }
-    .kb-col-empty { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); font-style: italic; padding: 16px 12px; text-align: center; border: 1px dashed var(--border-soft); border-radius: 8px; }
-
-    /* ── Main ── */
-    .main { flex: 1; padding: 36px 48px; min-width: 0; }
-    .breadcrumb { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-    .breadcrumb span { color: var(--text-muted); }
-    .breadcrumb .active { color: var(--claude); }
-    .page-title { font-family: 'JetBrains Mono', monospace; font-size: 30px; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 8px; }
-    .page-title .comment { font-weight: 300; font-style: italic; color: var(--text-faint); font-size: 17px; margin-left: 12px; }
-    .page-meta { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
-    .page-meta .kw { color: var(--purple); }
-    .page-meta .str { color: var(--green); }
-    .page-meta .cmt { color: var(--text-faint); }
-    .page-meta .daystr { color: var(--blue); }
-
-    /* ── Input ── */
-    .input-block { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; overflow: hidden; transition: border-color 0.2s; }
-    .input-block:focus-within { border-color: var(--claude); }
-    .input-topbar { display: flex; align-items: center; padding: 7px 12px; border-bottom: 1px solid var(--border-soft); background: var(--bg-3); gap: 8px; }
-    .input-topbar-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); }
-    .input-topbar-label .fn { color: var(--yellow); }
-    .input-topbar-label .str { color: var(--green); }
-    .input-topbar-label .paren { color: var(--text-faint); }
-    .input-row { display: flex; align-items: center; padding: 12px 16px; gap: 10px; }
-    .line-num { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-faint); user-select: none; width: 20px; text-align: right; flex-shrink: 0; }
-    .prompt-char { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--claude); flex-shrink: 0; }
-    .task-input { flex: 1; background: transparent; border: none; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text); caret-color: var(--claude); }
-    .task-input::placeholder { color: var(--text-faint); }
-    .add-btn { background: var(--claude); border: none; border-radius: 5px; padding: 5px 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; color: white; cursor: pointer; transition: opacity 0.15s; flex-shrink: 0; }
-    .add-btn:hover { opacity: 0.85; }
-    .tags-row { display: flex; gap: 6px; padding: 0 16px 12px; flex-wrap: wrap; align-items: center; }
-    .tag-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
-    .tag-btn:hover { border-color: var(--text-muted); color: var(--text); }
-    .tag-btn.active {
-      background: var(--tag-active-bg, rgba(218,119,86,0.15));
-      color: var(--tag-active-ink, var(--claude));
-      border-color: var(--tag-active-ink, var(--claude));
-    }
-
-    /* ── Task List ── */
-    .task-list { display: flex; flex-direction: column; gap: 6px; }
-    @keyframes fadeSlide { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-
-    .task-item {
-      background: var(--bg-2); border: 1px solid var(--border-soft); border-radius: 10px;
-      padding: 12px 12px 12px 14px;
-      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
-      animation: fadeSlide 0.22s ease both; flex-wrap: wrap;
-      display: flex; align-items: flex-start; gap: 10px; position: relative;
-    }
-    .task-item:hover { border-color: var(--border); box-shadow: 0 4px 16px rgba(0,0,0,0.25); background: #191e27; }
-    .task-item.done { opacity: 0.45; }
-    .task-item.overdue-task:not(.done) { border-color: rgba(255,123,114,0.3); border-left: 3px solid var(--red); }
-    .task-item.removing { opacity: 0; transform: translateX(14px) scale(0.98); pointer-events: none; transition: opacity 0.22s ease, transform 0.22s ease; }
-
-    .task-item::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 2px; border-radius: 2px; background: var(--claude); opacity: 0; transition: opacity 0.18s; }
-    .task-item:hover::before { opacity: 1; }
-    .task-item.overdue-task:not(.done)::before { background: var(--red); opacity: 1; }
-
-    .drag-handle { color: var(--text-faint); opacity: 0.25; cursor: grab; flex-shrink: 0; padding-top: 3px; transition: opacity 0.15s; }
-    .task-item:hover .drag-handle { opacity: 0.7; color: var(--text-muted); }
-    .drag-handle:active { cursor: grabbing; }
-
-    .line-gutter { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); user-select: none; width: 20px; text-align: right; flex-shrink: 0; padding-top: 3px; opacity: 0.5; }
-
-    .check-btn { width: 20px; height: 20px; border-radius: 5px; border: 1.5px solid var(--border); background: var(--bg-3); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; margin-top: 1px; }
-    .check-btn:hover { border-color: var(--green); background: rgba(63,185,80,0.08); }
-    .task-item.done .check-btn { background: var(--green); border-color: var(--green); }
-    .check-btn svg { opacity: 0; transition: opacity 0.15s; }
-    .task-item.done .check-btn svg { opacity: 1; }
-
-    .task-body { flex: 1; min-width: 0; }
-    .task-text { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); line-height: 1.55; word-break: break-word; }
-    .task-item.done .task-text { text-decoration: line-through; color: var(--text-faint); }
-    .task-meta { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
-    .task-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.04em; }
-
-    .task-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; margin-top: 1px; }
-    .notes-btn {
-      background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 5px;
-      color: var(--text-faint); display: flex; align-items: center; gap: 3px;
-      transition: color 0.15s, background 0.15s;
-    }
-    .notes-btn:hover { color: var(--claude); background: var(--claude-dim); }
-    .notes-btn.has-notes { color: var(--claude); }
-    .notes-btn.open { color: var(--claude); background: var(--claude-dim); }
-    .notes-btn.has-notes:not(.open)::before { content: ''; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--claude); flex-shrink: 0; margin-right: 1px; }
-    .notes-btn svg.chevron { transition: transform 0.2s ease; }
-    .notes-btn.open svg.chevron { transform: rotate(180deg); }
-
-    .delete-btn {
-      background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 5px;
-      color: var(--text-faint); display: flex; align-items: center; justify-content: center;
-      transition: color 0.15s, background 0.15s;
-    }
-    .delete-btn:hover { color: var(--red); background: rgba(255,123,114,0.1); }
-
-    .task-notes-area { overflow: hidden; max-height: 0; transition: max-height 0.28s ease, opacity 0.22s ease; opacity: 0; width: 100%; }
-    .task-notes-area.open { max-height: 180px; opacity: 1; }
-    .notes-row { padding: 8px 4px 4px 52px; }
-    .notes-textarea {
-      width: 100%; background: var(--bg-3); border: 1px solid var(--border-soft);
-      border-radius: 7px; padding: 9px 12px; resize: none;
-      font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6;
-      color: var(--text-m); outline: none; min-height: 76px; max-height: 140px;
-      transition: border-color 0.15s; box-sizing: border-box;
-    }
-    .notes-textarea::placeholder { color: var(--text-faint); font-style: italic; }
-    .notes-textarea:focus { border-color: rgba(218,119,86,0.45); }
-
-    .kb-notes-preview { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); margin-top: 6px; line-height: 1.5; font-style: italic; white-space: pre-wrap; word-break: break-word; border-left: 2px solid var(--border); padding-left: 8px; }
-
-    /* ── Empty State ── */
-    .empty-state { padding: 40px 0; display: none; }
-    .empty-state.visible { display: block; }
-    .empty-code { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 2.2; color: var(--text-faint); }
-    .empty-code .kw  { color: var(--purple); }
-    .empty-code .fn  { color: var(--blue); }
-    .empty-code .str { color: var(--green); }
-
-    /* ── Status Bar ── */
-    .statusbar { width: 100%; height: 24px; background: var(--claude); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
-    .status-left, .status-right { display: flex; align-items: center; gap: 16px; }
-    .status-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.85); }
-
-    /* ── Celebration ── */
-    .celebrate-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-    .celebrate-overlay.show { opacity: 1; pointer-events: all; }
-    .celebrate-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px; padding: 36px 40px 32px; max-width: 380px; width: 90%; text-align: center; transform: translateY(24px) scale(0.95); transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--border); }
-    .celebrate-overlay.show .celebrate-card { transform: translateY(0) scale(1); }
-    .celebrate-ascii { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; color: var(--claude); text-shadow: 0 0 20px rgba(218,119,86,0.4); white-space: pre; margin-bottom: 20px; display: inline-block; text-align: left; }
-    .celebrate-title { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
-    .celebrate-title span { color: var(--claude); }
-    .celebrate-msg { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); line-height: 1.7; margin-bottom: 28px; }
-    .celebrate-btn { background: var(--claude); border: none; border-radius: 8px; padding: 12px 28px; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: white; cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em; }
-    .celebrate-btn:hover { opacity: 0.85; transform: translateY(-1px); box-shadow: 0 6px 20px var(--claude-border); }
-    .celebrate-btn:active { transform: translateY(0); }
-    .celebrate-task-name { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
-    .celebrate-task-name span { color: var(--green); }
-    @keyframes confetti-drop { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(60px) rotate(360deg);opacity:0} }
-    .confetti-dot { position: absolute; width: 5px; height: 5px; border-radius: 50%; animation: confetti-drop 0.9s ease-out both; }
-
-    /* ── Intro ── */
-    #introScreen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.7s ease; }
-    #introScreen.fade-out { opacity: 0; pointer-events: none; }
-    .intro-window { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; width: min(640px, 90vw); overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
-    .intro-titlebar { background: var(--bg-3); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
-    .intro-dots { display: flex; gap: 6px; }
-    .intro-dot { width: 11px; height: 11px; border-radius: 50%; }
-    .intro-dot.r { background: #FF5F57; }
-    .intro-dot.y { background: #FFBD2E; }
-    .intro-dot.g { background: #28C840; }
-    .intro-tab { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); background: var(--bg-2); border: 1px solid var(--border); border-radius: 4px 4px 0 0; border-bottom: none; padding: 3px 12px; margin-left: 4px; }
-    .intro-tab span { color: var(--claude); }
-    .intro-code { padding: 24px 28px 20px; min-height: 260px; display: flex; flex-direction: column; }
-    .intro-line { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 2; white-space: pre; opacity: 0; transform: translateX(-6px); transition: opacity 0.2s ease, transform 0.2s ease; display: flex; align-items: baseline; gap: 12px; }
-    .intro-line.visible { opacity: 1; transform: translateX(0); }
-    .intro-lnum { color: var(--text-faint); user-select: none; width: 20px; text-align: right; flex-shrink: 0; font-size: 12px; }
-    .intro-line .kw  { color: var(--purple); }
-    .intro-line .fn  { color: var(--yellow); }
-    .intro-line .str { color: var(--green); }
-    .intro-line .cmt { color: var(--text-faint); font-style: italic; }
-    .intro-line .cls { color: var(--blue); }
-    .intro-line .num { color: var(--orange); }
-    .intro-line .acc { color: var(--claude); }
-    .intro-line .op  { color: var(--text-muted); }
-    .intro-cursor { display: inline-block; width: 8px; height: 14px; background: var(--claude); margin-left: 2px; vertical-align: middle; animation: blink 0.8s step-end infinite; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-    .intro-footer { padding: 0 28px 24px; display: flex; align-items: center; justify-content: space-between; }
-    .intro-loader { display: flex; align-items: center; gap: 10px; }
-    .intro-spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--claude); border-radius: 50%; animation: spin 0.7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .intro-loader-text { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); }
-    .intro-loader-text span { color: var(--claude); }
-    .intro-tagline { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); letter-spacing: 0.06em; }
-
-    /* ── Mobile / Responsive ── */
-    @media (max-width: 768px) {
-      .titlebar { padding: 0 12px; }
-      .titlebar-title { display: none; }
-      .status-bar { display: none; }
-      .sidebar-toggle { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 5px; background: none; cursor: pointer; color: var(--text-muted); flex-shrink: 0; }
-      .sidebar-toggle:hover { border-color: var(--claude); color: var(--claude); }
-      .sidebar { position: fixed; left: 0; top: 38px; bottom: 0; width: 260px; z-index: 500; background: var(--bg-2); border-right: 1px solid var(--border); transform: translateX(-100%); transition: transform 0.25s ease; overflow-y: auto; }
-      .sidebar.open { transform: translateX(0); }
-      .sidebar-overlay { display: none; position: fixed; inset: 0; top: 38px; background: rgba(0,0,0,0.55); z-index: 499; }
-      .sidebar-overlay.open { display: block; }
-      .layout { min-height: calc(100vh - 38px); }
-      .main { padding: 20px 16px; }
-      .page-title { font-size: 20px; }
-      .page-title .comment { font-size: 12px; }
-      .page-meta { font-size: 12px; margin-bottom: 18px; }
-      .task-input { font-size: 14px; }
-      .tags-row { flex-wrap: wrap; }
-      .task-item { padding: 10px 10px 10px 12px; gap: 8px; }
-      .task-text { font-size: 13px; }
-      #kanbanView { flex-direction: column; }
-      #kanbanView.visible { flex-direction: column; padding: 0 0 24px; gap: 12px; }
-      .kb-col-header { position: static; }
-      .pomo-float { bottom: 16px !important; right: 16px !important; left: auto !important; top: auto !important; width: 220px !important; }
-      .note-float { top: 60px !important; right: 8px !important; left: auto !important; bottom: auto !important; width: 220px !important; height: 260px !important; }
-      #calPopup { width: 220px !important; }
-      .pagination { flex-direction: column; gap: 8px; align-items: flex-start; }
-    }
-    .sidebar-toggle { display: none; }
-
-    /* ── User pill ── */
-    .user-pill-wrap { position: relative; }
-    .user-pill { display: flex; align-items: center; gap: 7px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); padding: 3px 8px 3px 6px; border: 1px solid var(--border); border-radius: 20px; background: var(--bg-3); cursor: pointer; transition: border-color 0.15s, background 0.15s; user-select: none; }
-    .user-pill:hover { border-color: var(--claude); background: var(--bg-2); }
-    .user-pill.open { border-color: var(--claude); background: var(--bg-2); }
-    .user-avatar { width: 20px; height: 20px; border-radius: 50%; background: var(--claude); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: white; flex-shrink: 0; overflow: hidden; }
-    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .user-name { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .pill-chevron { width: 12px; height: 12px; color: var(--text-faint); transition: transform 0.2s; flex-shrink: 0; }
-    .user-pill.open .pill-chevron { transform: rotate(180deg); }
-
-    .user-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; min-width: 160px; box-shadow: 0 12px 32px rgba(0,0,0,0.4); overflow: hidden; z-index: 999; opacity: 0; transform: translateY(-6px) scale(0.97); pointer-events: none; transition: opacity 0.15s ease, transform 0.15s ease; }
-    .user-dropdown.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
-    .dropdown-header { padding: 10px 14px 8px; border-bottom: 1px solid var(--border-soft); font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); letter-spacing: 0.05em; }
-    .dropdown-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); cursor: pointer; transition: background 0.12s, color 0.12s; border: none; background: none; width: 100%; text-align: left; }
-    .dropdown-item:hover { background: var(--bg-3); color: var(--text); }
-    .dropdown-item.danger:hover { background: rgba(255,123,114,0.08); color: var(--red); }
-    .dropdown-item svg { flex-shrink: 0; opacity: 0.6; }
-    .dropdown-item:hover svg { opacity: 1; }
-    .dropdown-divider { height: 1px; background: var(--border-soft); margin: 2px 0; }
-
-    /* ── Widgets modal ── */
-    .modal-backdrop { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
-    .modal-backdrop.open { opacity: 1; pointer-events: all; }
-    .modal { background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; width: min(400px, 92vw); box-shadow: 0 32px 80px rgba(0,0,0,0.6); transform: translateY(12px) scale(0.98); transition: transform 0.2s ease; overflow: hidden; }
-    .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
-    .modal-bar { background: var(--bg-3); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
-    .modal-bar-left { display: flex; align-items: center; gap: 10px; }
-    .modal-dots { display: flex; gap: 6px; }
-    .modal-tab { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); }
-    .modal-tab span { color: var(--claude); }
-    .modal-close { background: none; border: none; cursor: pointer; color: var(--text-faint); font-size: 16px; line-height: 1; padding: 2px 5px; border-radius: 4px; transition: color 0.15s, background 0.15s; }
-    .modal-close:hover { color: var(--text); background: var(--bg-2); }
-    .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 8px; }
-    .modal-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); letter-spacing: 0.08em; margin-bottom: 8px; }
-    .widget-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; background: var(--bg-3); border: 1px solid var(--border-soft); border-radius: 9px; transition: border-color 0.15s; }
-    .widget-row:hover { border-color: var(--border); }
-    .widget-row-left { display: flex; align-items: center; gap: 12px; }
-    .widget-row-icon { font-size: 16px; width: 24px; text-align: center; }
-    .widget-row-info { display: flex; flex-direction: column; }
-    .widget-row-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text); font-weight: 500; }
-    .widget-row-desc { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); margin-top: 2px; }
-    .toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
-    .toggle input { opacity: 0; width: 0; height: 0; }
-    .toggle-track { position: absolute; inset: 0; border-radius: 20px; background: var(--bg-2); border: 1px solid var(--border); cursor: pointer; transition: background 0.2s, border-color 0.2s; }
-    .toggle-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--text-faint); transition: transform 0.2s, background 0.2s; }
-    .toggle input:checked + .toggle-track { background: var(--claude-dim); border-color: var(--claude); }
-    .toggle input:checked + .toggle-track::after { transform: translateX(16px); background: var(--claude); }
-
-    /* ── Label Manager ── */
-    .label-manager-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--bg-3); border: 1px solid var(--border-soft); border-radius: 8px; margin-bottom: 5px; }
-    .label-manager-row:hover { border-color: var(--border); }
-
-    /* ── Settings Panel ── */
-    .settings-backdrop { position: fixed; inset: 0; z-index: 10001; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.22s ease; }
-    .settings-backdrop.open { opacity: 1; pointer-events: all; }
-    .settings-modal { background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px; width: min(760px, 95vw); height: min(540px, 90vh); box-shadow: 0 40px 100px rgba(0,0,0,0.7); transform: translateY(16px) scale(0.97); transition: transform 0.22s cubic-bezier(0.34,1.2,0.64,1); overflow: hidden; display: flex; flex-direction: column; }
-    .settings-backdrop.open .settings-modal { transform: translateY(0) scale(1); }
-    .settings-titlebar { background: var(--bg-3); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-    .settings-titlebar-left { display: flex; align-items: center; gap: 10px; }
-    .settings-title-tab { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); }
-    .settings-title-tab span { color: var(--claude); }
-    .settings-close { background: none; border: none; cursor: pointer; color: var(--text-faint); font-size: 16px; line-height: 1; padding: 2px 6px; border-radius: 4px; transition: color 0.15s, background 0.15s; }
-    .settings-close:hover { color: var(--text); background: var(--bg-2); }
-    .settings-layout { display: flex; flex: 1; min-height: 0; }
-    .settings-nav { width: 168px; flex-shrink: 0; background: var(--bg-3); border-right: 1px solid var(--border); padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; }
-    .settings-nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); border: 1px solid transparent; transition: all 0.14s; user-select: none; }
-    .settings-nav-item:hover { background: var(--bg-2); color: var(--text); }
-    .settings-nav-item.active { background: var(--bg-2); color: var(--text); border-color: var(--border-soft); }
-    .settings-nav-item.active .snav-icon { color: var(--claude); }
-    .snav-icon { font-size: 13px; width: 16px; text-align: center; flex-shrink: 0; }
-    .settings-content { flex: 1; overflow-y: auto; padding: 28px; min-width: 0; }
-    .settings-content::-webkit-scrollbar { width: 4px; }
-    .settings-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-    .settings-section { display: none; }
-    .settings-section.active { display: block; }
-    .settings-section-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-soft); }
-    .settings-section-title span { color: var(--claude); }
-    .setting-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border-soft); }
-    .setting-row:last-child { border-bottom: none; }
-    .setting-label { flex: 1; min-width: 0; }
-    .setting-label-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text); font-weight: 500; margin-bottom: 3px; }
-    .setting-label-desc { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); line-height: 1.5; }
-    .setting-control { flex-shrink: 0; display: flex; align-items: center; }
-    .seg-ctrl { display: flex; background: var(--bg-3); border: 1px solid var(--border); border-radius: 7px; padding: 2px; gap: 2px; }
-    .seg-btn { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 4px 10px; border: 1px solid transparent; border-radius: 5px; background: transparent; cursor: pointer; color: var(--text-muted); transition: all 0.14s; white-space: nowrap; }
-    .seg-btn:hover { color: var(--text); }
-    .seg-btn.active { background: var(--bg-2); color: var(--text); border-color: var(--border-soft); }
-    .color-swatches { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
-    .color-swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s; flex-shrink: 0; }
-    .color-swatch:hover { transform: scale(1.18); }
-    .color-swatch.active { border-color: white; box-shadow: 0 0 0 1px rgba(255,255,255,0.25); }
-    .profile-avatar-big { width: 52px; height: 52px; border-radius: 50%; background: var(--claude); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: white; flex-shrink: 0; overflow: hidden; border: 2px solid var(--border); }
-    .profile-avatar-big img { width: 100%; height: 100%; object-fit: cover; }
-    .profile-info { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border-soft); }
-    .profile-name { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; color: var(--text); }
-    .profile-email { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); margin-top: 3px; }
-    .profile-badge { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 2px 7px; border-radius: 4px; background: var(--claude-dim); color: var(--claude); margin-top: 6px; letter-spacing: 0.04em; }
-    .setting-input { background: var(--bg-3); border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text); transition: border-color 0.15s; width: 160px; }
-    .setting-input:focus { border-color: var(--claude); }
-    .setting-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 6px 14px; border-radius: 7px; cursor: pointer; border: 1px solid var(--border); background: var(--bg-3); color: var(--text-muted); transition: all 0.15s; }
-    .setting-btn:hover { border-color: var(--claude); color: var(--claude); background: var(--claude-dim); }
-    .setting-danger-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 6px 14px; border-radius: 7px; cursor: pointer; border: 1px solid rgba(255,123,114,0.35); background: transparent; color: var(--red); transition: all 0.15s; }
-    .setting-danger-btn:hover { background: rgba(255,123,114,0.1); border-color: var(--red); }
-    .about-logo { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-    .about-logo span { color: var(--claude); }
-    .about-version { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); margin-bottom: 20px; }
-    .about-desc { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); line-height: 1.8; margin-bottom: 20px; }
-    .about-links { display: flex; gap: 10px; flex-wrap: wrap; }
-    .about-link { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 6px 14px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg-3); color: var(--text-muted); text-decoration: none; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
-    .about-link:hover { border-color: var(--claude); color: var(--claude); background: var(--claude-dim); }
-    .about-divider { border: none; border-top: 1px solid var(--border-soft); margin: 20px 0; }
-    .about-author { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); }
-    .about-author span { color: var(--text-muted); }
-
-    /* ── Theme Picker ── */
-    .theme-picker { display: flex; gap: 12px; flex-wrap: wrap; }
-    .theme-card { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
-    .theme-preview { width: 88px; height: 64px; border-radius: 10px; border: 2px solid var(--border); overflow: hidden; position: relative; transition: border-color 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; }
-    .theme-card:hover .theme-preview { border-color: var(--text-muted); }
-    .theme-card.active .theme-preview { border-color: var(--claude); box-shadow: 0 0 0 3px var(--claude-dim); }
-    .theme-preview-bar { height: 14px; display: flex; align-items: center; padding: 0 6px; gap: 3px; flex-shrink: 0; }
-    .theme-preview-dot { width: 4px; height: 4px; border-radius: 50%; }
-    .theme-preview-body { flex: 1; padding: 5px 6px; display: flex; flex-direction: column; gap: 3px; }
-    .theme-preview-line { height: 3px; border-radius: 2px; }
-    .theme-preview-line.short { width: 55%; }
-    .theme-preview-line.medium { width: 75%; }
-    .theme-preview-input { height: 10px; border-radius: 3px; margin-top: 3px; border: 1px solid; }
-    .theme-preview.dark { background: #0D1117; }
-    .theme-preview.dark .theme-preview-bar { background: #161B22; border-bottom: 1px solid #30363D; }
-    .theme-preview.dark .theme-preview-dot { background: #30363D; }
-    .theme-preview.dark .theme-preview-line { background: #3D444D; }
-    .theme-preview.dark .theme-preview-input { background: #161B22; border-color: #30363D; }
-    .theme-preview.light { background: #F6F8FA; }
-    .theme-preview.light .theme-preview-bar { background: #FFFFFF; border-bottom: 1px solid #D0D7DE; }
-    .theme-preview.light .theme-preview-dot { background: #D0D7DE; }
-    .theme-preview.light .theme-preview-line { background: #D0D7DE; }
-    .theme-preview.light .theme-preview-input { background: #FFFFFF; border-color: #D0D7DE; }
-    .theme-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); letter-spacing: 0.06em; }
-    .theme-card.active .theme-label { color: var(--claude); }
-
-    /* ── Light theme overrides ── */
-    body.theme-light {
-      --bg:          #F6F8FA;
-      --bg-2:        #FFFFFF;
-      --bg-3:        #F0F2F4;
-      --border:      #D0D7DE;
-      --border-soft: #E8EAED;
-      --border-s:    #E8EAED;
-      --text:        #1F2328;
-      --text-muted:  #57606A;
-      --text-faint:  #ADBAC7;
-      --text-m:      #57606A;
-    }
-    body.theme-light .titlebar { background: #FFFFFF; }
-    body.theme-light .sidebar  { background: #F6F8FA; border-color: #D0D7DE; }
-    body.theme-light .task-item { background: #FFFFFF; border-color: #D0D7DE; }
-    body.theme-light .task-item:hover { background: #F6F8FA; border-color: #C0C8D2; }
-    body.theme-light .input-block { background: #FFFFFF; border-color: #D0D7DE; }
-    body.theme-light .pomo-float,
-    body.theme-light .note-float { background: #FFFFFF; border-color: #D0D7DE; }
-    body.theme-light .pomo-float-header,
-    body.theme-light .note-float-header,
-    body.theme-light .note-float-inner { background: #F0F2F4; }
-    body.theme-light .settings-modal { background: #FFFFFF; border-color: #D0D7DE; }
-    body.theme-light .settings-nav,
-    body.theme-light .settings-titlebar { background: #F0F2F4; }
-    body.theme-light .kb-card { background: #FFFFFF; border-color: #D0D7DE; }
-    body.theme-light .kb-col-header { background: #F0F2F4; border-color: #D0D7DE; }
-    body.theme-light .kb-card:hover { border-left-color: var(--claude); }
-    body.theme-light .statusbar { opacity: 0.95; }
-
-    body.font-sm .task-text   { font-size: 12px; }
-    body.font-sm .task-tag    { font-size: 9px; }
-    body.font-md .task-text   { font-size: 14px; }
-    body.font-lg .task-text   { font-size: 16px; }
-    body.font-lg .task-tag    { font-size: 11px; }
-
-    body.density-compact  .task-item { padding: 7px 12px 7px 14px; }
-    body.density-compact  .task-list { gap: 3px; }
-    body.density-comfortable .task-item { padding: 12px 12px 12px 14px; }
-    body.density-comfortable .task-list { gap: 6px; }
-  </style>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/layout.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/widgets.css"/>
+  <link rel="stylesheet" href="css/modals.css"/>
 </head>
 <body>
 
-<!-- Intro -->
+<!-- ── Intro ── -->
 <div id="introScreen">
   <div class="intro-window">
     <div class="intro-titlebar">
@@ -831,25 +32,40 @@
   </div>
 </div>
 
-<!-- App -->
+<!-- ── App ── -->
 <div class="app-wrapper" id="appWrapper">
 
+  <!-- Title Bar -->
   <div class="titlebar">
     <div class="titlebar-left">
       <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect y="1" width="14" height="1.5" rx="0.75" fill="currentColor"/><rect y="6" width="14" height="1.5" rx="0.75" fill="currentColor"/><rect y="11" width="14" height="1.5" rx="0.75" fill="currentColor"/></svg>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect y="1"  width="14" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect y="6"  width="14" height="1.5" rx="0.75" fill="currentColor"/>
+          <rect y="11" width="14" height="1.5" rx="0.75" fill="currentColor"/>
+        </svg>
       </button>
-      <div class="window-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+      <div class="window-dots">
+        <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+      </div>
       <div class="titlebar-title">tasks<span>.md</span> — devday</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <div class="view-toggle">
         <button class="view-btn active" id="btnList" onclick="switchView('list')">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="0" y="1" width="12" height="1.5" rx="0.75" fill="currentColor"/><rect x="0" y="5" width="12" height="1.5" rx="0.75" fill="currentColor"/><rect x="0" y="9" width="12" height="1.5" rx="0.75" fill="currentColor"/></svg>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <rect x="0" y="1" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+            <rect x="0" y="5" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+            <rect x="0" y="9" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+          </svg>
           list
         </button>
         <button class="view-btn" id="btnKanban" onclick="switchView('kanban')">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="0" y="0" width="3.2" height="12" rx="1" fill="currentColor"/><rect x="4.4" y="0" width="3.2" height="8" rx="1" fill="currentColor"/><rect x="8.8" y="0" width="3.2" height="10" rx="1" fill="currentColor"/></svg>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <rect x="0"   y="0" width="3.2" height="12" rx="1" fill="currentColor"/>
+            <rect x="4.4" y="0" width="3.2" height="8"  rx="1" fill="currentColor"/>
+            <rect x="8.8" y="0" width="3.2" height="10" rx="1" fill="currentColor"/>
+          </svg>
           kanban
         </button>
       </div>
@@ -857,7 +73,9 @@
         <div class="user-pill" id="userPillBtn" onclick="toggleUserMenu()">
           <div class="user-avatar" id="userAvatar"></div>
           <span class="user-name" id="userName"></span>
-          <svg class="pill-chevron" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg class="pill-chevron" viewBox="0 0 12 12" fill="none">
+            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </div>
         <div class="user-dropdown" id="userDropdown">
           <div class="dropdown-header" id="dropdownEmail">// user</div>
@@ -882,14 +100,12 @@
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
   <div class="layout">
-    <aside class="sidebar">
 
-      <!-- Clock -->
+    <!-- Sidebar -->
+    <aside class="sidebar">
       <div class="ascii-clock-wrap" id="clockWrap">
         <div class="seg-clock" id="segClock"></div>
       </div>
-
-      <!-- Weather -->
       <div class="weather-wrap" id="weatherWrap">
         <div class="weather-header">// <span id="weatherLocation">weather.live</span></div>
         <div class="weather-loading" id="weatherLoading">fetching data...</div>
@@ -905,8 +121,6 @@
           <div class="weather-forecast" id="wForecast"></div>
         </div>
       </div>
-
-      <!-- Explorer -->
       <div class="sidebar-section" style="margin-top:12px">Explorer</div>
       <button class="sidebar-item active" onclick="setFilter(this,'all')">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="#7D8590"/><rect x="9" y="2" width="5" height="5" rx="1" fill="#7D8590"/><rect x="2" y="9" width="5" height="5" rx="1" fill="#7D8590"/><rect x="9" y="9" width="5" height="5" rx="1" fill="#7D8590"/></svg>
@@ -932,23 +146,26 @@
         <div class="sidebar-progress-label"><span>progress</span><span id="progressPct">0%</span></div>
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
       </div>
-
     </aside>
 
+    <!-- Main -->
     <main class="main">
       <div class="breadcrumb">
-        <span>~/planner</span><span style="color:var(--text-faint)">/</span><span class="active" id="bcDate">today</span>
+        <span>~/planner</span><span style="color:var(--text-faint)">/</span>
+        <span class="active" id="bcDate">today</span>
       </div>
       <div class="page-title"># daily tasks <span class="comment">// stay focused</span></div>
       <div class="page-meta">
         <span class="kw">const</span>&nbsp;today&nbsp;=&nbsp;<span class="str">"<span id="metaDate"></span>"</span>&nbsp;<span class="cmt">// <span class="daystr" id="metaDay"></span></span>
       </div>
 
-      <!-- Input is always visible -->
+      <!-- Input -->
       <div id="inputArea">
         <div class="input-block">
           <div class="input-topbar">
-            <span class="input-topbar-label"><span class="fn">addTask</span><span class="paren">(</span><span class="str">"..."</span><span class="paren">)</span></span>
+            <span class="input-topbar-label">
+              <span class="fn">addTask</span><span class="paren">(</span><span class="str">"..."</span><span class="paren">)</span>
+            </span>
           </div>
           <div class="input-row">
             <span class="line-num">1</span>
@@ -961,7 +178,10 @@
             <span style="width:1px;background:var(--border);align-self:stretch;margin:2px 2px;display:inline-block;flex-shrink:0;"></span>
             <div style="position:relative;">
               <button class="due-btn" id="dueBtnDisplay" onclick="toggleCalendar()">
-                <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><rect x="1" y="2" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M4 1v2M8 1v2M1 5h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                  <rect x="1" y="2" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+                  <path d="M4 1v2M8 1v2M1 5h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
                 <span id="dueBtnLabel">due date</span>
               </button>
               <div class="cal-popup" id="calPopup">
@@ -982,6 +202,7 @@
         </div>
       </div>
 
+      <!-- List View -->
       <div id="listView">
         <div class="task-list" id="taskList"></div>
         <div class="empty-state" id="emptyState">
@@ -998,6 +219,7 @@
         </div>
       </div>
 
+      <!-- Kanban View -->
       <div id="kanbanView">
         <div class="kb-col" data-status="todo">
           <div class="kb-col-header"><div class="kb-col-title"><span class="kb-col-dot"></span>TODO</div><span class="kb-count" id="kb-count-todo">0</span></div>
@@ -1015,6 +237,7 @@
     </main>
   </div>
 
+  <!-- Status Bar -->
   <div class="statusbar">
     <div class="status-left">
       <div class="status-item">⎇ &nbsp;main</div>
@@ -1027,9 +250,9 @@
     </div>
   </div>
 
-</div>
+</div><!-- end .app-wrapper -->
 
-<!-- Pomodoro Float -->
+<!-- ── Pomodoro Float ── -->
 <div class="pomo-float" id="pomoFloat">
   <div class="pomo-float-header" id="pomoFloatHeader">
     <span class="pomo-float-title">// <span>pomodoro</span></span>
@@ -1066,7 +289,7 @@
   </div>
 </div>
 
-<!-- Notepad Float -->
+<!-- ── Notepad Float ── -->
 <div class="note-float" id="noteFloat">
   <div class="note-resize e"  data-dir="e"></div>
   <div class="note-resize w"  data-dir="w"></div>
@@ -1097,7 +320,7 @@
   </div>
 </div>
 
-<!-- Celebration -->
+<!-- ── Celebration ── -->
 <div class="celebrate-overlay" id="celebrateOverlay" onclick="closeCelebration(event)">
   <div class="celebrate-card" id="celebrateCard">
     <div class="celebrate-ascii" id="celebrateAscii"></div>
@@ -1108,1611 +331,7 @@
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-
-<script>
-  const POMO_POS_KEY = 'devday_pomo_pos';
-  const NOTE_POS_KEY = 'devday_note_pos';
-
-  // ── Firebase ──
-  const _firebaseConfig = {
-    apiKey:            "AIzaSyCha8LZ-7nbpF5IFwZj7SOxPe1H_l8ZAU0",
-    authDomain:        "devdaydb.firebaseapp.com",
-    databaseURL:       "https://devdaydb-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId:         "devdaydb",
-    storageBucket:     "devdaydb.firebasestorage.app",
-    messagingSenderId: "492517359800",
-    appId:             "1:492517359800:web:6f06865884a39c416ef44d"
-  };
-  firebase.initializeApp(_firebaseConfig);
-  const _db   = firebase.database();
-  const _auth = firebase.auth();
-  let   _userRef = null;
-  let   _activeListener = null;
-  const _deletingIds = new Set();
-
-  function dbSave(tasks) { if (_userRef) _userRef.set(tasks); }
-
-  function dbListen(cb) {
-    if (_activeListener && _userRef) _userRef.off('value', _activeListener);
-    _activeListener = _userRef.on('value', snap => {
-      const val = snap.val();
-      cb(Array.isArray(val) ? val : val ? Object.values(val) : []);
-    });
-  }
-
-  function dbDetach() {
-    if (_activeListener && _userRef) { _userRef.off('value', _activeListener); _activeListener = null; }
-    _userRef = null;
-  }
-
-  // ── Auth ──
-  function toggleUserMenu() {
-    const pill = document.getElementById('userPillBtn');
-    const dd   = document.getElementById('userDropdown');
-    const open = dd.classList.toggle('open');
-    pill.classList.toggle('open', open);
-  }
-  function openSettings() { closeUserMenu(); openSettingsPanel(); }
-  function closeUserMenu() {
-    document.getElementById('userDropdown')?.classList.remove('open');
-    document.getElementById('userPillBtn')?.classList.remove('open');
-  }
-  document.addEventListener('click', e => {
-    if (!document.getElementById('userPill')?.contains(e.target)) closeUserMenu();
-  });
-
-  function signOut() {
-    closeUserMenu(); dbDetach(); tasks = [];
-    _auth.signOut().then(() => { window.location.href = 'login.html'; });
-  }
-
-  _auth.onAuthStateChanged(user => {
-    if (user) {
-      _userRef = _db.ref('users/' + user.uid + '/tasks');
-      const pill     = document.getElementById('userPill');
-      const nameEl   = document.getElementById('userName');
-      const avatarEl = document.getElementById('userAvatar');
-      const emailEl  = document.getElementById('dropdownEmail');
-      pill.style.display = 'block';
-      nameEl.textContent = user.displayName?.split(' ')[0] || 'user';
-      if (emailEl) emailEl.textContent = user.email || user.displayName || 'guest';
-      if (user.photoURL) {
-        avatarEl.innerHTML = `<img src="${user.photoURL}" alt="avatar"/>`;
-      } else {
-        avatarEl.textContent = (user.displayName||'U')[0].toUpperCase();
-      }
-      init();
-    } else {
-      window.location.href = 'login.html';
-    }
-  });
-
-  let tasks         = [];
-  let selectedTag   = null;
-  let selectedDue   = null;
-  let currentPage   = 1;
-  let PAGE_SIZE_current = 8;
-  let currentFilter = 'all';
-  let currentView   = 'list';
-  let dragId        = null;
-
-  // ── Labels ──
-  const LABELS_KEY = 'devday_labels';
-  const LABEL_DEFAULTS = [
-    { id: 'work',     name: 'work',     color: '#58A6FF', enabled: true, isDefault: true },
-    { id: 'personal', name: 'personal', color: '#BC8CFF', enabled: true, isDefault: true },
-    { id: 'health',   name: 'health',   color: '#3FB950', enabled: true, isDefault: true },
-  ];
-
-  function getLabels() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(LABELS_KEY) || 'null');
-      if (saved && Array.isArray(saved) && saved.length) return saved;
-    } catch(e) {}
-    return LABEL_DEFAULTS.map(l => ({...l}));
-  }
-
-  function saveLabels(labels) { localStorage.setItem(LABELS_KEY, JSON.stringify(labels)); }
-
-  function hexAlpha(hex, a) {
-    let h = hex.replace('#','');
-    if (h.length === 3) h = h.split('').map(c=>c+c).join('');
-    const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
-    return `rgba(${r},${g},${b},${a})`;
-  }
-
-  // Check if a tag id is currently enabled
-  function isTagEnabled(id) {
-    if (!id) return false;
-    const labels = getLabels();
-    const label = labels.find(l => l.id === id);
-    return label ? label.enabled : false;
-  }
-
-  function renderTagButtons() {
-    const container = document.getElementById('tagBtnsContainer');
-    if (!container) return;
-    const labels = getLabels().filter(l => l.enabled);
-    container.innerHTML = labels.map(l =>
-      `<button class="tag-btn${selectedTag===l.id?' active':''}"
-        data-tag="${escHtml(l.id)}"
-        style="--tag-active-bg:${hexAlpha(l.color,0.12)};--tag-active-ink:${l.color}"
-        onclick="toggleTag(this)">#${escHtml(l.name)}</button>`
-    ).join('');
-  }
-
-  function renderSidebarLabels() {
-    const el = document.getElementById('sidebarLabels');
-    if (!el) return;
-    el.innerHTML = getLabels().map(l => {
-      const count = tasks.filter(t => t.tag === l.id).length;
-      return `<button class="sidebar-item${currentFilter===l.id?' active':''}" onclick="setFilter(this,'${l.id}')">
-        <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="${l.color}"/></svg>
-        ${escHtml(l.name)} <span class="dot-count" id="count-${l.id}">${count}</span>
-      </button>`;
-    }).join('');
-  }
-
-  function renderLabelsManager() {
-    const el = document.getElementById('labelsManager');
-    if (!el) return;
-    const labels = getLabels();
-    if (!labels.length) {
-      el.innerHTML = `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-faint);font-style:italic">// no labels yet</div>`;
-      return;
-    }
-    el.innerHTML = labels.map(l => `
-      <div class="label-manager-row">
-        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
-          <div style="width:14px;height:14px;border-radius:50%;background:${l.color};flex-shrink:0;border:1px solid rgba(255,255,255,0.15)"></div>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);">#${escHtml(l.name)}</span>
-          ${l.isDefault ? `<span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-faint);background:var(--bg-3);padding:1px 6px;border-radius:4px;border:1px solid var(--border-soft)">default</span>` : ''}
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-          ${!l.isDefault ? `<input type="color" value="${l.color}" onchange="updateLabelColor('${l.id}',this.value)"
-            style="width:24px;height:24px;border:1px solid var(--border);border-radius:5px;background:var(--bg-3);cursor:pointer;padding:1px;" title="change color"/>` : ''}
-          <label class="toggle" title="${l.enabled?'disable':'enable'} label">
-            <input type="checkbox" ${l.enabled?'checked':''} onchange="toggleLabelEnabled('${l.id}',this.checked)"/>
-            <div class="toggle-track"></div>
-          </label>
-          ${!l.isDefault ? `<button onclick="deleteLabel('${l.id}')"
-            style="background:none;border:none;cursor:pointer;color:var(--text-faint);padding:2px 5px;border-radius:4px;font-size:13px;transition:color 0.15s"
-            onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-faint)'"
-            title="delete">✕</button>` : ''}
-        </div>
-      </div>
-    `).join('');
-  }
-
-  function addCustomLabel() {
-    const nameInput  = document.getElementById('newLabelName');
-    const colorInput = document.getElementById('newLabelColor');
-    const name = nameInput.value.trim().toLowerCase().replace(/\s+/g,'-').slice(0,16);
-    if (!name) return;
-    const labels = getLabels();
-    if (labels.find(l => l.id === name)) {
-      nameInput.style.borderColor = 'var(--red)';
-      setTimeout(() => nameInput.style.borderColor = '', 1200);
-      return;
-    }
-    labels.push({ id: name, name, color: colorInput.value, enabled: true, isDefault: false });
-    saveLabels(labels);
-    nameInput.value = ''; colorInput.value = '#58A6FF';
-    _refreshLabelsUI();
-  }
-
-  function toggleLabelEnabled(id, enabled) {
-    const labels = getLabels();
-    const l = labels.find(l => l.id === id);
-    if (l) { l.enabled = enabled; saveLabels(labels); }
-    if (selectedTag === id && !enabled) selectedTag = null;
-    _refreshLabelsUI();
-  }
-
-  function updateLabelColor(id, color) {
-    const labels = getLabels();
-    const l = labels.find(l => l.id === id);
-    if (l) { l.color = color; saveLabels(labels); }
-    _refreshLabelsUI();
-    renderTasks();
-    if (currentView === 'kanban') renderKanban();
-  }
-
-  function deleteLabel(id) {
-    saveLabels(getLabels().filter(l => l.id !== id));
-    if (selectedTag === id) selectedTag = null;
-    if (currentFilter === id) currentFilter = 'all';
-    _refreshLabelsUI();
-  }
-
-  function _refreshLabelsUI() {
-    renderLabelsManager();
-    renderTagButtons();
-    renderSidebarLabels();
-  }
-
-  // ── Core ──
-  function normalizeTasks(arr) {
-    return arr.map(t => ({ ...t, status: t.status || (t.done ? 'done' : 'todo'), notes: t.notes || '' }));
-  }
-
-  function init() {
-    setDate();
-    startClock();
-    fetchWeather();
-    initPomo();
-    initNotepad();
-    loadPomoState();
-    loadNoteState();
-
-    // Apply default tag from settings
-    const defaultTag = localStorage.getItem('settings_default_tag');
-    if (defaultTag && isTagEnabled(defaultTag)) {
-      selectedTag = defaultTag;
-    } else {
-      selectedTag = null;
-    }
-    renderTagButtons();
-
-    renderSidebarLabels();
-    document.getElementById('taskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
-
-    dbListen(remote => {
-      if (_editingNote) return;
-      if (_deletingIds.size > 0) return;
-      tasks = normalizeTasks(remote);
-      renderTasks();
-      if (currentView === 'kanban') renderKanban();
-      updateCounts();
-      renderSidebarLabels();
-    });
-  }
-
-  function savePomoState() {
-    const el = document.getElementById('pomoFloat');
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    localStorage.setItem(POMO_POS_KEY, JSON.stringify({ top: rect.top, left: rect.left, collapsed: el.classList.contains('collapsed') }));
-  }
-
-  function loadPomoState() {
-    const data = localStorage.getItem(POMO_POS_KEY);
-    if (!data) return;
-    try {
-      const state = JSON.parse(data);
-      const el = document.getElementById('pomoFloat');
-      if (!el) return;
-      el.style.top = state.top + 'px'; el.style.left = state.left + 'px';
-      el.style.bottom = 'auto'; el.style.right = 'auto';
-      el.classList.toggle('collapsed', !!state.collapsed);
-    } catch(e) {}
-  }
-
-  function saveNoteState() {
-    const el = document.getElementById('noteFloat');
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    localStorage.setItem(NOTE_POS_KEY, JSON.stringify({ top: rect.top, left: rect.left, width: el.offsetWidth, height: el.offsetHeight, collapsed: el.classList.contains('collapsed') }));
-  }
-
-  function loadNoteState() {
-    const data = localStorage.getItem(NOTE_POS_KEY);
-    if (!data) return;
-    try {
-      const state = JSON.parse(data);
-      const el = document.getElementById('noteFloat');
-      if (!el) return;
-      el.style.top = state.top + 'px'; el.style.left = state.left + 'px';
-      el.style.width = state.width + 'px'; el.style.height = state.height + 'px';
-      el.style.bottom = 'auto'; el.style.right = 'auto';
-      if (state.collapsed) { el.classList.add('collapsed'); el._savedHeight = state.height; }
-      else el.classList.remove('collapsed');
-    } catch(e) {}
-  }
-
-  function setDate() {
-    const now    = new Date();
-    const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    document.getElementById('metaDate').textContent = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
-    document.getElementById('metaDay').textContent  = days[now.getDay()];
-    document.getElementById('bcDate').textContent   = `${months[now.getMonth()]}-${String(now.getDate()).padStart(2,'0')}`;
-  }
-
-  // ── Seven-Segment Clock ──
-  let SEG_ON = '#DA7756', SEG_OFF = '#1C1009', SEG_GLOW = 'drop-shadow(0 0 4px rgba(218,119,86,0.8))';
-  function getSegOff() { return document.body.classList.contains('theme-light') ? '#D8DCE0' : '#1C1009'; }
-  const SEG_MAP = { '0':[1,1,1,1,1,1,0],'1':[0,1,1,0,0,0,0],'2':[1,1,0,1,1,0,1],'3':[1,1,1,1,0,0,1],'4':[0,1,1,0,0,1,1],'5':[1,0,1,1,0,1,1],'6':[1,0,1,1,1,1,1],'7':[1,1,1,0,0,0,0],'8':[1,1,1,1,1,1,1],'9':[1,1,1,1,0,1,1] };
-
-  function digitSVG(ch) {
-    const s = SEG_MAP[ch]||[0,0,0,0,0,0,0], c = i => s[i]?SEG_ON:getSegOff(), f = s.some(x=>x)?`filter="${SEG_GLOW}"`:'';
-    return `<svg width="26" height="44" viewBox="0 0 20 38" xmlns="http://www.w3.org/2000/svg" ${f}>
-      <polygon points="3,1 17,1 15,4 5,4" fill="${c(0)}"/>
-      <polygon points="18,2 18,17 15,15 15,5" fill="${c(1)}"/>
-      <polygon points="18,21 18,36 15,33 15,23" fill="${c(2)}"/>
-      <polygon points="3,37 17,37 15,34 5,34" fill="${c(3)}"/>
-      <polygon points="2,21 2,36 5,33 5,23" fill="${c(4)}"/>
-      <polygon points="2,2 2,17 5,15 5,5" fill="${c(5)}"/>
-      <polygon points="3,19 5,16 15,16 17,19 15,22 5,22" fill="${c(6)}"/>
-    </svg>`;
-  }
-
-  function colonSVG(lit) {
-    const col = lit?SEG_ON:getSegOff(), f = lit?`filter="${SEG_GLOW}"`:'' ;
-    return `<svg width="14" height="44" viewBox="0 0 10 38" xmlns="http://www.w3.org/2000/svg" ${f}><circle cx="5" cy="12" r="2.8" fill="${col}"/><circle cx="5" cy="26" r="2.8" fill="${col}"/></svg>`;
-  }
-
-  function renderAsciiClock() {
-    const now = new Date(), h = String(now.getHours()).padStart(2,'0'), m = String(now.getMinutes()).padStart(2,'0');
-    document.getElementById('segClock').innerHTML = digitSVG(h[0])+digitSVG(h[1])+colonSVG(now.getSeconds()%2===0)+digitSVG(m[0])+digitSVG(m[1]);
-    document.getElementById('statusTime').textContent = `${h}:${m}`;
-  }
-  function startClock() { renderAsciiClock(); setInterval(renderAsciiClock, 1000); }
-
-  // ── Weather ──
-  const DOT_ICONS = {
-    clear:         [[0,0,0,1,0,0,0,0,0],[0,0,0,0,0,1,0,0,0],[0,1,0,0,0,0,0,1,0],[0,0,0,1,1,1,0,0,0],[1,0,1,1,1,1,1,0,1],[0,0,0,1,1,1,0,0,0],[0,1,0,0,0,0,0,1,0],[0,0,0,0,0,1,0,0,0],[0,0,0,1,0,0,0,0,0]],
-    partly_cloudy: [[0,0,0,1,0,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,1,1,1,1,1,0,0],[0,1,0,0,0,0,0,1,0],[0,0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,1,1],[0,0,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0]],
-    cloudy:        [[0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,1,1,0,0,0,0],[1,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,0],[0,0,1,1,1,1,1,0,0],[0,0,0,0,0,0,0,0,0]],
-    rain:          [[0,0,1,1,1,0,0,0,0],[0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],[0,1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0,1],[0,1,0,1,0,1,0,1,0],[0,0,1,0,1,0,1,0,0]],
-    snow:          [[0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0],[1,0,1,0,0,0,1,0,1],[0,1,0,0,0,0,0,1,0],[1,0,1,0,0,0,1,0,1],[0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0]],
-    storm:         [[0,1,1,1,1,1,0,0,0],[1,1,1,1,1,1,1,0,0],[1,1,1,1,1,1,1,1,0],[0,0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0,0],[0,1,1,0,0,0,0,0,0],[0,1,1,1,1,0,0,0,0],[0,0,0,1,0,0,0,0,0],[0,0,0,1,0,0,0,0,0]],
-    fog:           [[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0]],
-  };
-
-  function drawWeatherDots(canvasEl, iconKey) {
-    canvasEl.dataset.icon = iconKey;
-    const grid = DOT_ICONS[iconKey]||DOT_ICONS.clear, ctx = canvasEl.getContext('2d'), size = canvasEl.width;
-    const pad = size*0.06, cW = (size-pad*2)/9, cH = (size-pad*2)/9, r = cW*0.38;
-    const accent = getComputedStyle(document.documentElement).getPropertyValue('--claude').trim();
-    ctx.clearRect(0,0,size,size);
-    for (let row=0;row<9;row++) for (let col=0;col<9;col++) {
-      const on = grid[row][col]===1;
-      ctx.beginPath(); ctx.arc(pad+col*cW+cW/2, pad+row*cH+cH/2, r, 0, Math.PI*2);
-      if (on) { ctx.fillStyle=accent; ctx.shadowColor=accent; ctx.shadowBlur=size>50?7:4; }
-      else    { ctx.fillStyle=document.body.classList.contains('theme-light')?'#D8DCE0':'#21262D'; ctx.shadowBlur=0; }
-      ctx.fill();
-    }
-  }
-
-  function codeToIcon(c) { if(c===0)return'clear'; if(c<=2)return'partly_cloudy'; if(c===3)return'cloudy'; if(c<=48)return'fog'; if(c<=67||c<=82)return'rain'; if(c<=77)return'snow'; return'storm'; }
-  const WX_DESC = {0:'clear_sky',1:'mainly_clear',2:'partly_cloudy',3:'overcast',45:'fog',48:'rime_fog',51:'drizzle_light',53:'drizzle',55:'drizzle_heavy',61:'rain_light',63:'rain',65:'rain_heavy',71:'snow_light',73:'snow',75:'snow_heavy',80:'showers_light',81:'showers',82:'showers_violent',95:'thunderstorm',96:'thunderstorm_hail',99:'thunderstorm_hail'};
-
-  async function fetchWeather() {
-    try {
-      const coords = await new Promise(res => {
-        if (!navigator.geolocation) return res({lat:38.7169,lon:-9.1399});
-        navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lon:p.coords.longitude}),()=>res({lat:38.7169,lon:-9.1399}),{timeout:4000});
-      });
-      const data = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m,precipitation&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&timezone=auto&forecast_days=4&wind_speed_unit=kmh&temperature_unit=celsius`)).json();
-      try {
-        const gd = await (await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lon}&format=json`)).json();
-        const city = gd.address?.city||gd.address?.town||gd.address?.village||gd.address?.county||'';
-        const cc   = gd.address?.country_code?.toUpperCase()||'';
-        if (city) document.getElementById('weatherLocation').textContent = `${city}, ${cc}`;
-      } catch(_) {}
-      const cur=data.current, daily=data.daily, code=cur.weather_code;
-      drawWeatherDots(document.getElementById('weatherCanvas'), codeToIcon(code));
-      document.getElementById('wTemp').textContent = `${Math.round(cur.temperature_2m)}°`;
-      document.getElementById('wDesc').textContent = (WX_DESC[code]||'unknown').replace(/_/g,' ');
-      document.getElementById('wBadges').innerHTML = [
-        {val:`${cur.relative_humidity_2m}%`,label:'HUMID',hi:false},
-        {val:`${Math.round(cur.wind_speed_10m)}`,label:'KM/H',hi:false},
-        {val:`${cur.precipitation??0}`,label:'MM',hi:(cur.precipitation??0)>0},
-      ].map(b=>`<div class="weather-badge ${b.hi?'highlight':''}"><span class="badge-val">${b.val}</span><span class="badge-label">${b.label}</span></div>`).join('');
-      const fdays=['SUN','MON','TUE','WED','THU','FRI','SAT'];
-      document.getElementById('wForecast').innerHTML = daily.time.slice(1,4).map((t,i)=>{
-        const d=new Date(t+'T12:00:00'),id=`fc-${i}`;
-        setTimeout(()=>{const el=document.getElementById(id);if(el)drawWeatherDots(el,codeToIcon(daily.weather_code[i+1]));},50);
-        return `<div class="forecast-row"><span class="forecast-day">${fdays[d.getDay()]}</span><div class="forecast-dots"><canvas id="${id}" width="36" height="36" style="image-rendering:pixelated"></canvas></div><span class="forecast-temps"><span class="hi">${Math.round(daily.temperature_2m_max[i+1])}°</span> / ${Math.round(daily.temperature_2m_min[i+1])}°</span></div>`;
-      }).join('');
-      document.getElementById('weatherLoading').style.display='none';
-      document.getElementById('weatherWidget').style.display='block';
-    } catch(e) { document.getElementById('weatherLoading').textContent='// fetch failed'; }
-  }
-
-  // ── Pomodoro ──
-  const POMO_WORK_SECS=25*60, POMO_BREAK_SECS=5*60, POMO_SESSIONS=4;
-  const RING_CIRC = 2*Math.PI*66;
-  let pomoMode='work', pomoRunning=false, pomoSecsLeft=POMO_WORK_SECS, pomoInterval=null, pomoDone=0;
-
-  function initPomo() {
-    const fill = document.getElementById('pomoRingFill');
-    fill.style.strokeDasharray = RING_CIRC;
-    fill.style.strokeDashoffset = 0;
-    updatePomoDisplay(); updatePomoRing(); updatePomoSessions();
-  }
-
-  function setPomoMode(mode) {
-    pomoMode=mode; pomoRunning=false; clearInterval(pomoInterval);
-    pomoSecsLeft = mode==='work'?POMO_WORK_SECS:POMO_BREAK_SECS;
-    document.getElementById('pomoBtnWork').classList.toggle('active',  mode==='work');
-    document.getElementById('pomoBtnBreak').classList.toggle('active', mode==='break');
-    document.getElementById('pomoRingFill').classList.toggle('break',  mode==='break');
-    document.getElementById('pomoPlayBtn').classList.toggle('active-break', mode==='break');
-    document.getElementById('pomoDisplay').classList.remove('running');
-    updatePomoDisplay(); updatePomoRing(); setPomoLabel('ready'); setPlayIcon(false);
-  }
-
-  function togglePomo() { pomoRunning ? pausePomo() : startPomo(); }
-
-  function startPomo() {
-    pomoRunning=true; setPlayIcon(true);
-    setPomoLabel(pomoMode==='work'?'focus':'rest');
-    document.getElementById('pomoDisplay').classList.add('running');
-    pomoInterval = setInterval(()=>{
-      pomoSecsLeft--; updatePomoDisplay(); updatePomoRing();
-      if (pomoSecsLeft<=0) { clearInterval(pomoInterval); pomoRunning=false; onPomoComplete(); }
-    },1000);
-  }
-
-  function pausePomo() {
-    pomoRunning=false; clearInterval(pomoInterval); setPlayIcon(false);
-    setPomoLabel('paused'); document.getElementById('pomoDisplay').classList.remove('running');
-  }
-
-  function resetPomo() {
-    pomoRunning=false; clearInterval(pomoInterval);
-    pomoSecsLeft=pomoMode==='work'?POMO_WORK_SECS:POMO_BREAK_SECS;
-    document.getElementById('pomoDisplay').classList.remove('running');
-    updatePomoDisplay(); updatePomoRing(); setPomoLabel('ready'); setPlayIcon(false);
-  }
-
-  function skipPomo() {
-    pomoRunning=false; clearInterval(pomoInterval);
-    document.getElementById('pomoDisplay').classList.remove('running');
-    onPomoComplete();
-  }
-
-  function onPomoComplete() {
-    setPlayIcon(false); document.getElementById('pomoDisplay').classList.remove('running');
-    if (pomoMode==='work') {
-      pomoDone = Math.min(pomoDone+1, POMO_SESSIONS); updatePomoSessions();
-      if (pomoDone>=POMO_SESSIONS) { pomoDone=0; updatePomoSessions(); }
-      setPomoLabel('done! take a break 🎉');
-      setTimeout(()=>setPomoMode('break'),1200);
-    } else {
-      setPomoLabel('break over — back to it 💪');
-      setTimeout(()=>setPomoMode('work'),1200);
-    }
-  }
-
-  function togglePomoFloat() {
-    document.getElementById('pomoFloat').classList.toggle('collapsed');
-    savePomoState();
-  }
-
-  (function initPomoFloat() {
-    const el     = document.getElementById('pomoFloat');
-    const header = el.querySelector('.pomo-float-header');
-    let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0, moved = false;
-
-    function getPos(e) {
-      const src = (e.touches && e.touches.length) ? e.touches[0] : (e.changedTouches && e.changedTouches.length) ? e.changedTouches[0] : e;
-      return { x: src.clientX, y: src.clientY };
-    }
-
-    function ensureTopLeft() {
-      const r = el.getBoundingClientRect();
-      el.style.top = r.top + 'px'; el.style.left = r.left + 'px';
-      el.style.bottom = 'auto'; el.style.right = 'auto';
-    }
-
-    function onDown(e) {
-      if (e.target.closest('button')) return;
-      e.preventDefault();
-      ensureTopLeft();
-      const {x, y} = getPos(e);
-      dragging = true; moved = false;
-      startX = x; startY = y;
-      origLeft = parseInt(el.style.left) || 0;
-      origTop  = parseInt(el.style.top)  || 0;
-      el.classList.add('dragging');
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup',   onUp);
-      document.addEventListener('touchmove', onMove, {passive: false});
-      document.addEventListener('touchend',  onUp);
-    }
-
-    function onMove(e) {
-      if (!dragging) return;
-      e.preventDefault();
-      const {x, y} = getPos(e);
-      const dx = x - startX, dy = y - startY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
-      el.style.left = Math.max(0, Math.min(window.innerWidth  - el.offsetWidth,  origLeft + dx)) + 'px';
-      el.style.top  = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, origTop  + dy)) + 'px';
-    }
-
-    function onUp() {
-      if (!dragging) return;
-      dragging = false; el.classList.remove('dragging');
-      if (!moved) { togglePomoFloat(); } else { savePomoState(); }
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup',   onUp);
-      document.removeEventListener('touchmove', onMove);
-      document.removeEventListener('touchend',  onUp);
-    }
-
-    header.addEventListener('mousedown',  onDown);
-    header.addEventListener('touchstart', onDown, {passive: false});
-  })();
-
-  function updatePomoDisplay() {
-    const mins=String(Math.floor(pomoSecsLeft/60)).padStart(2,'0'), secs=String(pomoSecsLeft%60).padStart(2,'0');
-    document.getElementById('pomoDisplay').innerHTML =
-      digitSVG(mins[0])+digitSVG(mins[1])+colonSVG(pomoRunning?(pomoSecsLeft%2===0):true)+digitSVG(secs[0])+digitSVG(secs[1]);
-    document.getElementById('pomoMiniTime').textContent = `${mins}:${secs}`;
-  }
-
-  function updatePomoRing() {
-    const total = pomoMode==='work'?POMO_WORK_SECS:POMO_BREAK_SECS;
-    document.getElementById('pomoRingFill').style.strokeDashoffset = RING_CIRC*(1-pomoSecsLeft/total);
-  }
-
-  function updatePomoSessions() {
-    document.getElementById('pomoSessions').innerHTML =
-      Array.from({length:POMO_SESSIONS},(_,i)=>`<div class="pomo-session-dot ${i<pomoDone?'done':''}"></div>`).join('');
-  }
-
-  function setPomoLabel(text) {
-    const el = document.getElementById('pomoLabel');
-    el.textContent = text;
-    el.className = 'pomodoro-label '+(text==='ready'||text==='paused'?'idle':pomoMode==='break'?'break':'work');
-  }
-
-  function setPlayIcon(playing) {
-    document.getElementById('pomoPlayIcon').innerHTML = playing
-      ? '<rect x="4" y="3" width="3" height="10" rx="1" fill="currentColor"/><rect x="9" y="3" width="3" height="10" rx="1" fill="currentColor"/>'
-      : '<path d="M5 3l9 5-9 5V3z" fill="currentColor"/>';
-  }
-
-  // ── Due Date Helpers ──
-  function todayStr() {
-    const d=new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  }
-
-  function dueMeta(due) {
-    if (!due) return null;
-    const today=todayStr();
-    const diff=Math.round((new Date(due+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
-    if (diff<0)   return {cls:'overdue',  label:`overdue ${Math.abs(diff)}d`, icon:'⚠'};
-    if (diff===0) return {cls:'today',    label:'today',                       icon:'◈'};
-    if (diff===1) return {cls:'soon',     label:'tomorrow',                    icon:'◷'};
-    if (diff<=6)  return {cls:'soon',     label:`in ${diff}d`,                 icon:'◷'};
-    return {cls:'upcoming', label:fmtDate(due), icon:'◈'};
-  }
-
-  function fmtDate(iso) {
-    const [,m,d]=iso.split('-');
-    return `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]} ${parseInt(d)}`;
-  }
-
-  function setDue(iso) {
-    selectedDue = iso||null;
-    const btn=document.getElementById('dueBtnDisplay'), lbl=document.getElementById('dueBtnLabel');
-    if (iso) { btn.classList.add('has-date'); lbl.textContent=fmtDate(iso); }
-    else     { btn.classList.remove('has-date'); lbl.textContent='due date'; }
-  }
-
-  function clearDue() { setDue(null); closeCalendar(); }
-
-  // ── Custom Calendar ──
-  let calYear=0, calMonth=0;
-
-  function toggleCalendar() {
-    const pop=document.getElementById('calPopup');
-    if (pop.classList.contains('open')) { closeCalendar(); return; }
-    const now=new Date();
-    calYear=now.getFullYear(); calMonth=now.getMonth();
-    if (selectedDue) { const [y,m]=selectedDue.split('-'); calYear=+y; calMonth=+m-1; }
-    renderCalendar();
-    const btn=document.getElementById('dueBtnDisplay');
-    const rect=btn.getBoundingClientRect();
-    pop.style.display='block';
-    const popH=pop.offsetHeight;
-    pop.style.display='';
-    pop.style.left=rect.left+'px';
-    pop.style.top=(rect.top - popH - 6)+'px';
-    pop.classList.add('open');
-    setTimeout(()=>document.addEventListener('mousedown', calOutsideClick), 0);
-  }
-
-  function closeCalendar() {
-    document.getElementById('calPopup').classList.remove('open');
-    document.removeEventListener('mousedown', calOutsideClick);
-  }
-
-  function calOutsideClick(e) {
-    const pop=document.getElementById('calPopup'), btn=document.getElementById('dueBtnDisplay');
-    if (!pop.contains(e.target) && !btn.contains(e.target)) closeCalendar();
-  }
-
-  function calNav(dir) { calMonth+=dir; if(calMonth>11){calMonth=0;calYear++;} if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
-
-  function renderCalendar() {
-    const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-    document.getElementById('calMonthLabel').textContent=`${months[calMonth]} ${calYear}`;
-    const today=todayStr();
-    const firstDay=new Date(calYear,calMonth,1).getDay();
-    const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
-    let html='';
-    for(let i=0;i<firstDay;i++) html+=`<div class="cal-day cal-empty"></div>`;
-    for(let d=1;d<=daysInMonth;d++){
-      const iso=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isPast=iso<today, isToday=iso===today, isSel=iso===selectedDue;
-      const cls=['cal-day',isPast?'cal-past':'',isToday?'cal-today':'',isSel?'cal-selected':''].join(' ').trim();
-      const click=isPast?'':`onclick="pickDay('${iso}')"`;
-      html+=`<div class="${cls}" ${click}>${d}</div>`;
-    }
-    document.getElementById('calGrid').innerHTML=html;
-  }
-
-  function pickDay(iso) { setDue(iso); closeCalendar(); }
-
-  // ── Tasks ──
-  function save() { dbSave(tasks); }
-
-  // ── Task Notes ──
-  const _openNotes = new Set();
-  let _noteSaveTimer = null;
-  let _editingNote = false;
-
-  function toggleNotes(id) {
-    if (_openNotes.has(id)) { _openNotes.delete(id); } else { _openNotes.add(id); }
-    const area = document.getElementById(`notes-area-${id}`);
-    const btn  = document.querySelector(`[data-id="${id}"] .notes-btn`);
-    if (area) area.classList.toggle('open', _openNotes.has(id));
-    if (btn)  btn.classList.toggle('open', _openNotes.has(id));
-    if (_openNotes.has(id)) {
-      setTimeout(() => {
-        const ta = document.getElementById(`notes-ta-${id}`);
-        if (!ta) return;
-        ta.focus();
-        ta.addEventListener('focus', () => { _editingNote = true; });
-        ta.addEventListener('blur',  () => { _editingNote = false; clearTimeout(_noteSaveTimer); saveNote(id); });
-      }, 50);
-    }
-  }
-
-  function scheduleNoteSave(id) {
-    _editingNote = true;
-    clearTimeout(_noteSaveTimer);
-    _noteSaveTimer = setTimeout(() => saveNote(id), 1500);
-  }
-
-  function saveNote(id) {
-    const ta = document.getElementById(`notes-ta-${id}`);
-    if (!ta) return;
-    const t = tasks.find(t => t.id === id);
-    if (!t) return;
-    const val = ta.value;
-    if (t.notes === val) return;
-    t.notes = val; save();
-    const btn = document.querySelector(`[data-id="${id}"] .notes-btn`);
-    if (btn) btn.classList.toggle('has-notes', val.trim().length > 0);
-  }
-
-  function addTask() {
-    const input=document.getElementById('taskInput'), text=input.value.trim();
-    if (!text) return;
-
-    // Determine tag to use: selectedTag, or default from settings if enabled
-    let tagToUse = selectedTag;
-    if (!tagToUse) {
-      const defaultTag = localStorage.getItem('settings_default_tag');
-      if (defaultTag && isTagEnabled(defaultTag)) {
-        tagToUse = defaultTag;
-      }
-    }
-
-    tasks.unshift({id:Date.now(),text,tag:tagToUse,due:selectedDue,done:false,status:'todo'});
-    save(); input.value=''; currentPage=1;
-    setDue(null);
-    // Keep selectedTag as is (user may want to keep using same tag)
-    renderTagButtons();
-    renderTasks(); if(currentView==='kanban')renderKanban();
-  }
-
-  function toggleDone(id) {
-    const t=tasks.find(t=>t.id===id);
-    if (t) { t.done=!t.done; t.status=t.done?'done':'todo'; save(); renderTasks(); if(t.done)showCelebration(t.text); }
-  }
-
-  function deleteTask(id) {
-    const el = document.querySelector(`[data-id="${id}"]`);
-    if (el) {
-      _deletingIds.add(id);
-      el.classList.add('removing');
-      setTimeout(() => {
-        tasks = tasks.filter(t => t.id !== id);
-        save(); _deletingIds.delete(id);
-        renderTasks(); if (currentView === 'kanban') renderKanban();
-      }, 230);
-    }
-  }
-
-  function toggleTag(btn) {
-    const tag=btn.dataset.tag;
-    selectedTag=selectedTag===tag?null:tag;
-    renderTagButtons();
-  }
-
-  function setFilter(btn, filter) {
-    document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active'); currentFilter=filter; currentPage=1;
-    renderTasks();
-    renderSidebarLabels();
-    if (window.innerWidth <= 768) toggleSidebar();
-  }
-
-  function getFiltered() {
-    return tasks.filter(t=>{
-      if(currentFilter==='active')  return !t.done;
-      if(currentFilter==='done')    return t.done;
-      if(currentFilter==='overdue') return !t.done && t.due && t.due < todayStr();
-      // Dynamic label filter — works for any label id including custom ones
-      if(getLabels().some(l => l.id === currentFilter)) return t.tag === currentFilter;
-      return true;
-    });
-  }
-
-  function renderTasks() {
-    const list=document.getElementById('taskList'), empty=document.getElementById('emptyState');
-    const filtered = getFiltered();
-    filtered.sort((a, b) => { if (a.done === b.done) return 0; return a.done ? 1 : -1; });
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE_current));
-    if (currentPage > totalPages) currentPage = totalPages;
-    const start = (currentPage-1)*PAGE_SIZE_current;
-    const paged = filtered.slice(start, start+PAGE_SIZE_current);
-
-    list.innerHTML=paged.map((t,i)=>{
-      const dm = dueMeta(t.due);
-      const isOverdue = !t.done && dm?.cls==='overdue';
-      const hasNotes = t.notes && t.notes.trim().length > 0;
-      const isOpen = _openNotes.has(t.id);
-      const l = getLabels().find(l => l.id === t.tag);
-      const tagColor = l ? l.color : '#7D8590';
-      return `
-      <div class="task-item ${t.done?'done':''} ${isOverdue?'overdue-task':''}" data-id="${t.id}">
-        <span class="drag-handle" onmousedown="onListHandleDown(event,${t.id})" ontouchstart="onListHandleDown(event,${t.id})">
-          <svg width="10" height="14" viewBox="0 0 10 14" fill="none">
-            <circle cx="3" cy="3"  r="1.2" fill="currentColor"/>
-            <circle cx="7" cy="3"  r="1.2" fill="currentColor"/>
-            <circle cx="3" cy="7"  r="1.2" fill="currentColor"/>
-            <circle cx="7" cy="7"  r="1.2" fill="currentColor"/>
-            <circle cx="3" cy="11" r="1.2" fill="currentColor"/>
-            <circle cx="7" cy="11" r="1.2" fill="currentColor"/>
-          </svg>
-        </span>
-        <button class="check-btn" onclick="toggleDone(${t.id})">
-          <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5l2.5 2.5 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="task-body">
-          <div class="task-text">${escHtml(t.text)}</div>
-          ${(t.tag||dm)?`<div class="task-meta">
-            ${t.tag?`<span class="task-tag" style="background:${hexAlpha(tagColor,0.12)};color:${tagColor}">#${escHtml(t.tag)}</span>`:''}
-            ${dm&&!t.done?`<span class="due-badge ${dm.cls}">${dm.icon} ${dm.label}</span>`:''}
-          </div>`:''}
-        </div>
-        <div class="task-actions">
-          <button class="notes-btn ${hasNotes?'has-notes':''} ${isOpen?'open':''}" onclick="toggleNotes(${t.id})" title="${hasNotes?'edit notes':'add notes'}">
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 3h10M2 6.5h7M2 10h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-            <svg class="chevron" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <button class="delete-btn" onclick="deleteTask(${t.id})">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </button>
-        </div>
-        <div class="task-notes-area ${isOpen?'open':''}" id="notes-area-${t.id}">
-          <div class="notes-row">
-            <textarea class="notes-textarea" id="notes-ta-${t.id}" placeholder="// add notes, links, context..." oninput="scheduleNoteSave(${t.id})">${escHtml(t.notes||'')}</textarea>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
-    empty.classList.toggle('visible', tasks.length===0);
-    renderPagination(filtered.length, totalPages);
-    updateCounts();
-  }
-
-  function renderPagination(total, totalPages) {
-    const bar = document.getElementById('pagination');
-    if (totalPages <= 1) { bar.classList.add('hidden'); return; }
-    bar.classList.remove('hidden');
-    document.getElementById('pageLabel').textContent = currentPage;
-    document.getElementById('pageTotalLabel').textContent = totalPages;
-    const btns = document.getElementById('pageBtns');
-    let html = `<button class="page-btn arrow" onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
-    const range = [];
-    for (let p=1; p<=totalPages; p++) {
-      if (p===1 || p===totalPages || (p>=currentPage-1 && p<=currentPage+1)) range.push(p);
-      else if (range[range.length-1]!=='…') range.push('…');
-    }
-    range.forEach(p => {
-      if (p==='…') html+=`<span style="color:var(--text-faint);font-size:11px;padding:0 2px;font-family:'JetBrains Mono',monospace">…</span>`;
-      else html+=`<button class="page-btn ${p===currentPage?'active':''}" onclick="goToPage(${p})">${p}</button>`;
-    });
-    html+=`<button class="page-btn arrow" onclick="goToPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
-    btns.innerHTML = html;
-  }
-
-  function goToPage(p) {
-    const filtered = getFiltered();
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE_current));
-    currentPage = Math.max(1, Math.min(totalPages, p));
-    renderTasks();
-  }
-
-  function updateCounts() {
-    const all=tasks.length, done=tasks.filter(t=>t.done).length, pct=all===0?0:Math.round(done/all*100);
-    const today=todayStr();
-    const safe = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
-    safe('count-all',     all);
-    safe('count-active',  tasks.filter(t=>!t.done).length);
-    safe('count-done',    done);
-    safe('count-overdue', tasks.filter(t=>!t.done&&t.due&&t.due<today).length);
-    getLabels().forEach(l => safe('count-'+l.id, tasks.filter(t=>t.tag===l.id).length));
-    const pf=document.getElementById('progressFill'); if(pf) pf.style.width=pct+'%';
-    const pp=document.getElementById('progressPct'); if(pp) pp.textContent=pct+'%';
-    const sc=document.getElementById('statusTaskCount'); if(sc) sc.textContent=`${all} task${all!==1?'s':''}`;
-  }
-
-  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-  function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('open');
-    document.getElementById('sidebarOverlay').classList.toggle('open');
-  }
-
-  // ── Celebration ──
-  const CELEBRATIONS = [
-    {ascii:" \\o/\n  |\n / \\",       title:"Task <span>crushed!</span>",   msg:"You're on fire 🔥\nTake a deep breath and enjoy\nthe moment — you earned it."},
-    {ascii:"(^_^)\n /||\\\n  /\\",   title:"That's a <span>W!</span>",     msg:"Seriously, great work.\nMaybe grab a coffee ☕\nor stretch for 2 minutes?"},
-    {ascii:" ★ ★ ★\n\\(•‿•)/\n _|_|_",title:"<span>Ship</span>ped!",       msg:"One step closer to done.\nYou're building momentum —\nkeep that energy going 💪"},
-    {ascii:"d(^_^)b\n  ||||\n  d  b", title:"<span>Boom.</span> Done.",    msg:"Locked in and delivering.\nGo hydrate 💧 — your brain\ndeserves it after that focus."},
-    {ascii:"\\(^o^)/\n  _|_\n  / \\",title:"Level <span>up!</span>",      msg:"Every task done is progress.\nTreat yourself — even 5 mins\nof something you love counts 🎮"},
-    {ascii:" .+*+.\n(>‿<)\n /|\\",  title:"<span>Clean</span> commit!",  msg:"git commit -m 'nailed it'\nTake a little break, breathe,\nyou're doing amazing 🌟"},
-  ];
-
-  function showCelebration(taskText) {
-    const c=CELEBRATIONS[Math.floor(Math.random()*CELEBRATIONS.length)];
-    const cleanedAscii = c.ascii.split('\n').map(line => line.replace(/\s+$/, '')).join('\n');
-    document.getElementById('celebrateAscii').textContent = cleanedAscii;
-    document.getElementById('celebrateTitle').innerHTML=c.title;
-    document.getElementById('celebrateMsg').innerHTML=c.msg.replace(/\n/g,'<br>');
-    document.getElementById('celebrateTask').innerHTML=`✓ <span>"${escHtml(taskText)}"</span>`;
-    const card=document.getElementById('celebrateCard');
-    document.getElementById('celebrateOverlay').classList.add('show');
-    const colors=['#DA7756','#3FB950','#58A6FF','#BC8CFF','#E3B341'];
-    for(let i=0;i<12;i++){
-      const dot=document.createElement('div'); dot.className='confetti-dot';
-      dot.style.cssText=`left:${20+Math.random()*60}%;top:${10+Math.random()*30}%;background:${colors[i%colors.length]};animation-delay:${Math.random()*0.4}s;animation-duration:${0.7+Math.random()*0.5}s;`;
-      card.appendChild(dot); setTimeout(()=>dot.remove(),1500);
-    }
-  }
-
-  function closeCelebration(e) {
-    if(e&&e.target!==document.getElementById('celebrateOverlay'))return;
-    document.getElementById('celebrateOverlay').classList.remove('show');
-  }
-
-  function switchView(view) {
-    if (currentView === view) return;
-    const listEl=document.getElementById('listView'), kanbanEl=document.getElementById('kanbanView'), inputEl=document.getElementById('inputArea');
-    document.getElementById('btnList').classList.toggle('active',   view==='list');
-    document.getElementById('btnKanban').classList.toggle('active', view==='kanban');
-    listEl.classList.add('fading'); kanbanEl.classList.add('fading'); inputEl.classList.add('fading');
-    setTimeout(() => {
-      currentView = view;
-      if (view==='list') {
-        listEl.style.display='';          // show list
-        inputEl.style.display='';          // keep input visible
-        kanbanEl.classList.remove('visible'); kanbanEl.style.display='none';
-        renderTasks();
-      } else {
-        listEl.style.display='none';
-        inputEl.style.display='';          // keep input visible for kanban!
-        kanbanEl.style.display=''; kanbanEl.classList.add('visible');
-        renderKanban();
-      }
-      listEl.classList.remove('fading'); kanbanEl.classList.remove('fading'); inputEl.classList.remove('fading');
-    }, 180);
-  }
-
-  // ── Kanban ──
-  function renderKanban() {
-    ['todo','doing','done'].forEach(status=>{
-      const col=document.getElementById(`kb-${status}`), count=document.getElementById(`kb-count-${status}`);
-      const items=tasks.filter(t=>t.status===status);
-      if(count) count.textContent=items.length;
-      if(!items.length){col.innerHTML=`<div class="kb-col-empty">// empty</div>`;return;}
-      const next={todo:'doing',doing:'done',done:null}, prev={todo:null,doing:'todo',done:'doing'};
-      col.innerHTML=items.map(t=>{
-        const dm=dueMeta(t.due);
-        const isOverdue=!t.done&&dm?.cls==='overdue';
-        const l = getLabels().find(l => l.id === t.tag);
-        const tagColor = l ? l.color : '#7D8590';
-        return `
-        <div class="kb-card ${isOverdue?'overdue-card':''}" data-id="${t.id}" onmousedown="onCardMouseDown(event,${t.id})" ontouchstart="onCardMouseDown(event,${t.id})">
-          <div class="kb-card-text">${escHtml(t.text)}</div>
-          ${t.notes && t.notes.trim() ? `<div class="kb-notes-preview">${escHtml(t.notes.trim().slice(0,120))}${t.notes.trim().length>120?'…':''}</div>` : ''}
-          ${dm&&!t.done?`<div style="margin:5px 0 2px"><span class="due-badge ${dm.cls}">${dm.icon} ${dm.label}</span></div>`:''}
-          <div class="kb-card-footer">
-            <span>${t.tag?`<span class="kb-card-tag" style="background:${hexAlpha(tagColor,0.12)};color:${tagColor}">#${escHtml(t.tag)}</span>`:''}</span>
-            <div class="kb-card-actions">
-              ${prev[status]?`<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${prev[status]}')">← back</button>`:''}
-              ${next[status]?`<button class="kb-action-btn move-btn" onclick="moveCard(${t.id},'${next[status]}')">next →</button>`:''}
-              <button class="kb-action-btn del-btn" onclick="deleteKbCard(${t.id})">✕</button>
-            </div>
-          </div>
-        </div>`;
-      }).join('');
-    });
-    updateCounts();
-  }
-
-  function moveCard(id,newStatus) {
-    const t=tasks.find(t=>t.id===id); if(!t)return;
-    const wasDone=t.status==='done'; t.status=newStatus; t.done=newStatus==='done';
-    save(); renderKanban(); if(newStatus==='done'&&!wasDone)showCelebration(t.text);
-  }
-
-  function deleteKbCard(id){tasks=tasks.filter(t=>t.id!==id);save();renderKanban();updateCounts();}
-
-  // ── Shared drag helpers ──
-  function getXY(e) {
-    const src = e.touches ? e.touches[0] : e;
-    return { x: src.clientX, y: src.clientY };
-  }
-
-  // ── List Drag Reorder ──
-  let _listDragId=null, _listDragClone=null, _listDragOffX=0, _listDragOffY=0, _listDropBeforeId=null;
-
-  function onListHandleDown(e, id) {
-    if (e.touches && e.touches.length > 1) return;
-    e.preventDefault(); e.stopPropagation();
-    _listDragId = id;
-    const {x, y} = getXY(e);
-    const row = e.currentTarget.closest('.task-item');
-    const rect = row.getBoundingClientRect();
-    _listDragOffX = x - rect.left; _listDragOffY = y - rect.top;
-    _listDragClone = row.cloneNode(true);
-    const _cs = getComputedStyle(document.body);
-    const _accent = _cs.getPropertyValue('--claude').trim();
-    const _bg2    = _cs.getPropertyValue('--bg-2').trim();
-    Object.assign(_listDragClone.style, {
-      position:'fixed', top:rect.top+'px', left:rect.left+'px', width:rect.width+'px',
-      margin:'0', pointerEvents:'none', zIndex:'9999', transition:'none',
-      background:_bg2, border:`1px solid ${_accent}70`,
-      borderRadius:'6px', boxShadow:'0 8px 28px rgba(0,0,0,0.6)',
-      transform:'rotate(0.4deg) scale(1.01)', opacity:'1',
-    });
-    document.body.appendChild(_listDragClone);
-    row.classList.add('list-ghost');
-    document.addEventListener('mousemove', onListDragMove);
-    document.addEventListener('mouseup',   onListDragUp);
-    document.addEventListener('touchmove', onListDragMove, {passive:false});
-    document.addEventListener('touchend',  onListDragUp);
-  }
-
-  function onListDragMove(e) {
-    if (!_listDragClone) return;
-    e.preventDefault();
-    const {x, y} = getXY(e);
-    _listDragClone.style.left = (x - _listDragOffX) + 'px';
-    _listDragClone.style.top  = (y - _listDragOffY) + 'px';
-    document.querySelectorAll('.list-drop-indicator').forEach(el => el.remove());
-    const list = document.getElementById('taskList');
-    const rows = [...list.querySelectorAll('.task-item')].filter(el => +el.dataset.id !== _listDragId);
-    let insertBefore = null;
-    for (const row of rows) {
-      const mid = row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2;
-      if (y < mid) { insertBefore = row; break; }
-    }
-    _listDropBeforeId = insertBefore ? +insertBefore.dataset.id : null;
-    const ind = document.createElement('div');
-    ind.className = 'list-drop-indicator';
-    if (insertBefore) list.insertBefore(ind, insertBefore);
-    else              list.appendChild(ind);
-  }
-
-  function onListDragUp() {
-    document.removeEventListener('mousemove', onListDragMove);
-    document.removeEventListener('mouseup',   onListDragUp);
-    document.removeEventListener('touchmove', onListDragMove);
-    document.removeEventListener('touchend',  onListDragUp);
-    document.querySelectorAll('.list-drop-indicator').forEach(el => el.remove());
-    if (_listDragClone) { document.body.removeChild(_listDragClone); _listDragClone = null; }
-    if (_listDragId !== null) {
-      const fromIdx = tasks.findIndex(t => t.id === _listDragId);
-      if (fromIdx !== -1) {
-        const [task] = tasks.splice(fromIdx, 1);
-        if (_listDropBeforeId !== null) {
-          const toIdx = tasks.findIndex(t => t.id === _listDropBeforeId);
-          tasks.splice(toIdx === -1 ? tasks.length : toIdx, 0, task);
-        } else { tasks.push(task); }
-        save();
-      }
-    }
-    _listDragId = null; _listDropBeforeId = null;
-    renderTasks();
-  }
-
-  // ── Kanban Drag ──
-  let _dragClone=null, _dragOffsetX=0, _dragOffsetY=0, _dragOverCol=null, _dragOverCardId=null;
-
-  function onCardMouseDown(e, id) {
-    if (e.target.closest('button')) return;
-    if (e.touches && e.touches.length > 1) return;
-    e.preventDefault(); dragId = id;
-    const {x, y} = getXY(e);
-    const card = e.currentTarget, rect = card.getBoundingClientRect();
-    _dragOffsetX = x - rect.left; _dragOffsetY = y - rect.top;
-    _dragClone = card.cloneNode(true);
-    const _cs2 = getComputedStyle(document.body);
-    const _accent2 = _cs2.getPropertyValue('--claude').trim();
-    const _bg2k    = _cs2.getPropertyValue('--bg-2').trim();
-    const _textk   = _cs2.getPropertyValue('--text').trim();
-    Object.assign(_dragClone.style, {
-      position:'fixed', top:rect.top+'px', left:rect.left+'px', width:rect.width+'px',
-      margin:'0', opacity:'1', pointerEvents:'none', zIndex:'9999',
-      background:_bg2k, border:`1px solid ${_accent2}80`,
-      borderLeft:`3px solid ${_accent2}`, borderRadius:'8px', padding:'11px 13px',
-      boxShadow:`0 12px 36px rgba(0,0,0,0.7),0 0 0 1px ${_accent2}40`,
-      color:_textk, transition:'none', transform:'rotate(1.5deg) scale(1.03)',
-    });
-    document.body.appendChild(_dragClone);
-    card.classList.add('dragging');
-    document.addEventListener('mousemove', onDragMouseMove);
-    document.addEventListener('mouseup',   onDragMouseUp);
-    document.addEventListener('touchmove', onDragMouseMove, {passive:false});
-    document.addEventListener('touchend',  onDragMouseUp);
-  }
-
-  function onDragMouseMove(e) {
-    if (!_dragClone) return;
-    e.preventDefault();
-    const {x, y} = getXY(e);
-    _dragClone.style.left = (x - _dragOffsetX) + 'px';
-    _dragClone.style.top  = (y - _dragOffsetY) + 'px';
-    document.querySelectorAll('.kb-cards').forEach(c => c.classList.remove('drag-over'));
-    document.querySelectorAll('.kb-drop-indicator').forEach(el => el.remove());
-    const col = document.elementFromPoint(x, y)?.closest('.kb-col');
-    if (col) {
-      _dragOverCol = col.dataset.status;
-      col.querySelector('.kb-cards')?.classList.add('drag-over');
-      const cards = [...col.querySelectorAll('.kb-card')].filter(c => +c.dataset.id !== dragId);
-      let insertBefore = null;
-      for (const c of cards) {
-        const mid = c.getBoundingClientRect().top + c.getBoundingClientRect().height / 2;
-        if (y < mid) { insertBefore = c; break; }
-      }
-      _dragOverCardId = insertBefore ? +insertBefore.dataset.id : null;
-      const ind = document.createElement('div');
-      ind.className = 'kb-drop-indicator';
-      const colCards = col.querySelector('.kb-cards');
-      if (insertBefore) colCards.insertBefore(ind, insertBefore);
-      else              colCards.appendChild(ind);
-    } else { _dragOverCol = null; _dragOverCardId = null; }
-  }
-
-  function onDragMouseUp() {
-    document.removeEventListener('mousemove', onDragMouseMove);
-    document.removeEventListener('mouseup',   onDragMouseUp);
-    document.removeEventListener('touchmove', onDragMouseMove);
-    document.removeEventListener('touchend',  onDragMouseUp);
-    document.querySelectorAll('.kb-drop-indicator').forEach(el => el.remove());
-    if (_dragOverCol && dragId !== null) {
-      const t = tasks.find(t => t.id === dragId);
-      if (t) {
-        const wasDone = t.status === 'done';
-        t.status = _dragOverCol; t.done = _dragOverCol === 'done';
-        const fromIdx = tasks.findIndex(t => t.id === dragId);
-        tasks.splice(fromIdx, 1);
-        if (_dragOverCardId !== null) {
-          const toIdx = tasks.findIndex(t => t.id === _dragOverCardId);
-          tasks.splice(toIdx === -1 ? tasks.length : toIdx, 0, t);
-        } else {
-          const lastIdx = tasks.reduce((acc, cur, i) => cur.status === _dragOverCol ? i : acc, -1);
-          tasks.splice(lastIdx + 1, 0, t);
-        }
-        save();
-        if (_dragOverCol === 'done' && !wasDone) showCelebration(t.text);
-      }
-    }
-    if (_dragClone) { document.body.removeChild(_dragClone); _dragClone = null; }
-    document.querySelectorAll('.kb-card').forEach(el => el.classList.remove('dragging'));
-    document.querySelectorAll('.kb-cards').forEach(el => el.classList.remove('drag-over'));
-    dragId = null; _dragOverCol = null; _dragOverCardId = null;
-    renderKanban();
-  }
-
-  // ── Intro ──
-  const INTRO_COOLDOWN_MS=30*60*1000;
-  function shouldShowIntro(){const last=localStorage.getItem('devday-last-visit'),now=Date.now();localStorage.setItem('devday-last-visit',now);return !last||(now-parseInt(last))>INTRO_COOLDOWN_MS;}
-
-  const INTRO_LINES=[
-    {text:`<span class="kw">import</span> { focus, clarity, flow } <span class="kw">from</span> <span class="str">'devday'</span>`,delay:0},
-    {text:``,delay:180},
-    {text:`<span class="cmt">// initializing your productivity environment...</span>`,delay:240},
-    {text:`<span class="kw">const</span> day <span class="op">=</span> <span class="kw">new</span> <span class="cls">Day</span><span class="op">(</span>{ mode: <span class="str">'focused'</span>, distractions: <span class="num">0</span> }<span class="op">)</span>`,delay:460},
-    {text:``,delay:640},
-    {text:`<span class="fn">day</span><span class="op">.</span><span class="fn">tasks</span><span class="op">.</span><span class="fn">load</span><span class="op">()</span>        <span class="cmt">// ✓ synced from firebase</span>`,delay:720},
-    {text:`<span class="fn">day</span><span class="op">.</span><span class="fn">weather</span><span class="op">.</span><span class="fn">fetch</span><span class="op">()</span>      <span class="cmt">// ✓ connected to open-meteo</span>`,delay:940},
-    {text:`<span class="fn">day</span><span class="op">.</span><span class="fn">clock</span><span class="op">.</span><span class="fn">start</span><span class="op">()</span>        <span class="cmt">// ✓ ticking</span>`,delay:1160},
-    {text:``,delay:1340},
-    {text:`<span class="kw">export default</span> <span class="acc">devday</span>   <span class="cmt">// ready. let's get it.</span>`,delay:1420},
-  ];
-  const TAGLINES=['ship more. stress less.','your day, version controlled.','commit to your goals.','focus mode: engaged.','build the day you want.'];
-
-  function runIntro() {
-    const container=document.getElementById('introCode'),loader=document.getElementById('introLoader'),tagline=document.getElementById('introTagline'),screen=document.getElementById('introScreen');
-    tagline.textContent=TAGLINES[Math.floor(Math.random()*TAGLINES.length)];
-    INTRO_LINES.forEach((l,i)=>{
-      const row=document.createElement('div'); row.className='intro-line';
-      row.innerHTML=`<span class="intro-lnum">${l.text?i+1:''}</span><span>${l.text}${i===INTRO_LINES.length-1?'<span class="intro-cursor"></span>':''}</span>`;
-      container.appendChild(row);
-    });
-    INTRO_LINES.forEach((l,i)=>setTimeout(()=>container.children[i].classList.add('visible'),300+l.delay));
-    const lastDelay=INTRO_LINES[INTRO_LINES.length-1].delay;
-    setTimeout(()=>{loader.style.opacity='1';tagline.style.opacity='1';},300+lastDelay+200);
-    setTimeout(()=>{
-      screen.classList.add('fade-out');
-      document.getElementById('appWrapper').classList.add('visible');
-      setTimeout(()=>screen.remove(),800);
-    },300+lastDelay+1100);
-  }
-
-  if(shouldShowIntro()){runIntro();}
-  else{document.getElementById('introScreen').remove();document.getElementById('appWrapper').classList.add('visible');}
-</script>
-
-<script>
-  // ── Widgets config ──
-  const WIDGET_KEYS = { clock: 'wd_clock', weather: 'wd_weather', pomo: 'wd_pomo', notepad: 'wd_notepad' };
-
-  function loadWidgetPrefs() {
-    const clock   = localStorage.getItem(WIDGET_KEYS.clock)   !== 'false';
-    const weather = localStorage.getItem(WIDGET_KEYS.weather) !== 'false';
-    const pomo    = localStorage.getItem(WIDGET_KEYS.pomo)    === 'true';
-    const notepad = localStorage.getItem(WIDGET_KEYS.notepad) === 'true';
-    document.getElementById('toggleClock').checked   = clock;
-    document.getElementById('toggleWeather').checked = weather;
-    document.getElementById('togglePomo').checked    = pomo;
-    document.getElementById('toggleNotepad').checked = notepad;
-    setWidgetVisible('clockWrap',   clock);
-    setWidgetVisible('weatherWrap', weather);
-    setWidgetVisible('pomoFloat',   pomo);
-    setWidgetVisible('noteFloat',   notepad);
-  }
-
-  function applyWidgets() {
-    const clock   = document.getElementById('toggleClock').checked;
-    const weather = document.getElementById('toggleWeather').checked;
-    const pomo    = document.getElementById('togglePomo').checked;
-    const notepad = document.getElementById('toggleNotepad').checked;
-    localStorage.setItem(WIDGET_KEYS.clock,   clock);
-    localStorage.setItem(WIDGET_KEYS.weather, weather);
-    localStorage.setItem(WIDGET_KEYS.pomo,    pomo);
-    localStorage.setItem(WIDGET_KEYS.notepad, notepad);
-    setWidgetVisible('clockWrap',   clock);
-    setWidgetVisible('weatherWrap', weather);
-    setWidgetVisible('pomoFloat',   pomo);
-    setWidgetVisible('noteFloat',   notepad);
-  }
-
-  // ── Notepad (tabbed) ──
-  let _notepadTimer  = null;
-  let _noteTabs      = [];
-  let _noteActiveId  = null;
-
-  function _noteKey() { return _userRef ? 'notepad_tabs_' + firebase.auth().currentUser?.uid : 'notepad_tabs_guest'; }
-
-  function loadNoteTabs() {
-    try {
-      const raw = localStorage.getItem(_noteKey());
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length) {
-          _noteTabs = parsed; _noteActiveId = _noteTabs[0].id;
-          renderNoteTabs(); renderNoteContent(); updateNotepadChars(); return;
-        }
-      }
-    } catch(e) {}
-    _noteTabs = [{ id: Date.now(), name: 'scratch', content: '' }];
-    _noteActiveId = _noteTabs[0].id;
-    renderNoteTabs(); renderNoteContent();
-  }
-
-  function saveNoteTabs() {
-    localStorage.setItem(_noteKey(), JSON.stringify(_noteTabs));
-    const saved = document.getElementById('notepadSaved');
-    if (saved) { saved.classList.add('show'); setTimeout(() => saved.classList.remove('show'), 1800); }
-  }
-
-  function renderNoteTabs() {
-    const bar = document.getElementById('noteTabsBar');
-    if (!bar) return;
-    const html = _noteTabs.map(t => `
-      <div class="note-tab ${t.id === _noteActiveId ? 'active' : ''}" data-tab-id="${t.id}" onclick="switchNoteTab(${t.id})">
-        <span class="note-tab-label" ondblclick="startRenameTab(${t.id}, event)" title="double-click to rename">${escHtml(t.name)}</span>
-        <button class="note-tab-close" onclick="deleteNoteTab(${t.id}, event)" title="close tab">×</button>
-      </div>
-    `).join('');
-    bar.innerHTML = html + '<button class="note-tab-add" onclick="addNoteTab()" title="new tab">+</button>';
-    const active = bar.querySelector('.note-tab.active');
-    if (active) active.scrollIntoView({ inline: 'nearest', block: 'nearest' });
-  }
-
-  function renderNoteContent() {
-    const ta = document.getElementById('notepadTA');
-    if (!ta) return;
-    const tab = _noteTabs.find(t => t.id === _noteActiveId);
-    ta.value = tab ? tab.content : '';
-    ta.placeholder = `// ${tab?.name || 'scratch'}...`;
-    updateNotepadChars();
-  }
-
-  function switchNoteTab(id) {
-    _flushCurrentTab(); _noteActiveId = id;
-    renderNoteTabs(); renderNoteContent();
-  }
-
-  function addNoteTab() {
-    _flushCurrentTab();
-    const id = Date.now(), name = 'tab ' + (_noteTabs.length + 1);
-    _noteTabs.push({ id, name, content: '' });
-    _noteActiveId = id;
-    saveNoteTabs(); renderNoteTabs(); renderNoteContent();
-    setTimeout(() => startRenameTab(id), 60);
-  }
-
-  function deleteNoteTab(id, e) {
-    e.stopPropagation();
-    if (_noteTabs.length === 1) { _noteTabs[0].content = ''; renderNoteContent(); saveNoteTabs(); return; }
-    const idx = _noteTabs.findIndex(t => t.id === id);
-    _noteTabs = _noteTabs.filter(t => t.id !== id);
-    if (_noteActiveId === id) _noteActiveId = _noteTabs[Math.max(0, idx - 1)].id;
-    saveNoteTabs(); renderNoteTabs(); renderNoteContent();
-  }
-
-  function startRenameTab(id, e) {
-    if (e) e.stopPropagation();
-    const bar = document.getElementById('noteTabsBar');
-    const tabEl = bar?.querySelector(`[data-tab-id="${id}"] .note-tab-label`);
-    if (!tabEl) return;
-    const tab = _noteTabs.find(t => t.id === id);
-    if (!tab) return;
-    const input = document.createElement('input');
-    input.className = 'note-tab-rename-input';
-    input.value = tab.name; input.maxLength = 20;
-    tabEl.replaceWith(input);
-    input.focus(); input.select();
-    const commit = () => { tab.name = input.value.trim() || tab.name; saveNoteTabs(); renderNoteTabs(); };
-    input.addEventListener('blur', commit);
-    input.addEventListener('keydown', ev => {
-      if (ev.key === 'Enter') input.blur();
-      if (ev.key === 'Escape') { tab.name = tab.name; renderNoteTabs(); }
-      ev.stopPropagation();
-    });
-    input.addEventListener('click', ev => ev.stopPropagation());
-  }
-
-  function _flushCurrentTab() {
-    const ta  = document.getElementById('notepadTA');
-    const tab = _noteTabs.find(t => t.id === _noteActiveId);
-    if (ta && tab) tab.content = ta.value;
-  }
-
-  function toggleNoteFloat() {
-    const el = document.getElementById('noteFloat');
-    if (!el) return;
-    const isCollapsed = el.classList.contains('collapsed');
-    if (isCollapsed) { el.classList.remove('collapsed'); el.style.height = (el._savedHeight || 310) + 'px'; }
-    else { el._savedHeight = el.offsetHeight; el.classList.add('collapsed'); }
-    saveNoteState();
-  }
-
-  function onNotepadInput() {
-    updateNotepadChars();
-    clearTimeout(_notepadTimer);
-    _notepadTimer = setTimeout(() => { _flushCurrentTab(); saveNoteTabs(); }, 1000);
-    document.getElementById('notepadSaved')?.classList.remove('show');
-  }
-
-  function updateNotepadChars() {
-    const ta = document.getElementById('notepadTA');
-    const el = document.getElementById('notepadChars');
-    if (!ta || !el) return;
-    const len = ta.value.length;
-    el.textContent = `${len} char${len !== 1 ? 's' : ''}`;
-  }
-
-  // Notepad drag + resize
-  (function initNoteFloat() {
-    const el     = document.getElementById('noteFloat');
-    const header = document.getElementById('noteFloatHeader');
-    if (!el || !header) return;
-    const MIN_W = 220, MAX_W = 560, MIN_H = 160;
-
-    function getPos(e) {
-      const src = (e.touches && e.touches.length) ? e.touches[0] : (e.changedTouches && e.changedTouches.length) ? e.changedTouches[0] : e;
-      return { x: src.clientX, y: src.clientY };
-    }
-
-    function ensureTopLeft() {
-      const r = el.getBoundingClientRect();
-      el.style.top  = r.top  + 'px'; el.style.left = r.left + 'px';
-      el.style.bottom = 'auto'; el.style.right = 'auto';
-    }
-
-    let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0, moved = false;
-
-    function onDragDown(e) {
-      if (e.target.closest('button')) return;
-      e.preventDefault(); ensureTopLeft();
-      const {x, y} = getPos(e);
-      dragging = true; moved = false;
-      startX = x; startY = y;
-      origLeft = parseInt(el.style.left) || 0; origTop = parseInt(el.style.top) || 0;
-      el.classList.add('dragging');
-      document.addEventListener('mousemove', onDragMove);
-      document.addEventListener('mouseup',   onDragUp);
-      document.addEventListener('touchmove', onDragMove, {passive: false});
-      document.addEventListener('touchend',  onDragUp);
-    }
-
-    function onDragMove(e) {
-      if (!dragging) return;
-      e.preventDefault();
-      const {x, y} = getPos(e);
-      const dx = x - startX, dy = y - startY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
-      el.style.left = Math.max(0, Math.min(window.innerWidth  - el.offsetWidth,  origLeft + dx)) + 'px';
-      el.style.top  = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, origTop  + dy)) + 'px';
-    }
-
-    function onDragUp() {
-      if (!dragging) return;
-      dragging = false; el.classList.remove('dragging');
-      if (!moved) { toggleNoteFloat(); } else { saveNoteState(); }
-      document.removeEventListener('mousemove', onDragMove);
-      document.removeEventListener('mouseup',   onDragUp);
-      document.removeEventListener('touchmove', onDragMove);
-      document.removeEventListener('touchend',  onDragUp);
-    }
-
-    header.addEventListener('mousedown',  onDragDown);
-    header.addEventListener('touchstart', onDragDown, {passive: false});
-    el.style.height = '310px';
-
-    let resizing = false, resizeDir = '', resX = 0, resY = 0;
-    let resOrigW = 0, resOrigH = 0, resOrigL = 0, resOrigT = 0;
-
-    el.querySelectorAll('.note-resize').forEach(handle => {
-      function onResizeDown(e) {
-        if (el.classList.contains('collapsed')) return;
-        e.preventDefault(); e.stopPropagation();
-        ensureTopLeft();
-        const {x, y} = getPos(e);
-        resizing = true; resizeDir = handle.dataset.dir;
-        resX = x; resY = y;
-        resOrigW = el.offsetWidth; resOrigH = el.offsetHeight;
-        resOrigL = parseInt(el.style.left) || 0; resOrigT = parseInt(el.style.top) || 0;
-        el.classList.add('resizing');
-        document.body.style.cursor = getComputedStyle(handle).cursor;
-        document.addEventListener('mousemove', onResizeMove);
-        document.addEventListener('mouseup',   onResizeUp);
-        document.addEventListener('touchmove', onResizeMove, {passive: false});
-        document.addEventListener('touchend',  onResizeUp);
-      }
-      handle.addEventListener('mousedown',  onResizeDown);
-      handle.addEventListener('touchstart', onResizeDown, {passive: false});
-    });
-
-    function onResizeMove(e) {
-      if (!resizing) return;
-      e.preventDefault();
-      const {x, y} = getPos(e);
-      const dx = x - resX, dy = y - resY;
-      let w = resOrigW, h = resOrigH, l = resOrigL, t = resOrigT;
-      if (resizeDir.includes('e')) w = Math.min(MAX_W, Math.max(MIN_W, resOrigW + dx));
-      if (resizeDir.includes('s')) h = Math.max(MIN_H, resOrigH + dy);
-      if (resizeDir.includes('w')) { const nw = Math.min(MAX_W, Math.max(MIN_W, resOrigW - dx)); l = resOrigL + (resOrigW - nw); w = nw; }
-      if (resizeDir.includes('n')) { const nh = Math.max(MIN_H, resOrigH - dy); t = resOrigT + (resOrigH - nh); h = nh; }
-      el.style.width = w + 'px'; el.style.height = h + 'px';
-      el.style.left  = l + 'px'; el.style.top    = t + 'px';
-    }
-
-    function onResizeUp() {
-      if (!resizing) return;
-      resizing = false; el.classList.remove('resizing');
-      document.body.style.cursor = '';
-      document.removeEventListener('mousemove', onResizeMove);
-      document.removeEventListener('mouseup',   onResizeUp);
-      document.removeEventListener('touchmove', onResizeMove);
-      document.removeEventListener('touchend',  onResizeUp);
-      saveNoteState();
-    }
-  })();
-
-  function initNotepad() { loadNoteTabs(); }
-
-  function setWidgetVisible(id, visible) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.transition = 'opacity 0.2s ease';
-    el.style.opacity    = visible ? '1' : '0';
-    el.style.pointerEvents = visible ? '' : 'none';
-    setTimeout(() => { if (!visible) el.style.display = 'none'; else el.style.display = ''; }, visible ? 0 : 200);
-  }
-
-  function openWidgets() { closeUserMenu(); openSettingsPanel('widgets'); }
-  function closeWidgets() {}
-
-  // ── Settings Panel ──
-  const ACCENT_COLORS = [
-    { hex: '#DA7756', name: 'orange' },
-    { hex: '#58A6FF', name: 'blue' },
-    { hex: '#3FB950', name: 'green' },
-    { hex: '#BC8CFF', name: 'purple' },
-    { hex: '#FF7B72', name: 'red' },
-    { hex: '#E3B341', name: 'yellow' },
-  ];
-
-  let _settingsActiveTab = 'profile';
-
-  function openSettingsPanel(tab) {
-    tab = tab || 'profile';
-    switchSettingsTab(tab);
-    const user = firebase.auth().currentUser;
-    if (user) {
-      document.getElementById('settingsName').textContent = user.displayName || 'user';
-      document.getElementById('settingsEmail').textContent = user.email || '';
-      document.getElementById('settingsDisplayName').value = user.displayName || '';
-      const prov = user.providerData?.[0]?.providerId || 'anonymous';
-      document.getElementById('settingsProvider').textContent = prov === 'google.com' ? 'google' : prov === 'password' ? 'email' : 'guest';
-      const avatarEl = document.getElementById('settingsAvatar');
-      if (user.photoURL) {
-        avatarEl.innerHTML = `<img src="${user.photoURL}" alt="avatar"/>`;
-      } else {
-        avatarEl.style.background = getComputedStyle(document.documentElement).getPropertyValue('--claude').trim();
-        avatarEl.textContent = (user.displayName || 'U')[0].toUpperCase();
-      }
-    }
-    syncSettingsUI();
-    document.getElementById('settingsBackdrop').classList.add('open');
-  }
-
-  function closeSettings() { document.getElementById('settingsBackdrop').classList.remove('open'); }
-
-  function handleSettingsBackdrop(e) {
-    if (e.target === document.getElementById('settingsBackdrop')) closeSettings();
-  }
-
-  function switchSettingsTab(tab) {
-    _settingsActiveTab = tab;
-    document.querySelectorAll('.settings-nav-item').forEach(el => el.classList.toggle('active', el.id === 'snav-' + tab));
-    document.querySelectorAll('.settings-section').forEach(el => el.classList.toggle('active', el.id === 'stab-' + tab));
-  }
-
-  function syncSettingsUI() {
-    const theme = localStorage.getItem('settings_theme') || 'dark';
-    document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
-    document.getElementById('theme-card-' + theme)?.classList.add('active');
-
-    const swatchContainer = document.getElementById('accentSwatches');
-    const currentAccent = localStorage.getItem('settings_accent') || '#DA7756';
-    swatchContainer.innerHTML = ACCENT_COLORS.map(c => `
-      <div class="color-swatch ${c.hex === currentAccent ? 'active' : ''}"
-        style="background:${c.hex}" onclick="setAccentColor('${c.hex}')" title="${c.name}"></div>
-    `).join('');
-
-    const fs = localStorage.getItem('settings_font_size') || 'md';
-    ['sm','md','lg'].forEach(s => document.getElementById('fs-' + s)?.classList.toggle('active', s === fs));
-
-    const den = localStorage.getItem('settings_density') || 'comfortable';
-    ['compact','comfortable'].forEach(d => document.getElementById('density-' + d)?.classList.toggle('active', d === den));
-
-    const dv = localStorage.getItem('settings_default_view') || 'list';
-    ['list','kanban'].forEach(v => document.getElementById('dv-' + v)?.classList.toggle('active', v === dv));
-
-    const ps = parseInt(localStorage.getItem('settings_page_size') || '8');
-    [4,8,12,16].forEach(n => document.getElementById('ps-' + n)?.classList.toggle('active', n === ps));
-
-    const dt = localStorage.getItem('settings_default_tag') || '';
-    // Highlight the active default tag button
-    ['','work','personal','health'].forEach(t => document.getElementById('dt-' + (t||'none'))?.classList.toggle('active', t === dt));
-
-    renderLabelsManager();
-  }
-
-  function setAccentColor(hex) { localStorage.setItem('settings_accent', hex); applyAccentColor(hex); syncSettingsUI(); }
-
-  function applyAccentColor(hex) {
-    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-    document.documentElement.style.setProperty('--claude',        hex);
-    document.documentElement.style.setProperty('--claude-dim',    `rgba(${r},${g},${b},0.15)`);
-    document.documentElement.style.setProperty('--claude-border', `rgba(${r},${g},${b},0.45)`);
-    document.documentElement.style.setProperty('--claude-glow',   `rgba(${r},${g},${b},0.18)`);
-    document.documentElement.style.setProperty('--claude-glow2',  `rgba(${r},${g},${b},0.13)`);
-    SEG_ON   = hex;
-    SEG_GLOW = `drop-shadow(0 0 4px rgba(${r},${g},${b},0.8))`;
-    renderAsciiClock();
-    updatePomoDisplay();
-    document.querySelectorAll('canvas[data-icon]').forEach(c => drawWeatherDots(c, c.dataset.icon));
-    const pomoFloat = document.getElementById('pomoFloat');
-    if (pomoFloat) pomoFloat.style.boxShadow = `0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(${r},${g},${b},0.10)`;
-    document.querySelectorAll('.pomo-session-dot.done').forEach(dot => {
-      dot.style.boxShadow = `0 0 6px rgba(${r},${g},${b},0.55)`;
-    });
-  }
-
-  function setTheme(theme) { localStorage.setItem('settings_theme', theme); applyTheme(theme); syncSettingsUI(); }
-
-  function applyTheme(theme) {
-    document.body.classList.remove('theme-light', 'theme-dark');
-    if (theme === 'light') document.body.classList.add('theme-light');
-    renderAsciiClock();
-    updatePomoDisplay();
-    document.querySelectorAll('canvas[data-icon]').forEach(c => drawWeatherDots(c, c.dataset.icon));
-  }
-
-  function setFontSize(size) { localStorage.setItem('settings_font_size', size); applyFontSize(size); syncSettingsUI(); }
-  function applyFontSize(size) { document.body.classList.remove('font-sm','font-md','font-lg'); document.body.classList.add('font-' + size); }
-
-  function setDensity(den) { localStorage.setItem('settings_density', den); applyDensity(den); syncSettingsUI(); }
-  function applyDensity(den) { document.body.classList.remove('density-compact','density-comfortable'); document.body.classList.add('density-' + den); }
-
-  function setDefaultView(view) { localStorage.setItem('settings_default_view', view); syncSettingsUI(); }
-
-  function setPageSize(n) { localStorage.setItem('settings_page_size', n); PAGE_SIZE_current = n; currentPage = 1; renderTasks(); syncSettingsUI(); }
-
-  function setDefaultTag(tag) {
-    localStorage.setItem('settings_default_tag', tag);
-    // Update selectedTag and button highlight if the tag is enabled
-    if (tag && isTagEnabled(tag)) {
-      selectedTag = tag;
-    } else {
-      selectedTag = null;
-    }
-    renderTagButtons();
-    syncSettingsUI();
-  }
-
-  function saveDisplayName() {
-    const val = document.getElementById('settingsDisplayName').value.trim();
-    if (!val) return;
-    const user = firebase.auth().currentUser;
-    if (!user) return;
-    user.updateProfile({ displayName: val }).then(() => {
-      document.getElementById('settingsName').textContent = val;
-      document.getElementById('userName').textContent = val.split(' ')[0];
-    });
-  }
-
-  function loadAndApplySettings() {
-    const accent = localStorage.getItem('settings_accent');
-    if (accent) applyAccentColor(accent);
-    applyFontSize(localStorage.getItem('settings_font_size') || 'md');
-    applyDensity(localStorage.getItem('settings_density') || 'comfortable');
-    applyTheme(localStorage.getItem('settings_theme') || 'dark');
-    const dv = localStorage.getItem('settings_default_view');
-    if (dv && dv !== currentView) switchView(dv);
-    const ps = parseInt(localStorage.getItem('settings_page_size') || '8');
-    PAGE_SIZE_current = ps;
-  }
-
-  document.addEventListener('DOMContentLoaded', () => { loadWidgetPrefs(); loadAndApplySettings(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSettings(); } });
-</script>
-
-<!-- Settings Panel -->
+<!-- ── Settings Panel ── -->
 <div class="settings-backdrop" id="settingsBackdrop" onclick="handleSettingsBackdrop(event)">
   <div class="settings-modal">
     <div class="settings-titlebar">
@@ -2724,13 +343,12 @@
     </div>
     <div class="settings-layout">
       <div class="settings-nav">
-        <div class="settings-nav-item active" onclick="switchSettingsTab('profile')" id="snav-profile"><span class="snav-icon">◉</span> Profile</div>
-        <div class="settings-nav-item" onclick="switchSettingsTab('appearance')" id="snav-appearance"><span class="snav-icon">◈</span> Appearance</div>
-        <div class="settings-nav-item" onclick="switchSettingsTab('tasks')" id="snav-tasks"><span class="snav-icon">◧</span> Tasks</div>
-        <div class="settings-nav-item" onclick="switchSettingsTab('widgets')" id="snav-widgets"><span class="snav-icon">◰</span> Widgets</div>
-        <div class="settings-nav-item" onclick="switchSettingsTab('about')" id="snav-about"><span class="snav-icon">◎</span> About</div>
+        <div class="settings-nav-item active" onclick="switchSettingsTab('profile')"    id="snav-profile">    <span class="snav-icon">◉</span> Profile</div>
+        <div class="settings-nav-item"        onclick="switchSettingsTab('appearance')" id="snav-appearance"> <span class="snav-icon">◈</span> Appearance</div>
+        <div class="settings-nav-item"        onclick="switchSettingsTab('tasks')"      id="snav-tasks">      <span class="snav-icon">◧</span> Tasks</div>
+        <div class="settings-nav-item"        onclick="switchSettingsTab('widgets')"    id="snav-widgets">    <span class="snav-icon">◰</span> Widgets</div>
+        <div class="settings-nav-item"        onclick="switchSettingsTab('about')"      id="snav-about">      <span class="snav-icon">◎</span> About</div>
       </div>
-
       <div class="settings-content">
 
         <!-- Profile -->
@@ -2739,7 +357,7 @@
           <div class="profile-info">
             <div class="profile-avatar-big" id="settingsAvatar"></div>
             <div>
-              <div class="profile-name" id="settingsName">user</div>
+              <div class="profile-name"  id="settingsName">user</div>
               <div class="profile-email" id="settingsEmail"></div>
               <div class="profile-badge" id="settingsProvider">google</div>
             </div>
@@ -2750,7 +368,8 @@
               <div class="setting-label-desc">Shown in the titlebar pill</div>
             </div>
             <div class="setting-control">
-              <input class="setting-input" id="settingsDisplayName" placeholder="your name" maxlength="24" onkeydown="if(event.key==='Enter')saveDisplayName()" onblur="saveDisplayName()"/>
+              <input class="setting-input" id="settingsDisplayName" placeholder="your name" maxlength="24"
+                onkeydown="if(event.key==='Enter')saveDisplayName()" onblur="saveDisplayName()"/>
             </div>
           </div>
           <div class="setting-row">
@@ -2805,9 +424,9 @@
             </div>
             <div class="setting-control">
               <div class="seg-ctrl">
-                <button class="seg-btn" id="fs-sm" onclick="setFontSize('sm')">SM</button>
+                <button class="seg-btn"        id="fs-sm" onclick="setFontSize('sm')">SM</button>
                 <button class="seg-btn active" id="fs-md" onclick="setFontSize('md')">MD</button>
-                <button class="seg-btn" id="fs-lg" onclick="setFontSize('lg')">LG</button>
+                <button class="seg-btn"        id="fs-lg" onclick="setFontSize('lg')">LG</button>
               </div>
             </div>
           </div>
@@ -2818,8 +437,8 @@
             </div>
             <div class="setting-control">
               <div class="seg-ctrl">
-                <button class="seg-btn" id="density-compact" onclick="setDensity('compact')">Compact</button>
-                <button class="seg-btn active" id="density-comfortable" onclick="setDensity('comfortable')">Comfortable</button>
+                <button class="seg-btn"        id="density-compact"      onclick="setDensity('compact')">Compact</button>
+                <button class="seg-btn active" id="density-comfortable"  onclick="setDensity('comfortable')">Comfortable</button>
               </div>
             </div>
           </div>
@@ -2835,8 +454,8 @@
             </div>
             <div class="setting-control">
               <div class="seg-ctrl">
-                <button class="seg-btn active" id="dv-list" onclick="setDefaultView('list')">List</button>
-                <button class="seg-btn" id="dv-kanban" onclick="setDefaultView('kanban')">Kanban</button>
+                <button class="seg-btn active" id="dv-list"   onclick="setDefaultView('list')">List</button>
+                <button class="seg-btn"        id="dv-kanban" onclick="setDefaultView('kanban')">Kanban</button>
               </div>
             </div>
           </div>
@@ -2847,10 +466,10 @@
             </div>
             <div class="setting-control">
               <div class="seg-ctrl">
-                <button class="seg-btn" id="ps-4"  onclick="setPageSize(4)">4</button>
+                <button class="seg-btn"        id="ps-4"  onclick="setPageSize(4)">4</button>
                 <button class="seg-btn active" id="ps-8"  onclick="setPageSize(8)">8</button>
-                <button class="seg-btn" id="ps-12" onclick="setPageSize(12)">12</button>
-                <button class="seg-btn" id="ps-16" onclick="setPageSize(16)">16</button>
+                <button class="seg-btn"        id="ps-12" onclick="setPageSize(12)">12</button>
+                <button class="seg-btn"        id="ps-16" onclick="setPageSize(16)">16</button>
               </div>
             </div>
           </div>
@@ -2861,14 +480,13 @@
             </div>
             <div class="setting-control">
               <div class="seg-ctrl">
-                <button class="seg-btn active" id="dt-none"     onclick="setDefaultTag('')">none</button>
-                <button class="seg-btn" id="dt-work"     onclick="setDefaultTag('work')">#work</button>
-                <button class="seg-btn" id="dt-personal" onclick="setDefaultTag('personal')">#personal</button>
-                <button class="seg-btn" id="dt-health"   onclick="setDefaultTag('health')">#health</button>
+                <button class="seg-btn active" id="dt-none"     onclick="setDefaultTag('')">#none</button>
+                <button class="seg-btn"        id="dt-work"     onclick="setDefaultTag('work')">#work</button>
+                <button class="seg-btn"        id="dt-personal" onclick="setDefaultTag('personal')">#personal</button>
+                <button class="seg-btn"        id="dt-health"   onclick="setDefaultTag('health')">#health</button>
               </div>
             </div>
           </div>
-          <!-- Labels manager -->
           <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:14px;">
             <div class="setting-label">
               <div class="setting-label-name">Labels</div>
@@ -2930,6 +548,30 @@
     </div>
   </div>
 </div>
+
+<!-- ── Firebase SDKs ── -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+<!-- ── App Scripts (order matters) ── -->
+<script src="js/utils.js"></script>
+<script src="js/state.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/clock.js"></script>
+<script src="js/weather.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/labels.js"></script>
+<script src="js/celebration.js"></script>
+<script src="js/tasks.js"></script>
+<script src="js/kanban.js"></script>
+<script src="js/drag-list.js"></script>
+<script src="js/pomodoro.js"></script>
+<script src="js/notepad.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/intro.js"></script>
 
 </body>
 </html>
