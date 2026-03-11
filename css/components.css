@@ -313,3 +313,22 @@
 .recur-option.active { background: var(--claude-dim); color: var(--claude); }
 .recur-opt-icon { font-size: 13px; width: 16px; text-align: center; flex-shrink: 0; }
 .recur-opt-dim  { color: var(--text-faint); font-size: 10px; margin-left: 2px; }
+
+/* ── Scrollbar ── */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--claude) var(--bg-2);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--claude);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--claude-border);
+}
