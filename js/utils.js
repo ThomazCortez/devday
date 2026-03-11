@@ -33,6 +33,20 @@ function fmtDate(iso) {
   return `${months[parseInt(m) - 1]} ${parseInt(d)}`;
 }
 
+function nextDueDate(due, recur) {
+  const base = due ? new Date(due + 'T00:00:00') : new Date();
+  const d = new Date(base);
+  if      (recur === 'daily')    { d.setDate(d.getDate() + 1); }
+  else if (recur === 'weekdays') { do { d.setDate(d.getDate() + 1); } while (d.getDay() === 0 || d.getDay() === 6); }
+  else if (recur === 'weekly')   { d.setDate(d.getDate() + 7); }
+  else if (recur === 'monthly')  { d.setMonth(d.getMonth() + 1); }
+  return d.toISOString().slice(0, 10);
+}
+
+function recurLabel(recur) {
+  return { daily: 'daily', weekdays: 'weekdays', weekly: 'weekly', monthly: 'monthly' }[recur] || '';
+}
+
 function dueMeta(due) {
   if (!due) return null;
   const today = todayStr();

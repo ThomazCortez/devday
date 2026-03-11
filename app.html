@@ -198,6 +198,35 @@
                 <button class="cal-clear" onclick="clearDue()">✕ clear date</button>
               </div>
             </div>
+            <div style="position:relative;">
+              <button class="due-btn" id="recurBtnDisplay" onclick="toggleRecurPicker()">
+                <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+                  <path d="M2.5 7A4.5 4.5 0 0 0 11 9.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                  <path d="M11.5 7A4.5 4.5 0 0 0 3 4.5"  stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                  <path d="M9.5 9l1.5 1 1-1.5"  stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M4.5 5L3 4 2 5.5"    stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span id="recurBtnLabel">repeat</span>
+              </button>
+              <div class="recur-popup" id="recurPopup">
+                <div class="recur-popup-title">// repeat</div>
+                <div class="recur-option active" data-val=""          onclick="setRecur(null)">
+                  <span class="recur-opt-icon">○</span> No repeat
+                </div>
+                <div class="recur-option" data-val="daily"    onclick="setRecur('daily')">
+                  <span class="recur-opt-icon">↻</span> Daily
+                </div>
+                <div class="recur-option" data-val="weekdays" onclick="setRecur('weekdays')">
+                  <span class="recur-opt-icon">↻</span> Weekdays <span class="recur-opt-dim">Mon–Fri</span>
+                </div>
+                <div class="recur-option" data-val="weekly"   onclick="setRecur('weekly')">
+                  <span class="recur-opt-icon">↻</span> Weekly
+                </div>
+                <div class="recur-option" data-val="monthly"  onclick="setRecur('monthly')">
+                  <span class="recur-opt-icon">↻</span> Monthly
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

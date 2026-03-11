@@ -62,11 +62,12 @@ function addTask() {
     if (defaultTag && isTagEnabled(defaultTag)) tagToUse = defaultTag;
   }
 
-  tasks.unshift({ id: Date.now(), text, tag: tagToUse, due: selectedDue, done: false, status: 'todo' });
+  tasks.unshift({ id: Date.now(), text, tag: tagToUse, due: selectedDue, recur: selectedRecur || null, done: false, status: 'todo' });
   save();
   input.value = '';
   currentPage = 1;
   setDue(null);
+  setRecur(null);
   renderTagButtons();
   renderTasks();
   if (currentView === 'kanban') renderKanban();
@@ -74,7 +75,18 @@ function addTask() {
 
 function toggleDone(id) {
   const t = tasks.find(t => t.id === id);
-  if (t) {
+  if (!t) return;
+
+  if (t.recur && !t.done) {
+    // Recurring: advance due date and reset to todo instead of completing
+    t.due = nextDueDate(t.due, t.recur);
+    save();
+    // Brief flash animation on the card
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) { el.classList.add('recur-reset'); setTimeout(() => el.classList.remove('recur-reset'), 600); }
+    renderTasks();
+    showCelebration(t.text);
+  } else {
     t.done   = !t.done;
     t.status = t.done ? 'done' : 'todo';
     save();
@@ -162,9 +174,10 @@ function renderTasks() {
       </button>
       <div class="task-body">
         <div class="task-text">${escHtml(t.text)}</div>
-        ${(t.tag || dm) ? `<div class="task-meta">
+        ${(t.tag || dm || t.recur) ? `<div class="task-meta">
           ${t.tag ? `<span class="task-tag" style="background:${hexAlpha(tagColor, 0.12)};color:${tagColor}">#${escHtml(t.tag)}</span>` : ''}
           ${dm && !t.done ? `<span class="due-badge ${dm.cls}">${dm.icon} ${dm.label}</span>` : ''}
+          ${t.recur ? `<span class="recur-badge">↻ ${recurLabel(t.recur)}</span>` : ''}
         </div>` : ''}
       </div>
       <div class="task-actions">
@@ -225,6 +238,40 @@ function goToPage(p) {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE_current));
   currentPage      = Math.max(1, Math.min(totalPages, p));
   renderTasks();
+}
+
+// ── Recur Picker ──
+function setRecur(val) {
+  selectedRecur = val || null;
+  renderRecurBtn();
+  closeRecurPicker();
+}
+
+function renderRecurBtn() {
+  const btn   = document.getElementById('recurBtnDisplay');
+  const label = document.getElementById('recurBtnLabel');
+  if (!btn || !label) return;
+  label.textContent = selectedRecur ? recurLabel(selectedRecur) : 'repeat';
+  btn.classList.toggle('active', !!selectedRecur);
+  document.querySelectorAll('.recur-option').forEach(el => {
+    el.classList.toggle('active', el.dataset.val === (selectedRecur || ''));
+  });
+}
+
+function toggleRecurPicker() {
+  const popup  = document.getElementById('recurPopup');
+  const isOpen = popup.classList.contains('open');
+  closeCalendar();
+  popup.classList.toggle('open', !isOpen);
+  if (!isOpen) setTimeout(() => document.addEventListener('click', _onRecurOutside, { once: true }), 0);
+}
+
+function _onRecurOutside(e) {
+  if (!document.getElementById('recurPopup')?.contains(e.target)) closeRecurPicker();
+}
+
+function closeRecurPicker() {
+  document.getElementById('recurPopup')?.classList.remove('open');
 }
 
 function updateCounts() {

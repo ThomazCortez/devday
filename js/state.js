@@ -9,3 +9,4 @@ let PAGE_SIZE_current = 8;
 let currentFilter     = 'all';
 let currentView       = 'list';
 let dragId            = null;
+let selectedRecur     = null;
