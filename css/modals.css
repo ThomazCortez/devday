@@ -124,6 +124,12 @@
 .confetti-dot { position: absolute; width: 5px; height: 5px; border-radius: 50%; animation: confetti-drop 0.9s ease-out both; }
 
 /* ── Settings Panel ── */
+.modal-dots {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
 .settings-backdrop {
   position: fixed; inset: 0; z-index: 10001; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
   display: flex; align-items: center; justify-content: center;
