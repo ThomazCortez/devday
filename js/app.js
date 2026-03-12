@@ -37,6 +37,8 @@ function init() {
     if (e.key === 'Enter') addTask();
   });
 
+  resetRecurringTasks();
+  
   dbListen(remote => {
     if (_editingNote)        return;
     if (_deletingIds.size > 0) return;

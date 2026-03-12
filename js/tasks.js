@@ -78,14 +78,12 @@ function toggleDone(id) {
   if (!t) return;
 
   if (t.recur && !t.done) {
-    // Recurring: advance due date and reset to todo instead of completing
-    t.due = nextDueDate(t.due, t.recur);
+    t.done        = true;
+    t.status      = 'done';
+    t.completedAt = new Date().toISOString();
     updateStreak();
     showStreakAlert();
     save();
-    // Brief flash animation on the card
-    const el = document.querySelector(`[data-id="${id}"]`);
-    if (el) { el.classList.add('recur-reset'); setTimeout(() => el.classList.remove('recur-reset'), 600); }
     renderTasks();
     showCelebration(t.text);
   } else {
@@ -102,6 +100,24 @@ function toggleDone(id) {
     renderTasks();
     if (t.done) showCelebration(t.text);
   }
+}
+
+function resetRecurringTasks() {
+  const today = todayStr();
+  let changed = false;
+  tasks.forEach(t => {
+    if (t.recur && t.done && t.completedAt) {
+      const completedDay = t.completedAt.slice(0, 10);
+      if (completedDay < today) {
+        t.done        = false;
+        t.status      = 'todo';
+        t.completedAt = null;
+        t.due         = nextDueDate(completedDay, t.recur);
+        changed       = true;
+      }
+    }
+  });
+  if (changed) save();
 }
 
 function deleteTask(id) {
