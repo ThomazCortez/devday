@@ -120,8 +120,19 @@ function resetRecurringTasks() {
   if (changed) save();
 }
 
+let _undoTask      = null;
+let _undoTimer     = null;
+let _undoIndex     = null;
+const UNDO_DELAY   = 4000;
+
 function deleteTask(id) {
-  const el = document.querySelector(`[data-id="${id}"]`);
+  const el  = document.querySelector(`[data-id="${id}"]`);
+  const idx = tasks.findIndex(t => t.id === id);
+  if (idx === -1) return;
+
+  _undoTask  = { ...tasks[idx] };
+  _undoIndex = idx;
+
   if (el) {
     _deletingIds.add(id);
     el.classList.add('removing');
@@ -132,7 +143,48 @@ function deleteTask(id) {
       renderTasks();
       if (currentView === 'kanban') renderKanban();
     }, 230);
+  } else {
+    tasks = tasks.filter(t => t.id !== id);
+    save();
+    renderTasks();
+    if (currentView === 'kanban') renderKanban();
   }
+
+  showUndoToast(_undoTask.text);
+}
+
+function showUndoToast(text) {
+  clearTimeout(_undoTimer);
+  const toast    = document.getElementById('undoToast');
+  const label    = document.getElementById('undoTaskName');
+  const progress = document.getElementById('undoProgress');
+
+  label.textContent    = text;
+  progress.style.transition = 'none';
+  progress.style.width      = '100%';
+  toast.classList.add('visible');
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    progress.style.transition = `width ${UNDO_DELAY}ms linear`;
+    progress.style.width      = '0%';
+  }));
+
+  _undoTimer = setTimeout(dismissUndoToast, UNDO_DELAY);
+}
+
+function dismissUndoToast() {
+  document.getElementById('undoToast').classList.remove('visible');
+  _undoTask = null; _undoIndex = null;
+}
+
+function undoDelete() {
+  if (!_undoTask) return;
+  clearTimeout(_undoTimer);
+  tasks.splice(_undoIndex, 0, _undoTask);
+  save();
+  renderTasks();
+  if (currentView === 'kanban') renderKanban();
+  dismissUndoToast();
 }
 
 function toggleTag(btn) {

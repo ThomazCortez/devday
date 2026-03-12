@@ -50,8 +50,7 @@ function moveCard(id, newStatus) {
 }
 
 function deleteKbCard(id) {
-  tasks = tasks.filter(t => t.id !== id);
-  save(); renderKanban(); updateCounts();
+  deleteTask(id);
 }
 
 function switchView(view) {

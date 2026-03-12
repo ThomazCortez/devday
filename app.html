@@ -360,6 +360,15 @@
   </div>
 </div>
 
+<!-- ── Undo Toast ── -->
+<div class="undo-toast" id="undoToast">
+  <div class="undo-toast-label">
+    <span>deleted</span> &nbsp;<span id="undoTaskName"></span>
+  </div>
+  <button class="undo-btn" onclick="undoDelete()">↩ undo</button>
+  <div class="undo-progress" id="undoProgress"></div>
+</div>
+
 <!-- ── Celebration ── -->
 <div class="celebrate-overlay" id="celebrateOverlay" onclick="closeCelebration(event)">
   <div class="celebrate-card" id="celebrateCard">
