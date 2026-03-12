@@ -80,6 +80,8 @@ function toggleDone(id) {
   if (t.recur && !t.done) {
     // Recurring: advance due date and reset to todo instead of completing
     t.due = nextDueDate(t.due, t.recur);
+    updateStreak();
+    showStreakAlert();
     save();
     // Brief flash animation on the card
     const el = document.querySelector(`[data-id="${id}"]`);
@@ -89,6 +91,13 @@ function toggleDone(id) {
   } else {
     t.done   = !t.done;
     t.status = t.done ? 'done' : 'todo';
+    if (t.done) {
+      t.completedAt = new Date().toISOString();
+      updateStreak();
+      showStreakAlert();
+    } else {
+      t.completedAt = null;
+    }
     save();
     renderTasks();
     if (t.done) showCelebration(t.text);
@@ -117,6 +126,10 @@ function toggleTag(btn) {
 }
 
 function setFilter(btn, filter) {
+  hideStatsIfVisible();
+  document.getElementById('listView').style.display = '';
+  document.getElementById('inputArea').style.display = '';
+
   document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   currentFilter = filter;
