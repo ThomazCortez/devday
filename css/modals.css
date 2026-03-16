@@ -340,12 +340,13 @@
 #introScreen {
   position: fixed; inset: 0; background: var(--bg); z-index: 9999;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 16px;
   transition: opacity 0.7s ease;
 }
 #introScreen.fade-out { opacity: 0; pointer-events: none; }
 .intro-window {
   background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px;
-  width: min(640px, 90vw); overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+  width: min(640px, 100%); overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6);
 }
 .intro-titlebar {
   background: var(--bg-3); border-bottom: 1px solid var(--border);
@@ -362,9 +363,14 @@
   border-bottom: none; padding: 3px 12px; margin-left: 4px;
 }
 .intro-tab span { color: var(--claude); }
-.intro-code { padding: 24px 28px 20px; min-height: 260px; display: flex; flex-direction: column; }
+.intro-code {
+  padding: 20px 24px 16px; min-height: 220px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
 .intro-line {
-  font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 2; white-space: pre;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 2;
+  white-space: pre-wrap; word-break: break-word;
   opacity: 0; transform: translateX(-6px); transition: opacity 0.2s ease, transform 0.2s ease;
   display: flex; align-items: baseline; gap: 12px;
 }
@@ -383,7 +389,11 @@
   margin-left: 2px; vertical-align: middle; animation: blink 0.8s step-end infinite;
 }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-.intro-footer { padding: 0 28px 24px; display: flex; align-items: center; justify-content: space-between; }
+.intro-footer {
+  padding: 0 24px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+}
 .intro-loader { display: flex; align-items: center; gap: 10px; }
 .intro-spinner {
   width: 14px; height: 14px; border: 2px solid var(--border);
@@ -393,6 +403,15 @@
 .intro-loader-text { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); }
 .intro-loader-text span { color: var(--claude); }
 .intro-tagline { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); letter-spacing: 0.06em; }
+
+@media (max-width: 480px) {
+  .intro-code { padding: 14px 14px 10px; min-height: 0; }
+  .intro-line { font-size: 10.5px; line-height: 1.85; gap: 8px; }
+  .intro-lnum { font-size: 10px; width: 16px; }
+  .intro-footer { padding: 0 14px 16px; }
+  .intro-tagline { display: none; }
+  .intro-tab { display: none; }
+}
 
 /* ── Light Theme Overrides ── */
 body.theme-light {
