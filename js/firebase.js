@@ -2,6 +2,7 @@
 
 const POMO_POS_KEY = 'devday_pomo_pos';
 const NOTE_POS_KEY = 'devday_note_pos';
+emailjs.init(CONFIG.emailjs_public_key); // from EmailJS dashboard
 
 const _firebaseConfig = {
   apiKey:            'AIzaSyCha8LZ-7nbpF5IFwZj7SOxPe1H_l8ZAU0',

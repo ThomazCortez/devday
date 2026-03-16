@@ -31,19 +31,12 @@ _auth.onAuthStateChanged(user => {
   if (user) {
     _userRef = _db.ref('users/' + user.uid + '/tasks');
 
-    const pill     = document.getElementById('userPill');
-    const nameEl   = document.getElementById('userName');
-    const avatarEl = document.getElementById('userAvatar');
-    const emailEl  = document.getElementById('dropdownEmail');
-
-    pill.style.display = 'block';
-    nameEl.textContent = user.displayName?.split(' ')[0] || 'user';
-    if (emailEl) emailEl.textContent = user.email || user.displayName || 'guest';
-
-    if (user.photoURL) {
-      avatarEl.innerHTML = `<img src="${user.photoURL}" alt="avatar"/>`;
-    } else {
-      avatarEl.textContent = (user.displayName || 'U')[0].toUpperCase();
+    const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+    if (isNewUser && user.email) {
+      emailjs.send(CONFIG.emailjs_service_id, CONFIG.emailjs_template_id, {
+        to_email: user.email,
+        to_name:  user.displayName?.split(' ')[0] || 'there',
+      }).catch(err => console.warn('welcome email failed:', err));
     }
 
     init();
