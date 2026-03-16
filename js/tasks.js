@@ -104,19 +104,24 @@ function toggleDone(id) {
 
 function resetRecurringTasks() {
   const today = todayStr();
+  console.log('🔄 resetRecurringTasks fired, today =', today);
+  console.log('tasks at reset time:', tasks.length, tasks);
   let changed = false;
   tasks.forEach(t => {
     if (t.recur && t.done && t.completedAt) {
       const completedDay = t.completedAt.slice(0, 10);
+      console.log(`task "${t.text}": completedDay=${completedDay}, today=${today}, should reset=${completedDay < today}`);
       if (completedDay < today) {
         t.done        = false;
         t.status      = 'todo';
         t.completedAt = null;
         t.due         = nextDueDate(completedDay, t.recur);
         changed       = true;
+        console.log('✅ reset!', t);
       }
     }
   });
+  console.log('changed:', changed);
   if (changed) save();
 }
 

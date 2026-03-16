@@ -22,9 +22,11 @@ function getXY(e) {
   return { x: src.clientX, y: src.clientY };
 }
 
+const DEBUG_DATE = null;
+
 function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const d = DEBUG_DATE ? new Date(DEBUG_DATE) : new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 function fmtDate(iso) {

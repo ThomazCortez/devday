@@ -36,13 +36,19 @@ function init() {
   document.getElementById('taskInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') addTask();
   });
-
-  resetRecurringTasks();
   
+  let _initialized = false;
+
   dbListen(remote => {
-    if (_editingNote)        return;
+    if (_editingNote) return;
     if (_deletingIds.size > 0) return;
     tasks = normalizeTasks(remote);
+
+    if (!_initialized) {
+      _initialized = true;
+      resetRecurringTasks(); // runs after tasks are actually loaded
+    }
+
     renderTasks();
     if (currentView === 'kanban') renderKanban();
     updateCounts();

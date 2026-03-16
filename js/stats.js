@@ -16,10 +16,6 @@ function saveStreakData(data) {
   localStorage.setItem(STREAK_KEY, JSON.stringify(data));
 }
 
-function todayStr() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function updateStreak() {
   const data = getStreakData();
   const today = todayStr();

@@ -26,8 +26,10 @@ function dbSave(tasks) {
 }
 
 function dbListen(cb) {
+  console.log('dbListen called, _userRef =', _userRef);
   if (_activeListener && _userRef) _userRef.off('value', _activeListener);
   _activeListener = _userRef.on('value', snap => {
+    console.log('📡 Firebase snapshot received');
     const val = snap.val();
     cb(Array.isArray(val) ? val : val ? Object.values(val) : []);
   });
