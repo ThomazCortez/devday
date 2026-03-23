@@ -64,6 +64,7 @@ function deleteKbCard(id) {
 }
 
 function switchView(view) {
+  hideScheduleIfVisible();
   if (currentView === view) return;
   const listEl   = document.getElementById('listView');
   const kanbanEl = document.getElementById('kanbanView');

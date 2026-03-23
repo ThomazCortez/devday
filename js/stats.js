@@ -682,6 +682,7 @@ function dismissStreakAlert() {
 // ── Show / Hide ─────────────────────────────────────────────────────────────
 
 function showStats() {
+  hideScheduleIfVisible();
   const mainEls   = ['listView', 'kanbanView', 'inputArea'].map(id => document.getElementById(id));
   const statsView = document.getElementById('statsView');
 

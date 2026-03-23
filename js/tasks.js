@@ -215,6 +215,7 @@ function toggleTag(btn) {
 
 function setFilter(btn, filter) {
   hideStatsIfVisible();
+  hideScheduleIfVisible();
 
   // Only show listView if we're actually in list mode
   if (currentView === 'list') {
