@@ -27,10 +27,33 @@ function signOut() {
 }
 
 // ── Auth State Observer ──
+// ── Auth State Observer ──
 _auth.onAuthStateChanged(user => {
   if (user) {
     _userRef = _db.ref('users/' + user.uid + '/tasks');
 
+    // ── Show & populate user pill ──
+    const pill         = document.getElementById('userPill');
+    const avatar       = document.getElementById('userAvatar');
+    const nameEl       = document.getElementById('userName');
+    const dropEmail    = document.getElementById('dropdownEmail');
+    const settingsAvatar = document.getElementById('settingsAvatar');
+    const settingsName   = document.getElementById('settingsName');
+    const settingsEmail  = document.getElementById('settingsEmail');
+
+    const displayName = user.displayName || user.email?.split('@')[0] || 'user';
+    const initials    = displayName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+    nameEl.textContent         = displayName.split(' ')[0];
+    avatar.textContent         = initials;
+    dropEmail.textContent      = '// ' + (user.email || 'user');
+    settingsName.textContent   = displayName;
+    settingsEmail.textContent  = user.email || '';
+    settingsAvatar.textContent = initials;
+
+    pill.style.display = 'flex';
+
+    // ── Welcome email for new users ──
     const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
     if (isNewUser && user.email) {
       emailjs.send(CONFIG.emailjs_service_id, CONFIG.emailjs_template_id, {
