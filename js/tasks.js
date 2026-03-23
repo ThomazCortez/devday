@@ -215,14 +215,24 @@ function toggleTag(btn) {
 
 function setFilter(btn, filter) {
   hideStatsIfVisible();
-  document.getElementById('listView').style.display = '';
-  document.getElementById('inputArea').style.display = '';
+
+  // Only show listView if we're actually in list mode
+  if (currentView === 'list') {
+    document.getElementById('listView').style.display = '';
+    document.getElementById('inputArea').style.display = '';
+  }
 
   document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   currentFilter = filter;
   currentPage   = 1;
-  renderTasks();
+
+  if (currentView === 'kanban') {
+    renderKanban();
+  } else {
+    renderTasks();
+  }
+
   renderSidebarLabels();
   if (window.innerWidth <= 768) toggleSidebar();
 }

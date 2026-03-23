@@ -4,7 +4,7 @@ function renderKanban() {
   ['todo', 'doing', 'done'].forEach(status => {
     const col   = document.getElementById(`kb-${status}`);
     const count = document.getElementById(`kb-count-${status}`);
-    const items = tasks.filter(t => t.status === status);
+    const items = getFiltered().filter(t => t.status === status);
     if (count) count.textContent = items.length;
     if (!items.length) { col.innerHTML = `<div class="kb-col-empty">// empty</div>`; return; }
 
