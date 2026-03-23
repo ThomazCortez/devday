@@ -103,6 +103,56 @@ function switchSettingsTab(tab) {
 
 function openWidgets() { closeUserMenu(); openSettingsPanel('widgets'); }
 
+function renderScheduleSettingsTab() {
+  const startHour = getSchedStartHour();
+  const endHour   = getSchedEndHour();
+  const repeat    = getSchedRepeat();
+ 
+  const startEl  = document.getElementById('schedStartHour');
+  const endEl    = document.getElementById('schedEndHour');
+  const repeatEl = document.getElementById('schedRepeatToggle');
+  if (!startEl || !endEl || !repeatEl) return;
+ 
+  // Build hour options (0–23)
+  const opts = Array.from({ length: 24 }, (_, h) =>
+    `<option value="${h}">${String(h).padStart(2,'0')}:00</option>`
+  ).join('');
+ 
+  if (!startEl.options.length) startEl.innerHTML = opts;
+  if (!endEl.options.length)   endEl.innerHTML   = opts;
+ 
+  startEl.value    = startHour;
+  endEl.value      = endHour;
+  repeatEl.checked = repeat;
+}
+ 
+function onSchedSettingChange() {
+  const startEl  = document.getElementById('schedStartHour');
+  const endEl    = document.getElementById('schedEndHour');
+  const repeatEl = document.getElementById('schedRepeatToggle');
+  if (!startEl || !endEl || !repeatEl) return;
+ 
+  const startHour    = parseInt(startEl.value);
+  const endHour      = parseInt(endEl.value);
+  const repeatWeekly = repeatEl.checked;
+ 
+  // Validate range — end must be at least 1 hour after start
+  if (endHour <= startHour) {
+    endEl.style.borderColor = 'var(--red, #FF7B72)';
+    setTimeout(() => endEl.style.borderColor = '', 800);
+    return;
+  }
+ 
+  saveSchedSettings({ startHour, endHour, repeatWeekly });
+ 
+  // Live-update the schedule if it's currently open
+  const sv = document.getElementById('scheduleView');
+  if (sv && sv.style.display !== 'none') {
+    renderSchedule();
+    setTimeout(schedScrollToStart, 80);
+  }
+}
+
 // ── Sync UI to stored prefs ──
 function syncSettingsUI() {
   const theme = localStorage.getItem('settings_theme') || 'dark';
@@ -132,6 +182,7 @@ function syncSettingsUI() {
     document.getElementById('dt-' + (t || 'none'))?.classList.toggle('active', t === dt)
   );
 
+  renderScheduleSettingsTab()
   renderLabelsManager();
 }
 

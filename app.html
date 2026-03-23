@@ -407,6 +407,9 @@
         <div class="settings-nav-item"        onclick="switchSettingsTab('appearance')" id="snav-appearance"> <span class="snav-icon">◈</span> Appearance</div>
         <div class="settings-nav-item"        onclick="switchSettingsTab('tasks')"      id="snav-tasks">      <span class="snav-icon">◧</span> Tasks</div>
         <div class="settings-nav-item"        onclick="switchSettingsTab('widgets')"    id="snav-widgets">    <span class="snav-icon">◰</span> Widgets</div>
+        <div class="settings-nav-item" onclick="switchSettingsTab('schedule')" id="snav-schedule">
+          <span class="snav-icon">◷</span> Schedule
+        </div>
         <div class="settings-nav-item"        onclick="switchSettingsTab('about')"      id="snav-about">      <span class="snav-icon">◎</span> About</div>
       </div>
       <div class="settings-content">
@@ -583,6 +586,46 @@
             <label class="toggle"><input type="checkbox" id="toggleNotepad" onchange="applyWidgets()" checked/><div class="toggle-track"></div></label>
           </div>
         </div>
+
+        <!-- Schedule -->
+<div class="settings-section" id="stab-schedule">
+  <div class="settings-section-title">// <span>schedule</span></div>
+
+  <div class="setting-row">
+    <div class="setting-label">
+      <div class="setting-label-name">Start hour</div>
+      <div class="setting-label-desc">Calendar begins at this hour</div>
+    </div>
+    <div class="setting-control">
+      <select class="sched-time-select" id="schedStartHour"
+        onchange="onSchedSettingChange()" style="width:100px"></select>
+    </div>
+  </div>
+
+  <div class="setting-row">
+    <div class="setting-label">
+      <div class="setting-label-name">End hour</div>
+      <div class="setting-label-desc">Calendar ends at this hour</div>
+    </div>
+    <div class="setting-control">
+      <select class="sched-time-select" id="schedEndHour"
+        onchange="onSchedSettingChange()" style="width:100px"></select>
+    </div>
+  </div>
+
+  <div class="setting-row">
+      <div class="setting-label">
+        <div class="setting-label-name">Repeat weekly</div>
+        <div class="setting-label-desc">Same blocks repeat every week</div>
+      </div>
+      <div class="setting-control">
+        <label class="toggle">
+          <input type="checkbox" id="schedRepeatToggle" onchange="onSchedSettingChange()"/>
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+    </div>
+  </div>
 
         <!-- About -->
         <div class="settings-section" id="stab-about">

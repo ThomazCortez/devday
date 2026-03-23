@@ -1,21 +1,65 @@
 // ── Schedule (Weekly Calendar) ──
 
-const SCHEDULE_KEY  = 'devday_schedule_v2';
-const HOUR_H        = 56; // px per hour
-const SCHED_COLORS  = ['#DA7756','#58A6FF','#3FB950','#BC8CFF','#FF7B72','#E3B341','#7D8590'];
+const SCHEDULE_KEY          = 'devday_schedule_v2';
+const SCHEDULE_TEMPLATE_KEY = 'devday_schedule_template'; // { "0":[...], "1":[...], ... } Mon=0…Sun=6
+const SCHEDULE_SETTINGS_KEY = 'devday_sched_settings';
+const HOUR_H                = 56; // px per hour
+const SCHED_COLORS          = ['#DA7756','#58A6FF','#3FB950','#BC8CFF','#FF7B72','#E3B341','#7D8590'];
 
-let _schedWeekOffset  = 0;
-let _schedPopupState  = null;
-let _schedNowTimer    = null;
+let _schedWeekOffset = 0;
+let _schedPopupState = null;
+let _schedNowTimer   = null;
+let _schedPopupGenId = 0; // incremented on each popup open; prevents stale timeouts closing new popups
+
+// ── Schedule settings ─────────────────────────────────────────────────────────
+
+function getSchedSettings() {
+  try { return JSON.parse(localStorage.getItem(SCHEDULE_SETTINGS_KEY)) || {}; }
+  catch { return {}; }
+}
+function getSchedStartHour() { return getSchedSettings().startHour    ?? 6;    }
+function getSchedEndHour()   { return getSchedSettings().endHour      ?? 23;   }
+function getSchedRepeat()    { return getSchedSettings().repeatWeekly ?? true; }
+
+function saveSchedSettings(patch) {
+  localStorage.setItem(SCHEDULE_SETTINGS_KEY, JSON.stringify({ ...getSchedSettings(), ...patch }));
+}
 
 // ── Storage ───────────────────────────────────────────────────────────────────
 
 function getScheduleData() {
+  if (getSchedRepeat()) {
+    // Map day-of-week template → this week's date keys
+    const template = JSON.parse(localStorage.getItem(SCHEDULE_TEMPLATE_KEY) || '{}');
+    const days     = schedWeekDays(_schedWeekOffset);
+    const result   = {};
+    days.forEach((d, i) => {
+      const blocks = template[String(i)];
+      if (blocks && blocks.length) result[schedDayKey(d)] = blocks;
+    });
+    return result;
+  }
   try { return JSON.parse(localStorage.getItem(SCHEDULE_KEY)) || {}; }
   catch { return {}; }
 }
+
 function saveScheduleData(data) {
-  localStorage.setItem(SCHEDULE_KEY, JSON.stringify(data));
+  if (getSchedRepeat()) {
+    const template = JSON.parse(localStorage.getItem(SCHEDULE_TEMPLATE_KEY) || '{}');
+    const days     = schedWeekDays(_schedWeekOffset);
+    days.forEach((d, i) => {
+      const dk  = schedDayKey(d);
+      const key = String(i);
+      // FIX: use !== undefined (not `in`) so empty arrays still reach here and clear the template
+      if (data[dk] !== undefined) {
+        if (data[dk].length) template[key] = data[dk];
+        else                 delete template[key];
+      }
+    });
+    localStorage.setItem(SCHEDULE_TEMPLATE_KEY, JSON.stringify(template));
+  } else {
+    localStorage.setItem(SCHEDULE_KEY, JSON.stringify(data));
+  }
 }
 
 // ── Week helpers ──────────────────────────────────────────────────────────────
@@ -37,8 +81,15 @@ function schedWeekDays(offset) {
   });
 }
 
-function schedDayKey(date) { return date.toISOString().slice(0, 10); }
-function schedTodayKey()   { return new Date().toISOString().slice(0, 10); }
+// Use LOCAL date string to avoid UTC-offset day-flip bugs (e.g. UTC+1 at midnight)
+function schedDayKey(date) {
+  const y  = date.getFullYear();
+  const m  = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
+function schedTodayKey() { return schedDayKey(new Date()); }
 
 function schedFmtDate(date) {
   return date.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
@@ -70,7 +121,7 @@ function showSchedule() {
     renderSchedule();
     requestAnimationFrame(() => requestAnimationFrame(() => {
       sv.classList.add('schedule-visible');
-      setTimeout(schedScrollToNow, 120);
+      setTimeout(schedScrollToStart, 120);
     }));
 
     clearInterval(_schedNowTimer);
@@ -90,19 +141,26 @@ function hideScheduleIfVisible() {
   setTimeout(() => { sv.style.display = 'none'; }, 180);
 }
 
-function schedScrollToNow() {
-  const body = document.getElementById('shGridBody');
+function schedScrollToStart() {
+  const body      = document.getElementById('shGridBody');
   if (!body) return;
-  body.scrollTop = Math.max(0, (new Date().getHours() - 1) * HOUR_H);
+  const startHour = getSchedStartHour();
+  const nowHour   = new Date().getHours();
+  const endHour   = getSchedEndHour();
+  body.scrollTop  = (nowHour >= startHour && nowHour <= endHour)
+    ? Math.max(0, (nowHour - startHour - 1) * HOUR_H)
+    : 0;
 }
 
 // ── Slot click (create) ───────────────────────────────────────────────────────
 
-function onSchedSlotClick(dKey, hour) {
-  closeSchedPopup();
+// NOTE: receives `event` as first arg (passed from inline onclick) so we can stopPropagation
+function onSchedSlotClick(e, dKey, hour) {
+  e.stopPropagation();
+  if (_schedPopupState) { closeSchedPopup(); return; } // clicking a slot while popup is open → close
   _schedPopupState = {
     mode: 'create', dayKey: dKey,
-    startH: hour, endH: Math.min(hour + 1, 23),
+    startH: hour, endH: Math.min(hour + 1, getSchedEndHour()),
     color: SCHED_COLORS[0], blockId: null,
   };
   renderSchedPopup();
@@ -112,7 +170,10 @@ function onSchedSlotClick(dKey, hour) {
 
 function onSchedBlockClick(e, dKey, blockId) {
   e.stopPropagation();
+  const alreadyOpen = _schedPopupState?.blockId === blockId;
   closeSchedPopup();
+  if (alreadyOpen) return;
+
   const b = (getScheduleData()[dKey] || []).find(b => b.id === blockId);
   if (!b) return;
   _schedPopupState = {
@@ -126,16 +187,20 @@ function onSchedBlockClick(e, dKey, blockId) {
 // ── Popup ─────────────────────────────────────────────────────────────────────
 
 function renderSchedPopup() {
-  document.getElementById('shPopupBackdrop')?.remove();
+  _removeSchedPopupNow(); // instant teardown (no animation) so we don't have two at once
   if (!_schedPopupState) return;
 
+  const genId  = ++_schedPopupGenId;
   const { mode, startH, endH, color, blockId, dayKey } = _schedPopupState;
   const isEdit = mode === 'edit';
   const block  = isEdit ? (getScheduleData()[dayKey] || []).find(b => b.id === blockId) : null;
+  const s      = getSchedStartHour();
+  const eH     = getSchedEndHour();
 
-  const hourOpts = sel => Array.from({ length: 24 }, (_, h) =>
-    `<option value="${h}"${h === sel ? ' selected' : ''}>${String(h).padStart(2,'0')}:00</option>`
-  ).join('');
+  const hourOpts = sel => Array.from({ length: eH - s + 1 }, (_, i) => {
+    const h = s + i;
+    return `<option value="${h}"${h === sel ? ' selected' : ''}>${String(h).padStart(2,'0')}:00</option>`;
+  }).join('');
 
   const swatches = SCHED_COLORS.map(c =>
     `<div class="sh-swatch${color === c ? ' active' : ''}" data-color="${c}"
@@ -143,9 +208,10 @@ function renderSchedPopup() {
   ).join('');
 
   const bd = document.createElement('div');
-  bd.id = 'shPopupBackdrop';
+  bd.id        = 'shPopupBackdrop';
   bd.className = 'sh-popup-backdrop';
-  bd.onclick = e => { if (e.target === bd) closeSchedPopup(); };
+  // Stop clicks inside the backdrop from reaching the document outside-click listener
+  bd.addEventListener('click', ev => ev.stopPropagation());
 
   bd.innerHTML = `
     <div class="sh-popup" id="shPopup">
@@ -175,10 +241,25 @@ function renderSchedPopup() {
     </div>`;
 
   document.body.appendChild(bd);
+
+  // FIX: register outside-click listener AFTER this event loop tick so the slot
+  // click that opened the popup doesn't immediately fire it and close the popup.
+  setTimeout(() => {
+    if (_schedPopupGenId !== genId) return; // already replaced or closed
+    document.addEventListener('click', _onSchedOutside);
+  }, 0);
+
   requestAnimationFrame(() => requestAnimationFrame(() => {
     bd.classList.add('open');
     document.getElementById('shPopupLabel')?.focus();
   }));
+}
+
+function _onSchedOutside(e) {
+  const popup = document.getElementById('shPopup');
+  if (popup && popup.contains(e.target)) return; // inside popup — keep open
+  document.removeEventListener('click', _onSchedOutside);
+  closeSchedPopup();
 }
 
 function setSchedPopupColor(c) {
@@ -222,19 +303,31 @@ function deleteSchedBlock() {
   if (!_schedPopupState?.blockId) return;
   const data = getScheduleData();
   const dKey = _schedPopupState.dayKey;
+
+  // FIX: do NOT `delete data[dKey]` when empty — keep it as [] so saveScheduleData
+  // can see the key and clear the corresponding template entry.
   data[dKey] = (data[dKey] || []).filter(b => b.id !== _schedPopupState.blockId);
-  if (!data[dKey].length) delete data[dKey];
+
   saveScheduleData(data);
   closeSchedPopup();
   renderScheduleBlocks();
 }
 
+// Fade-out close
 function closeSchedPopup() {
+  document.removeEventListener('click', _onSchedOutside);
   _schedPopupState = null;
   const bd = document.getElementById('shPopupBackdrop');
   if (!bd) return;
-  bd.classList.remove('open');
-  setTimeout(() => bd.remove(), 160);
+  const captured = bd; // capture so setTimeout can't hit a future popup with the same id
+  captured.classList.remove('open');
+  setTimeout(() => captured.remove(), 160);
+}
+
+// Instant teardown — used when immediately replacing the popup
+function _removeSchedPopupNow() {
+  document.removeEventListener('click', _onSchedOutside);
+  document.getElementById('shPopupBackdrop')?.remove();
 }
 
 // ── Render full calendar ──────────────────────────────────────────────────────
@@ -245,11 +338,15 @@ function renderSchedule() {
 
   const days      = schedWeekDays(_schedWeekOffset);
   const weekLabel = `${schedFmtDate(days[0])} – ${schedFmtDate(days[6])}`;
+  const startHour = getSchedStartHour();
+  const endHour   = getSchedEndHour();
+  const numHours  = endHour - startHour + 1;
+  const repeat    = getSchedRepeat();
 
   el.innerHTML = `
     <div class="sched-page">
       <div class="sched-header">
-        <div class="stats-page-title"># schedule<span class="stats-comment"> // your week</span></div>
+        <div class="stats-page-title"># schedule<span class="stats-comment"> // ${repeat ? 'repeating weekly' : 'your week'}</span></div>
         <div class="sched-week-nav">
           <button class="due-btn sched-nav-btn" onclick="schedNavWeek(-1)">‹</button>
           <span class="sched-week-label">${weekLabel}</span>
@@ -273,20 +370,23 @@ function renderSchedule() {
         </div>
 
         <div class="sh-grid-body" id="shGridBody">
-          <div class="sh-grid-inner">
+          <div class="sh-grid-inner" style="min-height:${numHours * HOUR_H}px">
             <div class="sh-time-col">
-              ${Array.from({ length: 24 }, (_, h) =>
-                `<div class="sh-time-cell">${String(h).padStart(2,'0')}:00</div>`
-              ).join('')}
+              ${Array.from({ length: numHours }, (_, i) => {
+                const h = startHour + i;
+                return `<div class="sh-time-cell">${String(h).padStart(2,'0')}:00</div>`;
+              }).join('')}
             </div>
             <div class="sh-days-wrap" id="shDaysWrap">
               ${days.map(d => {
                 const dk      = schedDayKey(d);
                 const isToday = dk === schedTodayKey();
                 return `<div class="sh-day-col${isToday ? ' sh-day-col-today' : ''}" data-day="${dk}">
-                  ${Array.from({ length: 24 }, (_, h) =>
-                    `<div class="sh-slot" onclick="onSchedSlotClick('${dk}',${h})"></div>`
-                  ).join('')}
+                  ${Array.from({ length: numHours }, (_, i) => {
+                    const h = startHour + i;
+                    // FIX: pass `event` so onSchedSlotClick can call stopPropagation
+                    return `<div class="sh-slot" onclick="onSchedSlotClick(event,'${dk}',${h})"></div>`;
+                  }).join('')}
                 </div>`;
               }).join('')}
             </div>
@@ -301,9 +401,11 @@ function renderSchedule() {
 // ── Render blocks only ────────────────────────────────────────────────────────
 
 function renderScheduleBlocks() {
-  const data = getScheduleData();
-  const days = schedWeekDays(_schedWeekOffset);
-  const now  = new Date();
+  const data      = getScheduleData();
+  const days      = schedWeekDays(_schedWeekOffset);
+  const now       = new Date();
+  const startHour = getSchedStartHour();
+  const endHour   = getSchedEndHour();
 
   days.forEach(d => {
     const dk  = schedDayKey(d);
@@ -314,27 +416,36 @@ function renderScheduleBlocks() {
 
     // "now" line
     if (dk === schedTodayKey()) {
-      const pct = (now.getHours() * 60 + now.getMinutes()) / (24 * 60);
-      const top = pct * 24 * HOUR_H;
-      const line = document.createElement('div');
-      line.className = 'sh-now-line';
-      line.style.top = top + 'px';
-      const dot = document.createElement('div');
-      dot.className = 'sh-now-dot';
-      dot.style.top = (top - 4) + 'px';
-      col.appendChild(line);
-      col.appendChild(dot);
+      const nowH = now.getHours();
+      if (nowH >= startHour && nowH <= endHour) {
+        const topPx = (nowH - startHour + now.getMinutes() / 60) * HOUR_H;
+        const line  = document.createElement('div');
+        line.className = 'sh-now-line';
+        line.style.top = topPx + 'px';
+        const dot   = document.createElement('div');
+        dot.className  = 'sh-now-dot';
+        dot.style.top  = (topPx - 4) + 'px';
+        col.appendChild(line);
+        col.appendChild(dot);
+      }
     }
 
     (data[dk] || []).forEach(b => {
+      if (b.endH <= startHour || b.startH > endHour) return;
+
+      const clampedStart = Math.max(b.startH, startHour);
+      const clampedEnd   = Math.min(b.endH, endHour + 1);
+      const topPx        = (clampedStart - startHour) * HOUR_H + 2;
+      const heightPx     = Math.max((clampedEnd - clampedStart) * HOUR_H - 4, 22);
+
       const block = document.createElement('div');
       block.className = 'sh-block';
       block.style.cssText = `
-        top: ${b.startH * HOUR_H + 2}px;
-        height: ${Math.max((b.endH - b.startH) * HOUR_H - 4, 22)}px;
-        background: ${hexAlpha(b.color, 0.15)};
-        border-left: 3px solid ${b.color};
-        color: ${b.color};
+        top:${topPx}px;
+        height:${heightPx}px;
+        background:${hexAlpha(b.color, 0.15)};
+        border-left:3px solid ${b.color};
+        color:${b.color};
       `;
       block.innerHTML = `
         <div class="sh-block-label">${escHtml(b.label)}</div>
@@ -351,12 +462,58 @@ function schedNavWeek(dir) {
   _schedWeekOffset += dir;
   closeSchedPopup();
   renderSchedule();
-  if (_schedWeekOffset === 0) setTimeout(schedScrollToNow, 80);
+  if (_schedWeekOffset === 0) setTimeout(schedScrollToStart, 80);
 }
 
 function schedGoToday() {
   _schedWeekOffset = 0;
   closeSchedPopup();
   renderSchedule();
-  setTimeout(schedScrollToNow, 80);
+  setTimeout(schedScrollToStart, 80);
+}
+
+// ── Settings tab helpers (called by settings.js) ──────────────────────────────
+
+function renderScheduleSettingsTab() {
+  const startEl  = document.getElementById('schedStartHour');
+  const endEl    = document.getElementById('schedEndHour');
+  const repeatEl = document.getElementById('schedRepeatToggle');
+  if (!startEl || !endEl || !repeatEl) return;
+
+  if (!startEl.options.length) {
+    const opts = Array.from({ length: 24 }, (_, h) =>
+      `<option value="${h}">${String(h).padStart(2,'0')}:00</option>`
+    ).join('');
+    startEl.innerHTML = opts;
+    endEl.innerHTML   = opts;
+  }
+
+  startEl.value    = getSchedStartHour();
+  endEl.value      = getSchedEndHour();
+  repeatEl.checked = getSchedRepeat();
+}
+
+function onSchedSettingChange() {
+  const startEl  = document.getElementById('schedStartHour');
+  const endEl    = document.getElementById('schedEndHour');
+  const repeatEl = document.getElementById('schedRepeatToggle');
+  if (!startEl || !endEl || !repeatEl) return;
+
+  const startHour    = parseInt(startEl.value);
+  const endHour      = parseInt(endEl.value);
+  const repeatWeekly = repeatEl.checked;
+
+  if (endHour <= startHour) {
+    endEl.style.borderColor = 'var(--red,#FF7B72)';
+    setTimeout(() => endEl.style.borderColor = '', 800);
+    return;
+  }
+
+  saveSchedSettings({ startHour, endHour, repeatWeekly });
+
+  const sv = document.getElementById('scheduleView');
+  if (sv && sv.style.display !== 'none') {
+    renderSchedule();
+    setTimeout(schedScrollToStart, 80);
+  }
 }
