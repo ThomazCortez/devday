@@ -221,6 +221,11 @@ function setFilter(btn, filter) {
   if (currentView === 'list') {
     document.getElementById('listView').style.display = '';
     document.getElementById('inputArea').style.display = '';
+  } else if (currentView === 'kanban') {
+    const kanbanEl = document.getElementById('kanbanView');
+    kanbanEl.style.display = '';
+    kanbanEl.classList.add('visible');
+    document.getElementById('inputArea').style.display = '';
   }
 
   document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
