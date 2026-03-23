@@ -138,6 +138,13 @@ function deleteTask(id) {
   _undoTask  = { ...tasks[idx] };
   _undoIndex = idx;
 
+  // Archive if done so stats preserve it
+  if (tasks[idx].done && tasks[idx].completedAt) {
+    const history = JSON.parse(localStorage.getItem('devday_completed_history') || '[]');
+    history.push({ completedAt: tasks[idx].completedAt, tag: tasks[idx].tag });
+    localStorage.setItem('devday_completed_history', JSON.stringify(history.slice(-1000)));
+  }
+
   if (el) {
     _deletingIds.add(id);
     el.classList.add('removing');
@@ -185,6 +192,14 @@ function dismissUndoToast() {
 function undoDelete() {
   if (!_undoTask) return;
   clearTimeout(_undoTimer);
+
+  // Remove from history if it was archived
+  if (_undoTask.done && _undoTask.completedAt) {
+    let history = JSON.parse(localStorage.getItem('devday_completed_history') || '[]');
+    history = history.filter(h => h.completedAt !== _undoTask.completedAt);
+    localStorage.setItem('devday_completed_history', JSON.stringify(history));
+  }
+
   tasks.splice(_undoIndex, 0, _undoTask);
   save();
   renderTasks();

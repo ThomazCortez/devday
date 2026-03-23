@@ -44,6 +44,16 @@ function moveCard(id, newStatus) {
   const wasDone = t.status === 'done';
   t.status = newStatus;
   t.done   = newStatus === 'done';
+  if (newStatus === 'done' && !wasDone) {
+    t.completedAt = new Date().toISOString();
+    updateStreak();
+    showStreakAlert();
+  } else if (newStatus !== 'done') {
+    t.completedAt = null;
+  }
+save();
+renderKanban();
+if (newStatus === 'done' && !wasDone) showCelebration(t.text);
   save();
   renderKanban();
   if (newStatus === 'done' && !wasDone) showCelebration(t.text);
@@ -165,6 +175,13 @@ function onDragMouseUp() {
       const wasDone = t.status === 'done';
       t.status = _dragOverCol;
       t.done   = _dragOverCol === 'done';
+      if (_dragOverCol === 'done' && !wasDone) {
+        t.completedAt = new Date().toISOString();
+        updateStreak();
+        showStreakAlert();
+      } else if (_dragOverCol !== 'done') {
+        t.completedAt = null;
+      }
       const fromIdx = tasks.findIndex(t => t.id === dragId);
       tasks.splice(fromIdx, 1);
       if (_dragOverCardId !== null) {

@@ -45,10 +45,15 @@ function checkStreakIntegrity() {
 }
 
 function computeStats() {
-  const all     = typeof tasks !== 'undefined' ? tasks : [];
-  const today   = todayStr();
+  const all   = typeof tasks !== 'undefined' ? tasks : [];
+  const today = todayStr();
   const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
-  const done    = all.filter(t => t.done);
+
+  const history = JSON.parse(localStorage.getItem('devday_completed_history') || '[]');
+  const done    = [
+    ...all.filter(t => t.done),
+    ...history  // archived completed tasks
+  ];
 
   const todayDone = done.filter(t => t.completedAt?.slice(0, 10) === today);
   const weekDone  = done.filter(t => t.completedAt && new Date(t.completedAt) >= weekAgo);
