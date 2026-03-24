@@ -190,9 +190,7 @@ function deleteTask(id) {
 
   // Archive if done so stats preserve it
   if (tasks[idx].done && tasks[idx].completedAt) {
-    const history = JSON.parse(localStorage.getItem('devday_completed_history') || '[]');
-    history.push({ completedAt: tasks[idx].completedAt, tag: tasks[idx].tag });
-    localStorage.setItem('devday_completed_history', JSON.stringify(history.slice(-1000)));
+    archiveCompletedTask(tasks[idx]);
   }
 
   if (el) {
@@ -245,9 +243,7 @@ function undoDelete() {
 
   // Remove from history if it was archived
   if (_undoTask.done && _undoTask.completedAt) {
-    let history = JSON.parse(localStorage.getItem('devday_completed_history') || '[]');
-    history = history.filter(h => h.completedAt !== _undoTask.completedAt);
-    localStorage.setItem('devday_completed_history', JSON.stringify(history));
+    unarchiveCompletedTask(_undoTask.completedAt);
   }
 
   tasks.splice(_undoIndex, 0, _undoTask);

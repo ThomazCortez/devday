@@ -22,10 +22,8 @@ let _userRef        = null;
 let _activeListener = null;
 const _deletingIds  = new Set();
 
-// ── Utility ────────────────────────────────────────────────────────────────────
+// ── Utility ───────────────────────────────────────────────────────────────────
 
-// Firebase stores arrays as objects with integer keys when they contain gaps
-// or after certain operations. Always normalise back to a plain array.
 function _fbToArray(val) {
   if (!val) return [];
   if (Array.isArray(val)) return val.filter(v => v != null);
@@ -55,12 +53,10 @@ function dbDetach() {
   _userRef = null;
 }
 
-// ── Schedule data (stored at _userRef/scheduleData and _userRef/scheduleTemplate) ──
+// ── Schedule data ─────────────────────────────────────────────────────────────
 
-// In-memory caches — kept in sync by Firebase listeners.
-let _schedCache         = {};  // { 'yyyy-mm-dd': [blocks…] }   (non-repeat mode)
-let _schedTemplateCache = {};  // { '0': [blocks…], … }          (repeat mode, Mon=0…Sun=6)
-
+let _schedCache            = {};
+let _schedTemplateCache    = {};
 let _schedDataListener     = null;
 let _schedTemplateListener = null;
 
@@ -75,17 +71,14 @@ function dbSaveScheduleTemplate(template) {
 function dbListenSchedule() {
   if (!_userRef) return;
 
-  // Non-repeat schedule data
   if (_schedDataListener) _userRef.child('scheduleData').off('value', _schedDataListener);
   _schedDataListener = _userRef.child('scheduleData').on('value', snap => {
     const raw = snap.val() || {};
-    // Normalise any Firebase-ified arrays back to plain arrays
     _schedCache = {};
     Object.entries(raw).forEach(([k, v]) => { _schedCache[k] = _fbToArray(v); });
     if (_isScheduleVisible()) renderScheduleBlocks();
   });
 
-  // Repeat template
   if (_schedTemplateListener) _userRef.child('scheduleTemplate').off('value', _schedTemplateListener);
   _schedTemplateListener = _userRef.child('scheduleTemplate').on('value', snap => {
     const raw = snap.val() || {};
@@ -106,10 +99,9 @@ function dbDetachSchedule() {
   }
 }
 
-// ── Schedule settings (stored at _userRef/scheduleSettings) ───────────────────
+// ── Schedule settings ─────────────────────────────────────────────────────────
 
-let _schedSettingsCache = {};  // { startHour, endHour, repeatWeekly }
-
+let _schedSettingsCache    = {};
 let _schedSettingsListener = null;
 
 function dbSaveSchedSettings(settings) {
@@ -121,7 +113,7 @@ function dbListenSchedSettings() {
   if (_schedSettingsListener) _userRef.child('scheduleSettings').off('value', _schedSettingsListener);
   _schedSettingsListener = _userRef.child('scheduleSettings').on('value', snap => {
     _schedSettingsCache = snap.val() || {};
-    renderScheduleSettingsTab();            // keep settings UI in sync on all tabs/devices
+    renderScheduleSettingsTab();
     if (_isScheduleVisible()) {
       renderSchedule();
       setTimeout(schedScrollToStart, 80);
@@ -136,22 +128,87 @@ function dbDetachSchedSettings() {
   }
 }
 
-// ── Start all schedule listeners (call this right after _userRef is set) ──────
+// ── Streak data (stored at _userRef/streakData) ───────────────────────────────
+
+const _streakDefault = { currentStreak: 0, longestStreak: 0, lastCompletedDate: null, completedDates: [] };
+let _streakCache        = { ..._streakDefault };
+let _streakDataListener = null;
+
+function dbSaveStreakData(data) {
+  if (_userRef) _userRef.child('streakData').set(data);
+}
+
+function dbListenStreakData() {
+  if (!_userRef) return;
+  if (_streakDataListener) _userRef.child('streakData').off('value', _streakDataListener);
+  _streakDataListener = _userRef.child('streakData').on('value', snap => {
+    _streakCache = snap.val() || { ..._streakDefault };
+    // Firebase may serialise the array as an object — normalise it back
+    if (_streakCache.completedDates && !Array.isArray(_streakCache.completedDates)) {
+      _streakCache.completedDates = Object.values(_streakCache.completedDates);
+    }
+    _streakCache.completedDates = _streakCache.completedDates || [];
+  });
+}
+
+function dbDetachStreakData() {
+  if (_streakDataListener && _userRef) {
+    _userRef.child('streakData').off('value', _streakDataListener);
+    _streakDataListener = null;
+  }
+}
+
+// ── Completed history (stored at _userRef/completedHistory) ───────────────────
+// Lightweight archive of deleted completed tasks, used for all-time stats only.
+
+let _historyCache    = [];
+let _historyListener = null;
+
+function dbSaveHistory(history) {
+  if (_userRef) _userRef.child('completedHistory').set(history);
+}
+
+function dbListenHistory() {
+  if (!_userRef) return;
+  if (_historyListener) _userRef.child('completedHistory').off('value', _historyListener);
+  _historyListener = _userRef.child('completedHistory').on('value', snap => {
+    _historyCache = _fbToArray(snap.val());
+    // Refresh stats view on all devices when history changes
+    const sv = document.getElementById('statsView');
+    if (sv && sv.style.display !== 'none') renderStats();
+  });
+}
+
+function dbDetachHistory() {
+  if (_historyListener && _userRef) {
+    _userRef.child('completedHistory').off('value', _historyListener);
+    _historyListener = null;
+  }
+}
+
+// ── Start all listeners ───────────────────────────────────────────────────────
 
 function initScheduleSync() {
   dbListenSchedule();
   dbListenSchedSettings();
 }
 
-// ── Tear down everything (call on sign-out) ────────────────────────────────────
+function initStatsSync() {
+  dbListenStreakData();
+  dbListenHistory();
+}
+
+// ── Tear down everything on sign-out ─────────────────────────────────────────
 
 function dbDetachAll() {
   dbDetach();
   dbDetachSchedule();
   dbDetachSchedSettings();
+  dbDetachStreakData();
+  dbDetachHistory();
 }
 
-// ── Helper used by schedule.js ────────────────────────────────────────────────
+// ── Internal helpers ──────────────────────────────────────────────────────────
 
 function _isScheduleVisible() {
   const sv = document.getElementById('scheduleView');

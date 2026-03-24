@@ -1,75 +1,101 @@
 // ── Stats & Streak ──
 
-const STREAK_KEY = 'devday_streak';
+// All streak + history reads/writes now go through Firebase caches defined in db.js:
+//   _streakCache   — live-synced from _userRef/streakData
+//   _historyCache  — live-synced from _userRef/completedHistory
 
 function getStreakData() {
-  try {
-    return JSON.parse(localStorage.getItem(STREAK_KEY)) || {
-      currentStreak: 0, longestStreak: 0, lastCompletedDate: null, completedDates: []
-    };
-  } catch {
-    return { currentStreak: 0, longestStreak: 0, lastCompletedDate: null, completedDates: [] };
-  }
+  return _streakCache;
 }
 
 function saveStreakData(data) {
-  localStorage.setItem(STREAK_KEY, JSON.stringify(data));
+  _streakCache = data;
+  dbSaveStreakData(data);
 }
 
 function updateStreak() {
-  const data = getStreakData();
+  const data = { ...getStreakData() };
   const today = todayStr();
   if (data.lastCompletedDate === today) return;
+
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yStr = yesterday.toISOString().slice(0, 10);
-  data.currentStreak = data.lastCompletedDate === yStr ? data.currentStreak + 1 : 1;
-  data.longestStreak = Math.max(data.longestStreak, data.currentStreak);
+
+  data.currentStreak     = data.lastCompletedDate === yStr ? data.currentStreak + 1 : 1;
+  data.longestStreak     = Math.max(data.longestStreak, data.currentStreak);
   data.lastCompletedDate = today;
+
   if (!data.completedDates.includes(today)) {
     data.completedDates = [...data.completedDates, today].slice(-365);
   }
+
   saveStreakData(data);
 }
 
 function checkStreakIntegrity() {
-  const data = getStreakData();
+  const data = { ...getStreakData() };
   if (!data.lastCompletedDate) return;
+
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yStr = yesterday.toISOString().slice(0, 10);
+
   if (data.lastCompletedDate !== todayStr() && data.lastCompletedDate !== yStr) {
     data.currentStreak = 0;
     saveStreakData(data);
   }
 }
 
+// ── Archive a deleted completed task into history ─────────────────────────────
+// Called from tasks.js deleteTask() instead of writing to localStorage.
+
+function archiveCompletedTask(task) {
+  const updated = [..._historyCache, { completedAt: task.completedAt, tag: task.tag }].slice(-1000);
+  _historyCache = updated;
+  dbSaveHistory(updated);
+}
+
+function unarchiveCompletedTask(completedAt) {
+  const updated = _historyCache.filter(h => h.completedAt !== completedAt);
+  _historyCache = updated;
+  dbSaveHistory(updated);
+}
+
+// ── Stats computation ─────────────────────────────────────────────────────────
+
 function computeStats() {
-  const all   = typeof tasks !== 'undefined' ? tasks : [];
-  const today = todayStr();
+  const all     = typeof tasks !== 'undefined' ? tasks : [];
+  const today   = todayStr();
   const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
 
-  const history = JSON.parse(localStorage.getItem('devday_completed_history') || '[]');
-  const done    = [
-    ...all.filter(t => t.done),
-    ...history  // archived completed tasks
-  ];
+  // Current done tasks (still in the task list)
+  const currentDone = all.filter(t => t.done);
 
-  const todayDone = done.filter(t => t.completedAt?.slice(0, 10) === today);
-  const weekDone  = done.filter(t => t.completedAt && new Date(t.completedAt) >= weekAgo);
-  const rate      = all.length ? Math.round((done.length / all.length) * 100) : 0;
+  // All-time done = current done + archived history (deleted tasks)
+  // De-dupe by completedAt to prevent double-counting if a task is in both
+  const allDoneMap = new Map();
+  currentDone.forEach(t => { if (t.completedAt) allDoneMap.set(t.completedAt, t); });
+  _historyCache.forEach(h => { if (h.completedAt && !allDoneMap.has(h.completedAt)) allDoneMap.set(h.completedAt, h); });
+  const allDone = [...allDoneMap.values()];
+
+  // Completion rate — based only on current tasks (can never exceed 100%)
+  const rate = all.length ? Math.round((currentDone.length / all.length) * 100) : 0;
+
+  const todayDone = allDone.filter(t => t.completedAt?.slice(0, 10) === today);
+  const weekDone  = allDone.filter(t => t.completedAt && new Date(t.completedAt) >= weekAgo);
 
   // Tag breakdown
   const tagCount = {};
   all.forEach(t => { if (t.tag) tagCount[t.tag] = (tagCount[t.tag] || 0) + 1; });
   const tagDone = {};
-  done.forEach(t => { if (t.tag) tagDone[t.tag] = (tagDone[t.tag] || 0) + 1; });
+  allDone.forEach(t => { if (t.tag) tagDone[t.tag] = (tagDone[t.tag] || 0) + 1; });
   const topTag = Object.entries(tagCount).sort((a, b) => b[1] - a[1])[0];
 
   // Day of week breakdown (last 90 days)
-  const dayCount = { Mon:0, Tue:0, Wed:0, Thu:0, Fri:0, Sat:0, Sun:0 };
+  const dayCount  = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
   const ninetyAgo = new Date(); ninetyAgo.setDate(ninetyAgo.getDate() - 90);
-  done.forEach(t => {
+  allDone.forEach(t => {
     if (t.completedAt && new Date(t.completedAt) >= ninetyAgo) {
       const keys = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       const d = keys[new Date(t.completedAt).getDay()];
@@ -81,40 +107,44 @@ function computeStats() {
   // Last 7 days daily counts
   const last7 = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i));
-    const str = d.toISOString().slice(0, 10);
+    const str   = d.toISOString().slice(0, 10);
     const label = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
-    const count = done.filter(t => t.completedAt?.slice(0, 10) === str).length;
+    const count = allDone.filter(t => t.completedAt?.slice(0, 10) === str).length;
     return { label, count, str };
   });
 
-  // Last 28 days for heatmap — count tasks done per day
-  const completedDates = getStreakData().completedDates || [];
+  // Last 28 days for heatmap
   const last28 = Array.from({ length: 28 }, (_, i) => {
-    const d = new Date(); d.setDate(d.getDate() - (27 - i));
-    const str = d.toISOString().slice(0, 10);
-    const count = done.filter(t => t.completedAt?.slice(0, 10) === str).length;
+    const d     = new Date(); d.setDate(d.getDate() - (27 - i));
+    const str   = d.toISOString().slice(0, 10);
+    const count = allDone.filter(t => t.completedAt?.slice(0, 10) === str).length;
     return { date: str, count };
   });
 
   const streak = getStreakData();
   return {
-    total: done.length, today: todayDone.length, week: weekDone.length,
-    rate, topTag: topTag?.[0] ?? null, topDay: topDay?.[0] ?? null,
-    currentStreak: streak.currentStreak, longestStreak: streak.longestStreak,
-    completedDates, last28, last7, dayCount, tagCount, tagDone,
+    total: allDone.length,
+    today: todayDone.length,
+    week:  weekDone.length,
+    rate,
+    topTag:        topTag?.[0]  ?? null,
+    topDay:        topDay?.[0]  ?? null,
+    currentStreak: streak.currentStreak,
+    longestStreak: streak.longestStreak,
+    completedDates: streak.completedDates,
+    last28, last7, dayCount, tagCount, tagDone,
   };
 }
 
-// ── Line Chart ──────────────────────────────────────────────────────────────
+// ── Line Chart ────────────────────────────────────────────────────────────────
 
-function buildLinePath(pts, W, H, PAD_L, PAD_T, PAD_B) {
-  // Smooth bezier curve through points
+function buildLinePath(pts) {
   if (pts.length < 2) return '';
   let d = `M${pts[0].x.toFixed(2)},${pts[0].y.toFixed(2)}`;
   for (let i = 1; i < pts.length; i++) {
     const prev = pts[i - 1];
     const curr = pts[i];
-    const cpx = (prev.x + curr.x) / 2;
+    const cpx  = (prev.x + curr.x) / 2;
     d += ` C${cpx.toFixed(2)},${prev.y.toFixed(2)} ${cpx.toFixed(2)},${curr.y.toFixed(2)} ${curr.x.toFixed(2)},${curr.y.toFixed(2)}`;
   }
   return d;
@@ -140,12 +170,10 @@ function renderLineChart(data, opts = {}) {
     idx: i
   }));
 
-  const linePath = buildLinePath(pts, W, H, PAD_L, PAD_T, PAD_B);
-
-  // Area = line path closed to bottom
+  const linePath = buildLinePath(pts);
   const areaPath = linePath
-    + ` L${pts[pts.length - 1].x.toFixed(2)},${(H).toFixed(2)}`
-    + ` L${pts[0].x.toFixed(2)},${(H).toFixed(2)} Z`;
+    + ` L${pts[pts.length - 1].x.toFixed(2)},${H.toFixed(2)}`
+    + ` L${pts[0].x.toFixed(2)},${H.toFixed(2)} Z`;
 
   const gradId = `grad_${uid}`;
   const clipId = `clip_${uid}`;
@@ -183,7 +211,6 @@ function renderLineChart(data, opts = {}) {
     >${p.label}</text>`;
   }).join('');
 
-  // Horizontal grid lines
   const gridLines = [0.25, 0.5, 0.75, 1].map(f => {
     const y = (PAD_T + (1 - f) * chartH).toFixed(2);
     return `<line class="lc-grid" x1="${PAD_L}" y1="${y}" x2="${W - PAD_R}" y2="${y}" />`;
@@ -191,12 +218,7 @@ function renderLineChart(data, opts = {}) {
 
   return `
     <div class="lc-wrap" data-uid="${uid}">
-      <svg
-        viewBox="0 0 ${W} ${H + 20}"
-        class="lc-svg"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
+      <svg viewBox="0 0 ${W} ${H + 20}" class="lc-svg" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%"   stop-color="${color}" stop-opacity="0.18"/>
@@ -206,30 +228,9 @@ function renderLineChart(data, opts = {}) {
             <rect x="${PAD_L}" y="0" width="${chartW}" height="${H}" />
           </clipPath>
         </defs>
-
         ${gridLines}
-
-        <path
-          class="lc-area"
-          d="${areaPath}"
-          fill="url(#${gradId})"
-          clip-path="url(#${clipId})"
-          style="opacity:0;transition:opacity 0.6s ease 0.4s"
-          data-uid="${uid}"
-        />
-
-        <path
-          class="lc-line"
-          d="${linePath}"
-          fill="none"
-          stroke="${color}"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          clip-path="url(#${clipId})"
-          data-uid="${uid}"
-        />
-
+        <path class="lc-area" d="${areaPath}" fill="url(#${gradId})" clip-path="url(#${clipId})" style="opacity:0;transition:opacity 0.6s ease 0.4s" data-uid="${uid}" />
+        <path class="lc-line" d="${linePath}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#${clipId})" data-uid="${uid}" />
         ${dots}
         ${axisLabels}
       </svg>
@@ -245,21 +246,14 @@ function animateLineChart(container, uid) {
   line.style.strokeDashoffset = len;
   line.style.transition = 'none';
 
-  // Kick off draw animation
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      line.style.transition       = 'stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)';
-      line.style.strokeDashoffset = '0';
-    });
-  });
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    line.style.transition       = 'stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)';
+    line.style.strokeDashoffset = '0';
+  }));
 
-  // Fade in area fill
   const area = container.querySelector(`.lc-area[data-uid="${uid}"]`);
-  if (area) {
-    requestAnimationFrame(() => requestAnimationFrame(() => { area.style.opacity = '1'; }));
-  }
+  if (area) requestAnimationFrame(() => requestAnimationFrame(() => { area.style.opacity = '1'; }));
 
-  // Stagger dots + labels after line finishes
   const dots   = [...container.querySelectorAll(`.lc-dot[data-uid="${uid}"]`)];
   const labels = [...container.querySelectorAll(`.lc-label[data-uid="${uid}"]`)];
   [...dots, ...labels].forEach((el, i) => {
@@ -267,15 +261,13 @@ function animateLineChart(container, uid) {
   });
 }
 
-// ── Tag bars (keep horizontal — makes sense for tags) ──────────────────────
+// ── Tag bars ──────────────────────────────────────────────────────────────────
 
 function renderTagBars(tagCount, tagDone) {
   const entries = Object.entries(tagCount).sort((a, b) => b[1] - a[1]);
   if (!entries.length) return `<div class="no-data">// no tagged tasks yet</div>`;
   const max = entries[0][1];
-  const tagColors = {
-    work: 'var(--blue)', personal: 'var(--purple)', health: 'var(--green)',
-  };
+  const tagColors = { work: 'var(--blue)', personal: 'var(--purple)', health: 'var(--green)' };
   return entries.map(([tag, total]) => {
     const pct   = Math.round((total / max) * 100);
     const color = tagColors[tag] || 'var(--claude)';
@@ -291,7 +283,7 @@ function renderTagBars(tagCount, tagDone) {
   }).join('');
 }
 
-// ── Main render ─────────────────────────────────────────────────────────────
+// ── Main render ───────────────────────────────────────────────────────────────
 
 function renderStats() {
   const s  = computeStats();
@@ -300,10 +292,10 @@ function renderStats() {
 
   const heatMax = Math.max(...s.last28.map(d => d.count), 1);
   const heatmap = s.last28.map(({ date, count }) => {
-    const isToday = date === todayStr();
+    const isToday   = date === todayStr();
     const intensity = count === 0 ? 0 : count === 1 ? 1 : count <= 3 ? 2 : count <= Math.ceil(heatMax * 0.6) ? 3 : 4;
-    return `<div class="heat-cell lvl-${intensity} ${isToday ? "is-today" : ""}" title="${date}: ${count} task${count !== 1 ? "s" : ""}"></div>`;
-  }).join("");
+    return `<div class="heat-cell lvl-${intensity} ${isToday ? 'is-today' : ''}" title="${date}: ${count} task${count !== 1 ? 's' : ''}"></div>`;
+  }).join('');
 
   const streakFire = s.currentStreak >= 7 ? '🔥' : s.currentStreak >= 3 ? '⚡' : s.currentStreak > 0 ? '✦' : '○';
   const streakMsg  = s.currentStreak === 0 ? '// start your streak today'
@@ -311,23 +303,20 @@ function renderStats() {
     : s.currentStreak >= 7  ? `// on fire — ${s.currentStreak} days`
     : `// ${s.currentStreak} days and counting`;
 
-  // Convert dayCount object → array for line chart
   const dayData = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => ({
     label: d,
     count: s.dayCount[d] || 0
   }));
 
-  const last7Chart  = renderLineChart(s.last7,  { color: 'var(--claude)', uid: 'last7',  showToday: true });
-  const dayChart    = renderLineChart(dayData,   { color: 'var(--blue)',   uid: 'byday'  });
+  const last7Chart = renderLineChart(s.last7,  { color: 'var(--claude)', uid: 'last7',  showToday: true });
+  const dayChart   = renderLineChart(dayData,   { color: 'var(--blue)',   uid: 'byday'  });
 
   el.innerHTML = `
     <div class="stats-page">
-
       <div class="stats-header">
         <div class="stats-page-title"># stats<span class="stats-comment"> // your progress</span></div>
       </div>
 
-      <!-- Streak + heatmap -->
       <div class="stats-row">
         <div class="streak-block">
           <div class="streak-top">
@@ -357,7 +346,6 @@ function renderStats() {
         </div>
       </div>
 
-      <!-- Counters -->
       <div class="stat-cards">
         <div class="stat-card">
           <div class="stat-card-icon">◎</div>
@@ -381,13 +369,11 @@ function renderStats() {
         </div>
       </div>
 
-      <!-- Line chart: last 7 days -->
       <div class="stats-block">
         <div class="stats-block-title">// tasks completed — last 7 days</div>
         ${last7Chart}
       </div>
 
-      <!-- 2-col: peak day + tag breakdown -->
       <div class="stats-row bottom-row">
         <div class="stats-block half">
           <div class="stats-block-title">// by day of week</div>
@@ -398,16 +384,15 @@ function renderStats() {
           <div class="tag-bars">${renderTagBars(s.tagCount, s.tagDone)}</div>
         </div>
       </div>
-
     </div>`;
 
-  // ── Counter animation ──
+  // Counter animation
   el.querySelectorAll('.stat-card-val[data-target]').forEach(valEl => {
     const target = +valEl.dataset.target;
     const suffix = valEl.dataset.suffix || '';
     if (target === 0) { valEl.textContent = '0' + suffix; return; }
     let start = null;
-    const dur = 600;
+    const dur  = 600;
     const step = ts => {
       if (!start) start = ts;
       const p = Math.min((ts - start) / dur, 1);
@@ -417,77 +402,40 @@ function renderStats() {
     requestAnimationFrame(step);
   });
 
-  // ── Line chart animations ──
-  setTimeout(() => {
-    animateLineChart(el, 'last7');
-    animateLineChart(el, 'byday');
-  }, 60);
+  setTimeout(() => { animateLineChart(el, 'last7'); animateLineChart(el, 'byday'); }, 60);
 
-  // ── Tag bar animations ──
   setTimeout(() => {
     el.querySelectorAll('.tag-bar-fill').forEach(b => {
-      const pct = b.dataset.pct;
       b.style.transition = 'width 0.6s cubic-bezier(0.4,0,0.2,1)';
-      b.style.width = pct + '%';
+      b.style.width = b.dataset.pct + '%';
     });
   }, 200);
 }
 
-// ── CSS injection (line chart styles) ──────────────────────────────────────
-// Call once on load — won't duplicate if already injected
+// ── CSS injection ─────────────────────────────────────────────────────────────
+
 (function injectLineChartStyles() {
   if (document.getElementById('lc-styles')) return;
   const style = document.createElement('style');
   style.id = 'lc-styles';
   style.textContent = `
-    .lc-wrap {
-      width: 100%;
-      padding: 4px 0 0;
-    }
-    .lc-svg {
-      width: 100%;
-      height: auto;
-      display: block;
-      overflow: visible;
-    }
-    .lc-grid {
-      stroke: var(--border, rgba(255,255,255,0.06));
-      stroke-width: 1;
-      stroke-dasharray: 3 4;
-    }
-    .lc-axis {
-      fill: var(--comment, #555);
-      font-size: 11px;
-      font-family: var(--font-mono, monospace);
-    }
-    .lc-axis-today {
-      fill: var(--claude, #e5a84b);
-      font-weight: 600;
-    }
-    .lc-label {
-      fill: var(--fg, #ccc);
-      font-size: 10px;
-      font-family: var(--font-mono, monospace);
-    }
-
-    /* Heatmap intensity levels */
-    .heat-cell.lvl-0 { background: var(--surface2, rgba(255,255,255,0.04)); }
-    .heat-cell.lvl-1 { background: var(--claude, #e5a84b); opacity: 0.25; }
-    .heat-cell.lvl-2 { background: var(--claude, #e5a84b); opacity: 0.50; }
-    .heat-cell.lvl-3 { background: var(--claude, #e5a84b); opacity: 0.75; }
-    .heat-cell.lvl-4 { background: var(--claude, #e5a84b); opacity: 1.00; }
-
-    /* Streak block fills full height of row */
-    .streak-block {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
+    .lc-wrap { width:100%; padding:4px 0 0; }
+    .lc-svg  { width:100%; height:auto; display:block; overflow:visible; }
+    .lc-grid { stroke:var(--border,rgba(255,255,255,0.06)); stroke-width:1; stroke-dasharray:3 4; }
+    .lc-axis { fill:var(--comment,#555); font-size:11px; font-family:var(--font-mono,monospace); }
+    .lc-axis-today { fill:var(--claude,#e5a84b); font-weight:600; }
+    .lc-label { fill:var(--fg,#ccc); font-size:10px; font-family:var(--font-mono,monospace); }
+    .heat-cell.lvl-0 { background:var(--surface2,rgba(255,255,255,0.04)); }
+    .heat-cell.lvl-1 { background:var(--claude,#e5a84b); opacity:0.25; }
+    .heat-cell.lvl-2 { background:var(--claude,#e5a84b); opacity:0.50; }
+    .heat-cell.lvl-3 { background:var(--claude,#e5a84b); opacity:0.75; }
+    .heat-cell.lvl-4 { background:var(--claude,#e5a84b); opacity:1.00; }
+    .streak-block { display:flex; flex-direction:column; justify-content:space-between; }
   `;
   document.head.appendChild(style);
 })();
 
-// ── Streak Alert ────────────────────────────────────────────────────────────
+// ── Streak Alert ──────────────────────────────────────────────────────────────
 
 (function injectStreakAlertStyles() {
   if (document.getElementById('streak-alert-styles')) return;
@@ -495,120 +443,63 @@ function renderStats() {
   style.id = 'streak-alert-styles';
   style.textContent = `
     #streak-alert {
-      position: fixed;
-      bottom: 32px;
-      right: 32px;
-      z-index: 9999;
-      width: 300px;
-      background: var(--surface, #161b22);
-      border: 1px solid var(--claude, #e5a84b);
-      border-radius: 6px;
-      padding: 18px 20px 16px;
-      box-shadow: 0 0 0 1px rgba(229,168,75,0.08), 0 8px 32px rgba(0,0,0,0.5);
-      font-family: var(--font-mono, monospace);
-      transform: translateY(20px);
-      opacity: 0;
-      transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease;
-      pointer-events: none;
+      position:fixed; bottom:32px; right:32px; z-index:9999; width:300px;
+      background:var(--surface,#161b22); border:1px solid var(--claude,#e5a84b);
+      border-radius:6px; padding:18px 20px 16px;
+      box-shadow:0 0 0 1px rgba(229,168,75,0.08),0 8px 32px rgba(0,0,0,0.5);
+      font-family:var(--font-mono,monospace);
+      transform:translateY(20px); opacity:0;
+      transition:transform 0.4s cubic-bezier(0.16,1,0.3,1),opacity 0.4s ease;
+      pointer-events:none;
     }
-    #streak-alert.sa-visible {
-      transform: translateY(0);
-      opacity: 1;
-      pointer-events: auto;
-    }
-    #streak-alert.sa-hide {
-      transform: translateY(12px);
-      opacity: 0;
-    }
+    #streak-alert.sa-visible { transform:translateY(0); opacity:1; pointer-events:auto; }
+    #streak-alert.sa-hide    { transform:translateY(12px); opacity:0; }
     .sa-eyebrow {
-      font-size: 10px;
-      color: var(--claude, #e5a84b);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      font-size:10px; color:var(--claude,#e5a84b); letter-spacing:0.08em;
+      text-transform:uppercase; margin-bottom:10px;
+      display:flex; align-items:center; gap:6px;
     }
     .sa-eyebrow::before {
-      content: '';
-      display: inline-block;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--claude, #e5a84b);
-      animation: sa-pulse 1.6s ease-in-out infinite;
+      content:''; display:inline-block; width:6px; height:6px;
+      border-radius:50%; background:var(--claude,#e5a84b);
+      animation:sa-pulse 1.6s ease-in-out infinite;
     }
-    @keyframes sa-pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.4; transform: scale(0.7); }
+    @keyframes sa-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+    .sa-streak-row { display:flex; align-items:baseline; gap:8px; margin-bottom:8px; }
+    .sa-num  { font-size:52px; font-weight:700; line-height:1; color:var(--claude,#e5a84b); letter-spacing:-2px; }
+    .sa-unit { font-size:18px; color:var(--comment,#666); }
+    .sa-msg  {
+      font-size:11px; color:var(--comment,#666); line-height:1.5;
+      border-top:1px solid var(--border,rgba(255,255,255,0.07));
+      padding-top:10px; margin-top:4px;
     }
-    .sa-streak-row {
-      display: flex;
-      align-items: baseline;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .sa-num {
-      font-size: 52px;
-      font-weight: 700;
-      line-height: 1;
-      color: var(--claude, #e5a84b);
-      letter-spacing: -2px;
-      /* count-up animation via JS */
-    }
-    .sa-unit {
-      font-size: 18px;
-      color: var(--comment, #666);
-    }
-    .sa-msg {
-      font-size: 11px;
-      color: var(--comment, #666);
-      line-height: 1.5;
-      border-top: 1px solid var(--border, rgba(255,255,255,0.07));
-      padding-top: 10px;
-      margin-top: 4px;
-    }
-    .sa-msg span {
-      color: var(--fg, #ccc);
-    }
+    .sa-msg span { color:var(--fg,#ccc); }
     .sa-close {
-      position: absolute;
-      top: 10px; right: 12px;
-      background: none; border: none;
-      color: var(--comment, #555);
-      font-size: 14px;
-      cursor: pointer;
-      line-height: 1;
-      padding: 2px 4px;
-      transition: color 0.15s;
+      position:absolute; top:10px; right:12px;
+      background:none; border:none; color:var(--comment,#555);
+      font-size:14px; cursor:pointer; line-height:1; padding:2px 4px;
+      transition:color 0.15s;
     }
-    .sa-close:hover { color: var(--fg, #ccc); }
+    .sa-close:hover { color:var(--fg,#ccc); }
     .sa-progress {
-      position: absolute;
-      bottom: 0; left: 0;
-      height: 2px;
-      background: var(--claude, #e5a84b);
-      border-radius: 0 0 0 6px;
-      width: 100%;
-      transform-origin: left;
-      animation: sa-drain 4s linear forwards;
+      position:absolute; bottom:0; left:0; height:2px;
+      background:var(--claude,#e5a84b); border-radius:0 0 0 6px;
+      width:100%; transform-origin:left;
+      animation:sa-drain 4s linear forwards;
     }
-    @keyframes sa-drain {
-      from { transform: scaleX(1); }
-      to   { transform: scaleX(0); }
-    }
+    @keyframes sa-drain { from{transform:scaleX(1)} to{transform:scaleX(0)} }
   `;
   document.head.appendChild(style);
 })();
 
 const STREAK_MESSAGES = [
-  ['streak started', 'first task done. <span>keep showing up.</span>'],
-  ['day 2', 'two in a row. <span>momentum is building.</span>'],
-  ['3-day streak', 'three days straight. <span>you\'re making it a habit.</span>'],
-  ['keep it going', 'consistency beats intensity. <span>see you tomorrow.</span>'],
-  ['on a roll', 'every day counts. <span>don\'t break the chain.</span>'],
-  ['fire streak 🔥', 'you\'re in the zone. <span>keep the engine running.</span>'],
-  ['legendary', 'this is what discipline looks like. <span>respect.</span>'],
+  ['streak started',  'first task done. <span>keep showing up.</span>'],
+  ['day 2',           'two in a row. <span>momentum is building.</span>'],
+  ['3-day streak',    'three days straight. <span>you\'re making it a habit.</span>'],
+  ['keep it going',   'consistency beats intensity. <span>see you tomorrow.</span>'],
+  ['on a roll',       'every day counts. <span>don\'t break the chain.</span>'],
+  ['fire streak 🔥',  'you\'re in the zone. <span>keep the engine running.</span>'],
+  ['legendary',       'this is what discipline looks like. <span>respect.</span>'],
 ];
 
 function getStreakAlertMsg(streak) {
@@ -624,7 +515,6 @@ function getStreakAlertMsg(streak) {
 let _streakAlertTimer = null;
 
 function showStreakAlert() {
-  // Only fire once per day
   const lastAlertDate = localStorage.getItem('devday_streak_alert_date');
   const today = todayStr();
   if (lastAlertDate === today) return;
@@ -634,7 +524,6 @@ function showStreakAlert() {
   const { currentStreak } = getStreakData();
   const [eyebrow, msg]    = getStreakAlertMsg(currentStreak);
 
-  // Remove old alert if present
   document.getElementById('streak-alert')?.remove();
   clearTimeout(_streakAlertTimer);
 
@@ -652,22 +541,19 @@ function showStreakAlert() {
   `;
   document.body.appendChild(el);
 
-  // Slide in
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('sa-visible')));
 
-  // Animate streak count-up
   const numEl = document.getElementById('sa-num');
   let start = null;
   const dur = 700;
   (function tick(ts) {
     if (!start) start = ts;
-    const p = Math.min((ts - start) / dur, 1);
+    const p    = Math.min((ts - start) / dur, 1);
     const ease = 1 - Math.pow(1 - p, 3);
     numEl.textContent = Math.round(ease * currentStreak);
     if (p < 1) requestAnimationFrame(tick);
   })(performance.now());
 
-  // Auto-dismiss after 4.5s (progress bar is 4s, + 0.5s buffer)
   _streakAlertTimer = setTimeout(() => dismissStreakAlert(), 4500);
 }
 
@@ -679,11 +565,11 @@ function dismissStreakAlert() {
   setTimeout(() => el.remove(), 400);
 }
 
-// ── Show / Hide ─────────────────────────────────────────────────────────────
+// ── Show / Hide ───────────────────────────────────────────────────────────────
 
 function showStats() {
   hideScheduleIfVisible();
-  const mainEls   = ['listView', 'kanbanView', 'inputArea'].map(id => document.getElementById(id));
+  const mainEls   = ['listView','kanbanView','inputArea'].map(id => document.getElementById(id));
   const statsView = document.getElementById('statsView');
 
   mainEls.forEach(el => { if (el) el.classList.add('fading'); });

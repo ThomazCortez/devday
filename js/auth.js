@@ -64,7 +64,7 @@ _auth.onAuthStateChanged(user => {
 
     // ── Start schedule + settings Firebase listeners ──
     initScheduleSync();
-
+    initStatsSync();
     init();
   } else {
     window.location.href = 'login.html';
