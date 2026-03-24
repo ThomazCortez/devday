@@ -21,22 +21,22 @@ document.addEventListener('click', e => {
 
 function signOut() {
   closeUserMenu();
-  dbDetach();
+  dbDetachAll(); // tears down tasks + schedule + settings listeners
   tasks = [];
   _auth.signOut().then(() => { window.location.href = 'login.html'; });
 }
 
 // ── Auth State Observer ──
-// ── Auth State Observer ──
 _auth.onAuthStateChanged(user => {
   if (user) {
-    _userRef = _db.ref('users/' + user.uid + '/tasks');
+    // Point to user root so db.js can attach child paths for tasks, schedule, etc.
+    _userRef = _db.ref('users/' + user.uid);
 
     // ── Show & populate user pill ──
-    const pill         = document.getElementById('userPill');
-    const avatar       = document.getElementById('userAvatar');
-    const nameEl       = document.getElementById('userName');
-    const dropEmail    = document.getElementById('dropdownEmail');
+    const pill           = document.getElementById('userPill');
+    const avatar         = document.getElementById('userAvatar');
+    const nameEl         = document.getElementById('userName');
+    const dropEmail      = document.getElementById('dropdownEmail');
     const settingsAvatar = document.getElementById('settingsAvatar');
     const settingsName   = document.getElementById('settingsName');
     const settingsEmail  = document.getElementById('settingsEmail');
@@ -61,6 +61,9 @@ _auth.onAuthStateChanged(user => {
         to_name:  user.displayName?.split(' ')[0] || 'there',
       }).catch(err => console.warn('welcome email failed:', err));
     }
+
+    // ── Start schedule + settings Firebase listeners ──
+    initScheduleSync();
 
     init();
   } else {
