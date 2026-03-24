@@ -1,17 +1,32 @@
 // ── Kanban View ──
 
+// Per-column page state — reset whenever the filter changes or kanban is re-entered
+let _kbPage = { todo: 1, doing: 1, done: 1 };
+
+function resetKbPages() { _kbPage = { todo: 1, doing: 1, done: 1 }; }
+
 function renderKanban() {
   ['todo', 'doing', 'done'].forEach(status => {
     const col   = document.getElementById(`kb-${status}`);
     const count = document.getElementById(`kb-count-${status}`);
     const items = getFiltered().filter(t => t.status === status);
     if (count) count.textContent = items.length;
-    if (!items.length) { col.innerHTML = `<div class="kb-col-empty">// empty</div>`; return; }
+
+    if (!items.length) {
+      col.innerHTML = `<div class="kb-col-empty">// empty</div>`;
+      return;
+    }
 
     const next = { todo: 'doing', doing: 'done',  done: null };
     const prev = { todo: null,    doing: 'todo',  done: 'doing' };
 
-    col.innerHTML = items.map(t => {
+    // ── Pagination ──
+    const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE_current));
+    if (_kbPage[status] > totalPages) _kbPage[status] = totalPages;
+    const start  = (_kbPage[status] - 1) * PAGE_SIZE_current;
+    const paged  = items.slice(start, start + PAGE_SIZE_current);
+
+    col.innerHTML = paged.map(t => {
       const dm        = dueMeta(t.due);
       const isOverdue = !t.done && dm?.cls === 'overdue';
       const l         = getLabels().find(l => l.id === t.tag);
@@ -35,8 +50,38 @@ function renderKanban() {
         </div>
       </div>`;
     }).join('');
+
+    // ── Pagination bar (only if more than one page) ──
+    if (totalPages > 1) {
+      const bar = document.createElement('div');
+      bar.className = 'kb-pagination';
+
+      let html = `<button class="page-btn arrow" onclick="goToKbPage('${status}',${_kbPage[status] - 1})" ${_kbPage[status] === 1 ? 'disabled' : ''}>‹</button>`;
+
+      const range = [];
+      for (let p = 1; p <= totalPages; p++) {
+        if (p === 1 || p === totalPages || (p >= _kbPage[status] - 1 && p <= _kbPage[status] + 1)) range.push(p);
+        else if (range[range.length - 1] !== '…') range.push('…');
+      }
+      range.forEach(p => {
+        if (p === '…') html += `<span class="kb-page-ellipsis">…</span>`;
+        else html += `<button class="page-btn ${p === _kbPage[status] ? 'active' : ''}" onclick="goToKbPage('${status}',${p})">${p}</button>`;
+      });
+
+      html += `<button class="page-btn arrow" onclick="goToKbPage('${status}',${_kbPage[status] + 1})" ${_kbPage[status] === totalPages ? 'disabled' : ''}>›</button>`;
+      bar.innerHTML = html;
+      col.appendChild(bar);
+    }
   });
+
   updateCounts();
+}
+
+function goToKbPage(status, p) {
+  const items      = getFiltered().filter(t => t.status === status);
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE_current));
+  _kbPage[status]  = Math.max(1, Math.min(totalPages, p));
+  renderKanban();
 }
 
 function moveCard(id, newStatus) {
@@ -51,9 +96,6 @@ function moveCard(id, newStatus) {
   } else if (newStatus !== 'done') {
     t.completedAt = null;
   }
-save();
-renderKanban();
-if (newStatus === 'done' && !wasDone) showCelebration(t.text);
   save();
   renderKanban();
   if (newStatus === 'done' && !wasDone) showCelebration(t.text);
@@ -85,6 +127,7 @@ function switchView(view) {
       listEl.style.display = 'none';
       inputEl.style.display = '';
       kanbanEl.style.display = ''; kanbanEl.classList.add('visible');
+      resetKbPages();
       renderKanban();
     }
     listEl.classList.remove('fading'); kanbanEl.classList.remove('fading'); inputEl.classList.remove('fading');
@@ -92,10 +135,10 @@ function switchView(view) {
 }
 
 // ── Kanban Drag & Drop ──
-let _dragClone    = null;
-let _dragOffsetX  = 0;
-let _dragOffsetY  = 0;
-let _dragOverCol  = null;
+let _dragClone      = null;
+let _dragOffsetX    = 0;
+let _dragOffsetY    = 0;
+let _dragOverCol    = null;
 let _dragOverCardId = null;
 
 function onCardMouseDown(e, id) {

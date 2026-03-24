@@ -199,6 +199,24 @@
 .page-btn:disabled { opacity: 0.25; cursor: not-allowed; }
 .page-btn.arrow { font-size: 13px; }
 
+/* ── Kanban pagination ── */
+.kb-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 8px 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+}
+
+.kb-page-ellipsis {
+  color: var(--text-faint);
+  font-size: 11px;
+  padding: 0 2px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
 /* ── Kanban ── */
 #listView, #kanbanView, #inputArea { transition: opacity 0.18s ease; }
 #listView.fading, #kanbanView.fading, #inputArea.fading { opacity: 0; pointer-events: none; }

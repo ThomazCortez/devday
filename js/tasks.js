@@ -232,6 +232,7 @@ function setFilter(btn, filter) {
   btn.classList.add('active');
   currentFilter = filter;
   currentPage   = 1;
+  resetKbPages();
 
   if (currentView === 'kanban') {
     renderKanban();
