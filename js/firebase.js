@@ -128,7 +128,7 @@ function dbDetachSchedSettings() {
   }
 }
 
-// ── Streak data (stored at _userRef/streakData) ───────────────────────────────
+// ── Streak data ───────────────────────────────────────────────────────────────
 
 const _streakDefault = { currentStreak: 0, longestStreak: 0, lastCompletedDate: null, completedDates: [] };
 let _streakCache        = { ..._streakDefault };
@@ -143,7 +143,6 @@ function dbListenStreakData() {
   if (_streakDataListener) _userRef.child('streakData').off('value', _streakDataListener);
   _streakDataListener = _userRef.child('streakData').on('value', snap => {
     _streakCache = snap.val() || { ..._streakDefault };
-    // Firebase may serialise the array as an object — normalise it back
     if (_streakCache.completedDates && !Array.isArray(_streakCache.completedDates)) {
       _streakCache.completedDates = Object.values(_streakCache.completedDates);
     }
@@ -158,8 +157,7 @@ function dbDetachStreakData() {
   }
 }
 
-// ── Completed history (stored at _userRef/completedHistory) ───────────────────
-// Lightweight archive of deleted completed tasks, used for all-time stats only.
+// ── Completed history ─────────────────────────────────────────────────────────
 
 let _historyCache    = [];
 let _historyListener = null;
@@ -173,7 +171,6 @@ function dbListenHistory() {
   if (_historyListener) _userRef.child('completedHistory').off('value', _historyListener);
   _historyListener = _userRef.child('completedHistory').on('value', snap => {
     _historyCache = _fbToArray(snap.val());
-    // Refresh stats view on all devices when history changes
     const sv = document.getElementById('statsView');
     if (sv && sv.style.display !== 'none') renderStats();
   });
@@ -183,6 +180,66 @@ function dbDetachHistory() {
   if (_historyListener && _userRef) {
     _userRef.child('completedHistory').off('value', _historyListener);
     _historyListener = null;
+  }
+}
+
+// ── App settings (stored at _userRef/settings) ────────────────────────────────
+// Covers: accent, theme, font size, density, default view, page size,
+//         default tag, and widget visibility toggles.
+
+const _settingsLocalKeys = [
+  'settings_accent', 'settings_theme', 'settings_font_size',
+  'settings_density', 'settings_default_view', 'settings_page_size',
+  'settings_default_tag',
+  'wd_clock', 'wd_weather', 'wd_pomo', 'wd_notepad',
+];
+
+let _settingsCache    = {};
+let _settingsListener = null;
+
+// Read a single setting — falls back to a default if not set
+function getSetting(key, fallback = null) {
+  return _settingsCache[key] !== undefined ? _settingsCache[key] : fallback;
+}
+
+// Write one or more settings and persist to Firebase
+function saveSettings(patch) {
+  _settingsCache = { ..._settingsCache, ...patch };
+  if (_userRef) _userRef.child('settings').set(_settingsCache);
+}
+
+function dbListenSettings() {
+  if (!_userRef) return;
+  if (_settingsListener) _userRef.child('settings').off('value', _settingsListener);
+
+  _settingsListener = _userRef.child('settings').on('value', snap => {
+    const remote = snap.val();
+
+    if (!remote) {
+      // First sign-in on this account — migrate any existing localStorage prefs
+      const migrated = {};
+      _settingsLocalKeys.forEach(k => {
+        const v = localStorage.getItem(k);
+        if (v !== null) migrated[k] = v;
+      });
+      if (Object.keys(migrated).length) {
+        // Save migrated values; listener will fire again with the saved data
+        saveSettings(migrated);
+        return;
+      }
+    }
+
+    _settingsCache = remote || {};
+    // Apply to UI immediately (covers other devices / tabs)
+    applyAllSettings();
+    syncSettingsUI();
+  });
+}
+
+function dbDetachSettings() {
+  if (_settingsListener && _userRef) {
+    _userRef.child('settings').off('value', _settingsListener);
+    _settingsListener = null;
   }
 }
 
@@ -198,6 +255,10 @@ function initStatsSync() {
   dbListenHistory();
 }
 
+function initSettingsSync() {
+  dbListenSettings();
+}
+
 // ── Tear down everything on sign-out ─────────────────────────────────────────
 
 function dbDetachAll() {
@@ -206,6 +267,14 @@ function dbDetachAll() {
   dbDetachSchedSettings();
   dbDetachStreakData();
   dbDetachHistory();
+  dbDetachSettings();
+  // Reset caches so a re-login starts clean
+  _settingsCache      = {};
+  _schedSettingsCache = {};
+  _streakCache        = { ..._streakDefault };
+  _historyCache       = [];
+  _schedCache         = {};
+  _schedTemplateCache = {};
 }
 
 // ── Internal helpers ──────────────────────────────────────────────────────────

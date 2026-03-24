@@ -21,7 +21,7 @@ document.addEventListener('click', e => {
 
 function signOut() {
   closeUserMenu();
-  dbDetachAll(); // tears down tasks + schedule + settings listeners
+  dbDetachAll(); // tears down all listeners and resets caches
   tasks = [];
   _auth.signOut().then(() => { window.location.href = 'login.html'; });
 }
@@ -29,7 +29,7 @@ function signOut() {
 // ── Auth State Observer ──
 _auth.onAuthStateChanged(user => {
   if (user) {
-    // Point to user root so db.js can attach child paths for tasks, schedule, etc.
+    // Point to user root so db.js can attach child paths for tasks, schedule, settings, etc.
     _userRef = _db.ref('users/' + user.uid);
 
     // ── Show & populate user pill ──
@@ -62,9 +62,11 @@ _auth.onAuthStateChanged(user => {
       }).catch(err => console.warn('welcome email failed:', err));
     }
 
-    // ── Start schedule + settings Firebase listeners ──
+    // ── Start all Firebase listeners ──
+    initSettingsSync();  // settings first — applies accent/theme before tasks render
     initScheduleSync();
     initStatsSync();
+
     init();
   } else {
     window.location.href = 'login.html';

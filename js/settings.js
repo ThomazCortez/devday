@@ -18,16 +18,19 @@ const WIDGET_KEYS = {
 
 let _settingsActiveTab = 'profile';
 
-// ── Widgets ──
+// ── Widgets ───────────────────────────────────────────────────────────────────
+
 function loadWidgetPrefs() {
-  const clock   = localStorage.getItem(WIDGET_KEYS.clock)   !== 'false';
-  const weather = localStorage.getItem(WIDGET_KEYS.weather) !== 'false';
-  const pomo    = localStorage.getItem(WIDGET_KEYS.pomo)    === 'true';
-  const notepad = localStorage.getItem(WIDGET_KEYS.notepad) === 'true';
+  const clock   = getSetting(WIDGET_KEYS.clock,   'true')  !== 'false';
+  const weather = getSetting(WIDGET_KEYS.weather, 'true')  !== 'false';
+  const pomo    = getSetting(WIDGET_KEYS.pomo,    'false') === 'true';
+  const notepad = getSetting(WIDGET_KEYS.notepad, 'false') === 'true';
+
   document.getElementById('toggleClock').checked   = clock;
   document.getElementById('toggleWeather').checked = weather;
   document.getElementById('togglePomo').checked    = pomo;
   document.getElementById('toggleNotepad').checked = notepad;
+
   setWidgetVisible('clockWrap',   clock);
   setWidgetVisible('weatherWrap', weather);
   setWidgetVisible('pomoFloat',   pomo);
@@ -39,10 +42,14 @@ function applyWidgets() {
   const weather = document.getElementById('toggleWeather').checked;
   const pomo    = document.getElementById('togglePomo').checked;
   const notepad = document.getElementById('toggleNotepad').checked;
-  localStorage.setItem(WIDGET_KEYS.clock,   clock);
-  localStorage.setItem(WIDGET_KEYS.weather, weather);
-  localStorage.setItem(WIDGET_KEYS.pomo,    pomo);
-  localStorage.setItem(WIDGET_KEYS.notepad, notepad);
+
+  saveSettings({
+    [WIDGET_KEYS.clock]:   String(clock),
+    [WIDGET_KEYS.weather]: String(weather),
+    [WIDGET_KEYS.pomo]:    String(pomo),
+    [WIDGET_KEYS.notepad]: String(notepad),
+  });
+
   setWidgetVisible('clockWrap',   clock);
   setWidgetVisible('weatherWrap', weather);
   setWidgetVisible('pomoFloat',   pomo);
@@ -58,7 +65,8 @@ function setWidgetVisible(id, visible) {
   setTimeout(() => { if (!visible) el.style.display = 'none'; else el.style.display = ''; }, visible ? 0 : 200);
 }
 
-// ── Panel open/close ──
+// ── Panel open / close ────────────────────────────────────────────────────────
+
 function openSettingsPanel(tab) {
   tab = tab || 'profile';
   switchSettingsTab(tab);
@@ -79,6 +87,7 @@ function openSettingsPanel(tab) {
       avatarEl.textContent = (user.displayName || 'U')[0].toUpperCase();
     }
   }
+
   syncSettingsUI();
   document.getElementById('settingsBackdrop').classList.add('open');
 }
@@ -103,91 +112,126 @@ function switchSettingsTab(tab) {
 
 function openWidgets() { closeUserMenu(); openSettingsPanel('widgets'); }
 
+// ── Schedule settings tab ─────────────────────────────────────────────────────
+
 function renderScheduleSettingsTab() {
-  const startHour = getSchedStartHour();
-  const endHour   = getSchedEndHour();
-  const repeat    = getSchedRepeat();
- 
   const startEl  = document.getElementById('schedStartHour');
   const endEl    = document.getElementById('schedEndHour');
   const repeatEl = document.getElementById('schedRepeatToggle');
   if (!startEl || !endEl || !repeatEl) return;
- 
-  // Build hour options (0–23)
+
   const opts = Array.from({ length: 24 }, (_, h) =>
     `<option value="${h}">${String(h).padStart(2,'0')}:00</option>`
   ).join('');
- 
   if (!startEl.options.length) startEl.innerHTML = opts;
   if (!endEl.options.length)   endEl.innerHTML   = opts;
- 
-  startEl.value    = startHour;
-  endEl.value      = endHour;
-  repeatEl.checked = repeat;
+
+  startEl.value    = getSchedStartHour();
+  endEl.value      = getSchedEndHour();
+  repeatEl.checked = getSchedRepeat();
 }
- 
+
 function onSchedSettingChange() {
   const startEl  = document.getElementById('schedStartHour');
   const endEl    = document.getElementById('schedEndHour');
   const repeatEl = document.getElementById('schedRepeatToggle');
   if (!startEl || !endEl || !repeatEl) return;
- 
+
   const startHour    = parseInt(startEl.value);
   const endHour      = parseInt(endEl.value);
   const repeatWeekly = repeatEl.checked;
- 
-  // Validate range — end must be at least 1 hour after start
+
   if (endHour <= startHour) {
-    endEl.style.borderColor = 'var(--red, #FF7B72)';
+    endEl.style.borderColor = 'var(--red,#FF7B72)';
     setTimeout(() => endEl.style.borderColor = '', 800);
     return;
   }
- 
+
   saveSchedSettings({ startHour, endHour, repeatWeekly });
- 
-  // Live-update the schedule if it's currently open
-  const sv = document.getElementById('scheduleView');
-  if (sv && sv.style.display !== 'none') {
+
+  if (_isScheduleVisible()) {
     renderSchedule();
     setTimeout(schedScrollToStart, 80);
   }
 }
 
-// ── Sync UI to stored prefs ──
+// ── Sync settings panel UI to current cache ───────────────────────────────────
+
 function syncSettingsUI() {
-  const theme = localStorage.getItem('settings_theme') || 'dark';
+  // Theme
+  const theme = getSetting('settings_theme', 'dark');
   document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
   document.getElementById('theme-card-' + theme)?.classList.add('active');
 
-  const currentAccent = localStorage.getItem('settings_accent') || '#DA7756';
+  // Accent colour
+  const currentAccent = getSetting('settings_accent', '#DA7756');
   document.getElementById('accentSwatches').innerHTML = ACCENT_COLORS.map(c => `
     <div class="color-swatch ${c.hex === currentAccent ? 'active' : ''}"
       style="background:${c.hex}" onclick="setAccentColor('${c.hex}')" title="${c.name}"></div>
   `).join('');
 
-  const fs = localStorage.getItem('settings_font_size') || 'md';
-  ['sm', 'md', 'lg'].forEach(s => document.getElementById('fs-' + s)?.classList.toggle('active', s === fs));
+  // Font size
+  const fs = getSetting('settings_font_size', 'md');
+  ['sm','md','lg'].forEach(s => document.getElementById('fs-' + s)?.classList.toggle('active', s === fs));
 
-  const den = localStorage.getItem('settings_density') || 'comfortable';
-  ['compact', 'comfortable'].forEach(d => document.getElementById('density-' + d)?.classList.toggle('active', d === den));
+  // Density
+  const den = getSetting('settings_density', 'comfortable');
+  ['compact','comfortable'].forEach(d => document.getElementById('density-' + d)?.classList.toggle('active', d === den));
 
-  const dv = localStorage.getItem('settings_default_view') || 'list';
-  ['list', 'kanban'].forEach(v => document.getElementById('dv-' + v)?.classList.toggle('active', v === dv));
+  // Default view
+  const dv = getSetting('settings_default_view', 'list');
+  ['list','kanban'].forEach(v => document.getElementById('dv-' + v)?.classList.toggle('active', v === dv));
 
-  const ps = parseInt(localStorage.getItem('settings_page_size') || '8');
-  [4, 8, 12, 16].forEach(n => document.getElementById('ps-' + n)?.classList.toggle('active', n === ps));
+  // Page size
+  const ps = parseInt(getSetting('settings_page_size', '8'));
+  [4,8,12,16].forEach(n => document.getElementById('ps-' + n)?.classList.toggle('active', n === ps));
 
-  const dt = localStorage.getItem('settings_default_tag') || '';
-  ['', 'work', 'personal', 'health'].forEach(t =>
+  // Default tag
+  const dt = getSetting('settings_default_tag', '');
+  ['','work','personal','health'].forEach(t =>
     document.getElementById('dt-' + (t || 'none'))?.classList.toggle('active', t === dt)
   );
 
-  renderScheduleSettingsTab()
+  // Widgets
+  document.getElementById('toggleClock').checked   = getSetting(WIDGET_KEYS.clock,   'true')  !== 'false';
+  document.getElementById('toggleWeather').checked = getSetting(WIDGET_KEYS.weather, 'true')  !== 'false';
+  document.getElementById('togglePomo').checked    = getSetting(WIDGET_KEYS.pomo,    'false') === 'true';
+  document.getElementById('toggleNotepad').checked = getSetting(WIDGET_KEYS.notepad, 'false') === 'true';
+
+  renderScheduleSettingsTab();
   renderLabelsManager();
 }
 
-// ── Appearance ──
-function setAccentColor(hex) { localStorage.setItem('settings_accent', hex); applyAccentColor(hex); syncSettingsUI(); }
+// ── Apply ALL settings to the DOM (called on Firebase listener update) ────────
+
+function applyAllSettings() {
+  const accent = getSetting('settings_accent');
+  if (accent) applyAccentColor(accent);
+
+  applyFontSize(getSetting('settings_font_size', 'md'));
+  applyDensity(getSetting('settings_density', 'comfortable'));
+  applyTheme(getSetting('settings_theme', 'dark'));
+
+  const ps = parseInt(getSetting('settings_page_size', '8'));
+  if (PAGE_SIZE_current !== ps) { PAGE_SIZE_current = ps; currentPage = 1; renderTasks(); }
+
+  const dv = getSetting('settings_default_view', 'list');
+  if (dv && dv !== currentView) switchView(dv);
+
+  const dt = getSetting('settings_default_tag', '');
+  selectedTag = (dt && isTagEnabled(dt)) ? dt : null;
+  renderTagButtons();
+
+  loadWidgetPrefs();
+}
+
+// ── Appearance setters ────────────────────────────────────────────────────────
+
+function setAccentColor(hex) {
+  saveSettings({ settings_accent: hex });
+  applyAccentColor(hex);
+  syncSettingsUI();
+}
 
 function applyAccentColor(hex) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -208,7 +252,11 @@ function applyAccentColor(hex) {
   });
 }
 
-function setTheme(theme) { localStorage.setItem('settings_theme', theme); applyTheme(theme); syncSettingsUI(); }
+function setTheme(theme) {
+  saveSettings({ settings_theme: theme });
+  applyTheme(theme);
+  syncSettingsUI();
+}
 
 function applyTheme(theme) {
   document.body.classList.remove('theme-light', 'theme-dark');
@@ -218,24 +266,46 @@ function applyTheme(theme) {
   document.querySelectorAll('canvas[data-icon]').forEach(c => drawWeatherDots(c, c.dataset.icon));
 }
 
-function setFontSize(size)  { localStorage.setItem('settings_font_size', size);  applyFontSize(size);  syncSettingsUI(); }
-function applyFontSize(size) { document.body.classList.remove('font-sm', 'font-md', 'font-lg'); document.body.classList.add('font-' + size); }
+function setFontSize(size) {
+  saveSettings({ settings_font_size: size });
+  applyFontSize(size);
+  syncSettingsUI();
+}
 
-function setDensity(den)    { localStorage.setItem('settings_density', den);     applyDensity(den);    syncSettingsUI(); }
-function applyDensity(den)  { document.body.classList.remove('density-compact', 'density-comfortable'); document.body.classList.add('density-' + den); }
+function applyFontSize(size) {
+  document.body.classList.remove('font-sm', 'font-md', 'font-lg');
+  document.body.classList.add('font-' + size);
+}
 
-function setDefaultView(view)  { localStorage.setItem('settings_default_view', view); syncSettingsUI(); }
+function setDensity(den) {
+  saveSettings({ settings_density: den });
+  applyDensity(den);
+  syncSettingsUI();
+}
+
+function applyDensity(den) {
+  document.body.classList.remove('density-compact', 'density-comfortable');
+  document.body.classList.add('density-' + den);
+}
+
+function setDefaultView(view) {
+  saveSettings({ settings_default_view: view });
+  syncSettingsUI();
+}
 
 function setPageSize(n) {
-  localStorage.setItem('settings_page_size', n);
-  PAGE_SIZE_current = n; currentPage = 1;
-  renderTasks(); syncSettingsUI();
+  saveSettings({ settings_page_size: String(n) });
+  PAGE_SIZE_current = n;
+  currentPage = 1;
+  renderTasks();
+  syncSettingsUI();
 }
 
 function setDefaultTag(tag) {
-  localStorage.setItem('settings_default_tag', tag);
+  saveSettings({ settings_default_tag: tag });
   selectedTag = (tag && isTagEnabled(tag)) ? tag : null;
-  renderTagButtons(); syncSettingsUI();
+  renderTagButtons();
+  syncSettingsUI();
 }
 
 function saveDisplayName() {
@@ -249,17 +319,25 @@ function saveDisplayName() {
   });
 }
 
-// ── Load & apply all settings on boot ──
+// ── Boot: apply localStorage immediately so there's no style flash ────────────
+// Firebase will overwrite these once the listener resolves (usually < 1s).
+
 function loadAndApplySettings() {
   const accent = localStorage.getItem('settings_accent');
   if (accent) applyAccentColor(accent);
   applyFontSize(localStorage.getItem('settings_font_size') || 'md');
   applyDensity(localStorage.getItem('settings_density')    || 'comfortable');
   applyTheme(localStorage.getItem('settings_theme')        || 'dark');
+
   const dv = localStorage.getItem('settings_default_view');
   if (dv && dv !== currentView) switchView(dv);
+
   PAGE_SIZE_current = parseInt(localStorage.getItem('settings_page_size') || '8');
 }
 
-document.addEventListener('DOMContentLoaded', () => { loadWidgetPrefs(); loadAndApplySettings(); });
+document.addEventListener('DOMContentLoaded', () => {
+  loadWidgetPrefs();
+  loadAndApplySettings();
+});
+
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings(); });
