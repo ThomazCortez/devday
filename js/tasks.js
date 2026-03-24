@@ -217,11 +217,11 @@ function setFilter(btn, filter) {
   hideStatsIfVisible();
   hideScheduleIfVisible();
 
-  // Only show listView if we're actually in list mode
   if (currentView === 'list') {
     document.getElementById('listView').style.display = '';
     document.getElementById('inputArea').style.display = '';
   } else if (currentView === 'kanban') {
+    document.getElementById('listView').style.display = 'none'; // ← add this
     const kanbanEl = document.getElementById('kanbanView');
     kanbanEl.style.display = '';
     kanbanEl.classList.add('visible');
