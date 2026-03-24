@@ -50,6 +50,56 @@ function saveNote(id) {
   if (btn) btn.classList.toggle('has-notes', val.trim().length > 0);
 }
 
+// ── Inline edit on double-click ──
+function editTaskInline(id) {
+  // Find the text element in whichever view is visible
+  const textEl = document.querySelector(
+    `[data-id="${id}"] .task-text, [data-id="${id}"] .kb-card-text`
+  );
+  if (!textEl) return;
+
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+
+  // Prevent triggering drag or other handlers while editing
+  textEl.closest('[data-id]').classList.add('editing');
+
+  const original = t.text;
+  const input    = document.createElement('input');
+  input.type      = 'text';
+  input.value     = original;
+  input.className = 'task-inline-input';
+  input.maxLength = 200;
+
+  textEl.replaceWith(input);
+  input.focus();
+  input.select();
+
+  function commit() {
+    const newText = input.value.trim();
+    if (newText && newText !== original) {
+      t.text = newText;
+      save();
+    }
+    // Re-render whichever view is active
+    if (currentView === 'kanban') renderKanban();
+    else renderTasks();
+  }
+
+  function cancel() {
+    if (currentView === 'kanban') renderKanban();
+    else renderTasks();
+  }
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter')  { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+    e.stopPropagation(); // prevent global keydown handlers firing
+  });
+
+  input.addEventListener('blur', commit);
+}
+
 // ── CRUD ──
 function addTask() {
   const input = document.getElementById('taskInput');
@@ -291,7 +341,7 @@ function renderTasks() {
         </svg>
       </button>
       <div class="task-body">
-        <div class="task-text">${escHtml(t.text)}</div>
+        <div class="task-text" ondblclick="editTaskInline(${t.id})">${escHtml(t.text)}</div>
         ${(t.tag || dm || t.recur) ? `<div class="task-meta">
           ${t.tag ? `<span class="task-tag" style="background:${hexAlpha(tagColor, 0.12)};color:${tagColor}">#${escHtml(t.tag)}</span>` : ''}
           ${dm && !t.done ? `<span class="due-badge ${dm.cls}">${dm.icon} ${dm.label}</span>` : ''}

@@ -555,3 +555,21 @@ html {
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
   color: var(--text-faint); font-style: italic; padding: 8px 0;
 }
+
+/* ── Inline task edit input ── */
+.task-inline-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--claude);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: inherit;
+  padding: 0 0 2px;
+  outline: none;
+  caret-color: var(--claude);
+}
+
+/* Prevent drag handle activating while editing */
+.task-item.editing .drag-handle { pointer-events: none; }
+.kb-card.editing               { cursor: text; }

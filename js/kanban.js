@@ -35,7 +35,7 @@ function renderKanban() {
       <div class="kb-card ${isOverdue ? 'overdue-card' : ''}" data-id="${t.id}"
         onmousedown="onCardMouseDown(event,${t.id})"
         ontouchstart="onCardMouseDown(event,${t.id})">
-        <div class="kb-card-text">${escHtml(t.text)}</div>
+        <div class="kb-card-text" ondblclick="editTaskInline(${t.id})">${escHtml(t.text)}</div>
         ${t.notes && t.notes.trim()
           ? `<div class="kb-notes-preview">${escHtml(t.notes.trim().slice(0, 120))}${t.notes.trim().length > 120 ? '…' : ''}</div>`
           : ''}
@@ -141,11 +141,19 @@ let _dragOffsetY    = 0;
 let _dragOverCol    = null;
 let _dragOverCardId = null;
 
+let _dragStartTimer = null;
+
 function onCardMouseDown(e, id) {
   if (e.target.closest('button')) return;
   if (e.touches && e.touches.length > 1) return;
-  e.preventDefault();
-  dragId = id;
+
+  // On second click (dblclick), cancel pending drag and edit instead
+  if (_dragStartTimer) {
+    clearTimeout(_dragStartTimer);
+    _dragStartTimer = null;
+    editTaskInline(id);
+    return;
+  }
 
   const { x, y } = getXY(e);
   const card = e.currentTarget;
@@ -153,26 +161,33 @@ function onCardMouseDown(e, id) {
   _dragOffsetX = x - rect.left;
   _dragOffsetY = y - rect.top;
 
-  _dragClone = card.cloneNode(true);
-  const cs  = getComputedStyle(document.body);
-  const acc = cs.getPropertyValue('--claude').trim();
-  const bg2 = cs.getPropertyValue('--bg-2').trim();
-  const txt = cs.getPropertyValue('--text').trim();
-  Object.assign(_dragClone.style, {
-    position: 'fixed', top: rect.top + 'px', left: rect.left + 'px', width: rect.width + 'px',
-    margin: '0', opacity: '1', pointerEvents: 'none', zIndex: '9999',
-    background: bg2, border: `1px solid ${acc}80`, borderLeft: `3px solid ${acc}`,
-    borderRadius: '8px', padding: '11px 13px',
-    boxShadow: `0 12px 36px rgba(0,0,0,0.7),0 0 0 1px ${acc}40`,
-    color: txt, transition: 'none', transform: 'rotate(1.5deg) scale(1.03)',
-  });
-  document.body.appendChild(_dragClone);
-  card.classList.add('dragging');
+  // Delay drag init so a quick double-click can intercept it
+  _dragStartTimer = setTimeout(() => {
+    _dragStartTimer = null;
+    e.preventDefault();
+    dragId = id;
 
-  document.addEventListener('mousemove', onDragMouseMove);
-  document.addEventListener('mouseup',   onDragMouseUp);
-  document.addEventListener('touchmove', onDragMouseMove, { passive: false });
-  document.addEventListener('touchend',  onDragMouseUp);
+    _dragClone = card.cloneNode(true);
+    const cs  = getComputedStyle(document.body);
+    const acc = cs.getPropertyValue('--claude').trim();
+    const bg2 = cs.getPropertyValue('--bg-2').trim();
+    const txt = cs.getPropertyValue('--text').trim();
+    Object.assign(_dragClone.style, {
+      position: 'fixed', top: rect.top + 'px', left: rect.left + 'px', width: rect.width + 'px',
+      margin: '0', opacity: '1', pointerEvents: 'none', zIndex: '9999',
+      background: bg2, border: `1px solid ${acc}80`, borderLeft: `3px solid ${acc}`,
+      borderRadius: '8px', padding: '11px 13px',
+      boxShadow: `0 12px 36px rgba(0,0,0,0.7),0 0 0 1px ${acc}40`,
+      color: txt, transition: 'none', transform: 'rotate(1.5deg) scale(1.03)',
+    });
+    document.body.appendChild(_dragClone);
+    card.classList.add('dragging');
+
+    document.addEventListener('mousemove', onDragMouseMove);
+    document.addEventListener('mouseup',   onDragMouseUp);
+    document.addEventListener('touchmove', onDragMouseMove, { passive: false });
+    document.addEventListener('touchend',  onDragMouseUp);
+  }, 250); // 250ms is fast enough to not feel sluggish, long enough for a dblclick
 }
 
 function onDragMouseMove(e) {
@@ -207,6 +222,12 @@ function onDragMouseMove(e) {
 }
 
 function onDragMouseUp() {
+  // If mouseup fires before drag even started, cancel the pending timer
+  if (_dragStartTimer) {
+    clearTimeout(_dragStartTimer);
+    _dragStartTimer = null;
+  }
+  
   document.removeEventListener('mousemove', onDragMouseMove);
   document.removeEventListener('mouseup',   onDragMouseUp);
   document.removeEventListener('touchmove', onDragMouseMove);
