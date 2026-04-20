@@ -475,3 +475,135 @@
   pointer-events: none;
   line-height: 1.5;
 }
+
+/* ── Mobile day nav ──────────────────────────────────────────────────────────── */
+ 
+.sched-day-nav {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+ 
+.sched-day-nav-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 130px;
+  gap: 2px;
+}
+ 
+.sched-day-label {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+ 
+.sched-day-label-today {
+  color: var(--claude);
+}
+ 
+.sched-today-btn {
+  font-size: 10px !important;
+  padding: 3px 9px !important;
+}
+ 
+/* ── Mobile overrides (≤ 639px) ──────────────────────────────────────────────── */
+ 
+@media (max-width: 639px) {
+ 
+  .sched-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+ 
+  /* Remove scrollbar gutter reservation — mobile uses overlay scrollbars */
+  .sh-grid-body {
+    scrollbar-gutter: auto;
+    max-height: calc(100vh - 210px);
+  }
+ 
+  /* Tighter time gutter on mobile */
+  .sh-time-col {
+    width: 44px;
+    flex: 0 0 44px;
+  }
+ 
+  .sh-gutter-head {
+    width: 44px;
+    flex: 0 0 44px;
+  }
+ 
+  .sh-time-cell {
+    font-size: 9px;
+    padding: 3px 6px 0 0;
+  }
+ 
+  /* Column header padding fix (no scrollbar gap needed) */
+  .sh-col-headers {
+    padding-right: 0;
+  }
+ 
+  /* Single column header — larger day number, more breathing room */
+  .sh-col-head {
+    padding: 10px 4px;
+  }
+ 
+  .sh-col-dayname {
+    font-size: 10px;
+  }
+ 
+  .sh-col-daynum {
+    font-size: 18px;
+    width: 32px;
+    height: 32px;
+  }
+ 
+  /* Blocks: slightly larger text for readability */
+  .sh-block {
+    padding: 6px 8px;
+  }
+ 
+  .sh-block-label {
+    font-size: 12px;
+  }
+ 
+  .sh-block-time {
+    font-size: 10px;
+  }
+ 
+  /* Popup: full-width on mobile */
+  .sh-popup {
+    width: calc(100vw - 24px);
+    padding: 16px 16px 14px;
+  }
+ 
+  /* Bigger touch targets for time selects */
+  .sched-time-select {
+    padding: 8px 8px;
+    font-size: 13px;
+  }
+ 
+  /* Bigger action buttons */
+  .sh-popup-actions .add-btn,
+  .sh-popup-actions .due-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+ 
+  /* Swatches slightly bigger for touch */
+  .sh-swatch {
+    width: 18px;
+    height: 18px;
+  }
+ 
+  /* Slots: slightly taller hit area */
+  .sh-slot {
+    min-height: 56px;
+  }
+}

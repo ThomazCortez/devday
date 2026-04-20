@@ -3,14 +3,45 @@
 const HOUR_H       = 56; // px per hour
 const SCHED_COLORS = ['#DA7756','#58A6FF','#3FB950','#BC8CFF','#FF7B72','#E3B341','#7D8590'];
 
-let _schedWeekOffset = 0;
-let _schedPopupState = null;
-let _schedNowTimer   = null;
-let _schedPopupGenId = 0;
+let _schedWeekOffset    = 0;
+let _schedMobileDayIdx  = null; // null = auto (today if current week, else Monday)
+let _schedPopupState    = null;
+let _schedNowTimer      = null;
+let _schedPopupGenId    = 0;
+let _schedResizeHandler = null;
+
+// ── Mobile detection ──────────────────────────────────────────────────────────
+
+function isMobileSchedule() {
+  return window.innerWidth < 640;
+}
+
+function schedMobileDayIdx() {
+  if (_schedMobileDayIdx !== null) return _schedMobileDayIdx;
+  if (_schedWeekOffset === 0) {
+    const dow = new Date().getDay();
+    return dow === 0 ? 6 : dow - 1; // Mon=0 … Sun=6
+  }
+  return 0;
+}
+
+function schedMobileNavDay(dir) {
+  const idx    = schedMobileDayIdx();
+  const newIdx = idx + dir;
+  if (newIdx < 0) {
+    _schedWeekOffset  -= 1;
+    _schedMobileDayIdx = 6;
+  } else if (newIdx > 6) {
+    _schedWeekOffset  += 1;
+    _schedMobileDayIdx = 0;
+  } else {
+    _schedMobileDayIdx = newIdx;
+  }
+  closeSchedPopup();
+  renderSchedule();
+}
 
 // ── Schedule settings ─────────────────────────────────────────────────────────
-// Read from the in-memory cache kept by db.js (_schedSettingsCache).
-// Writes go through dbSaveSchedSettings() which persists to Firebase.
 
 function getSchedSettings()  { return _schedSettingsCache;                          }
 function getSchedStartHour() { return _schedSettingsCache.startHour    ?? 6;        }
@@ -23,12 +54,9 @@ function saveSchedSettings(patch) {
 }
 
 // ── Storage ───────────────────────────────────────────────────────────────────
-// Reads from in-memory caches (_schedCache / _schedTemplateCache) populated by
-// the Firebase listeners in db.js.  Writes call the Firebase save helpers.
 
 function getScheduleData() {
   if (getSchedRepeat()) {
-    // Map day-of-week template → this week's date keys
     const days   = schedWeekDays(_schedWeekOffset);
     const result = {};
     days.forEach((d, i) => {
@@ -52,7 +80,6 @@ function saveScheduleData(data) {
         else                 delete template[key];
       }
     });
-    // Update local cache immediately so the UI feels instant, then persist.
     _schedTemplateCache = template;
     dbSaveScheduleTemplate(template);
   } else {
@@ -113,8 +140,9 @@ function showSchedule() {
       el.classList.remove('fading');
       el.classList.remove('stats-visible');
     });
-    sv.style.display = 'block';
-    _schedWeekOffset = 0;
+    sv.style.display   = 'block';
+    _schedWeekOffset   = 0;
+    _schedMobileDayIdx = null;
     closeSchedPopup();
     renderSchedule();
     requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -124,6 +152,13 @@ function showSchedule() {
 
     clearInterval(_schedNowTimer);
     _schedNowTimer = setInterval(renderScheduleBlocks, 60000);
+
+    // Resize listener — re-renders when crossing the mobile breakpoint
+    if (!_schedResizeHandler) {
+      let t;
+      _schedResizeHandler = () => { clearTimeout(t); t = setTimeout(renderSchedule, 150); };
+      window.addEventListener('resize', _schedResizeHandler);
+    }
   }, 180);
 
   document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
@@ -136,6 +171,10 @@ function hideScheduleIfVisible() {
   sv.classList.remove('schedule-visible');
   closeSchedPopup();
   clearInterval(_schedNowTimer);
+  if (_schedResizeHandler) {
+    window.removeEventListener('resize', _schedResizeHandler);
+    _schedResizeHandler = null;
+  }
   setTimeout(() => { sv.style.display = 'none'; }, 180);
 }
 
@@ -148,6 +187,26 @@ function schedScrollToStart() {
   body.scrollTop  = (nowHour >= startHour && nowHour <= endHour)
     ? Math.max(0, (nowHour - startHour - 1) * HOUR_H)
     : 0;
+}
+
+// ── Swipe (mobile) ────────────────────────────────────────────────────────────
+
+function _initSchedSwipe() {
+  const body = document.getElementById('shGridBody');
+  if (!body) return;
+  let startX = 0, startY = 0;
+  body.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+  body.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    // Only fire on clearly horizontal swipes
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      schedMobileNavDay(dx < 0 ? 1 : -1);
+    }
+  }, { passive: true });
 }
 
 // ── Slot click (create) ───────────────────────────────────────────────────────
@@ -343,7 +402,7 @@ function deleteSchedBlock() {
   const data = getScheduleData();
   const dKey = _schedPopupState.dayKey;
 
-  // Keep as [] (not deleted) so saveScheduleData can see the key and clear the template entry.
+  // Keep as [] so saveScheduleData can see the key and clear the template entry.
   data[dKey] = (data[dKey] || []).filter(b => b.id !== _schedPopupState.blockId);
 
   saveScheduleData(data);
@@ -372,25 +431,45 @@ function renderSchedule() {
   const el = document.getElementById('scheduleView');
   if (!el) return;
 
-  const days      = schedWeekDays(_schedWeekOffset);
-  const weekLabel = `${schedFmtDate(days[0])} – ${schedFmtDate(days[6])}`;
+  const mobile    = isMobileSchedule();
+  const allDays   = schedWeekDays(_schedWeekOffset);
+  const days      = mobile ? [allDays[schedMobileDayIdx()]] : allDays;
+  const weekLabel = `${schedFmtDate(allDays[0])} – ${schedFmtDate(allDays[6])}`;
   const startHour = getSchedStartHour();
   const endHour   = getSchedEndHour();
   const numHours  = endHour - startHour + 1;
   const repeat    = getSchedRepeat();
 
+  const mobileDayIsToday = mobile && schedDayKey(days[0]) === schedTodayKey();
+  const mobileDayLabel   = mobile
+    ? `${schedDayName(days[0])}, ${days[0].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })}`
+    : '';
+
   el.innerHTML = `
     <div class="sched-page">
       <div class="sched-header">
         <div class="stats-page-title"># schedule<span class="stats-comment"> // ${repeat ? 'repeating weekly' : 'your week'}</span></div>
+
+        ${mobile ? `
+        <div class="sched-day-nav">
+          <button class="due-btn sched-nav-btn" onclick="schedMobileNavDay(-1)">‹</button>
+          <div class="sched-day-nav-center">
+            <span class="sched-day-label${mobileDayIsToday ? ' sched-day-label-today' : ''}">${mobileDayLabel}</span>
+            <span class="sched-week-label">${weekLabel}</span>
+          </div>
+          <button class="due-btn sched-nav-btn" onclick="schedMobileNavDay(1)">›</button>
+          ${_schedWeekOffset !== 0
+            ? `<button class="due-btn sched-today-btn" onclick="schedGoToday()">today</button>`
+            : ''}
+        </div>` : `
         <div class="sched-week-nav">
           <button class="due-btn sched-nav-btn" onclick="schedNavWeek(-1)">‹</button>
           <span class="sched-week-label">${weekLabel}</span>
           <button class="due-btn sched-nav-btn" onclick="schedNavWeek(1)">›</button>
           ${_schedWeekOffset !== 0
-            ? `<button class="due-btn" style="font-size:10px;padding:3px 9px" onclick="schedGoToday()">today</button>`
+            ? `<button class="due-btn sched-today-btn" onclick="schedGoToday()">today</button>`
             : ''}
-        </div>
+        </div>`}
       </div>
 
       <div class="sh-calendar">
@@ -431,13 +510,19 @@ function renderSchedule() {
     </div>`;
 
   renderScheduleBlocks();
+
+  if (mobile) {
+    requestAnimationFrame(() => _initSchedSwipe());
+  }
 }
 
 // ── Render blocks only ────────────────────────────────────────────────────────
 
 function renderScheduleBlocks() {
   const data      = getScheduleData();
-  const days      = schedWeekDays(_schedWeekOffset);
+  const mobile    = isMobileSchedule();
+  const allDays   = schedWeekDays(_schedWeekOffset);
+  const days      = mobile ? [allDays[schedMobileDayIdx()]] : allDays;
   const now       = new Date();
   const startHour = getSchedStartHour();
   const endHour   = getSchedEndHour();
@@ -500,14 +585,16 @@ function renderScheduleBlocks() {
 // ── Navigation ────────────────────────────────────────────────────────────────
 
 function schedNavWeek(dir) {
-  _schedWeekOffset += dir;
+  _schedWeekOffset  += dir;
+  _schedMobileDayIdx = null;
   closeSchedPopup();
   renderSchedule();
   if (_schedWeekOffset === 0) setTimeout(schedScrollToStart, 80);
 }
 
 function schedGoToday() {
-  _schedWeekOffset = 0;
+  _schedWeekOffset   = 0;
+  _schedMobileDayIdx = null;
   closeSchedPopup();
   renderSchedule();
   setTimeout(schedScrollToStart, 80);
