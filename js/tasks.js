@@ -181,16 +181,22 @@ let _undoIndex     = null;
 const UNDO_DELAY   = 4000;
 
 function deleteTask(id) {
-  const el  = document.querySelector(`[data-id="${id}"]`);
+  const el = document.querySelector(`[data-id="${id}"]`);
   const idx = tasks.findIndex(t => t.id === id);
   if (idx === -1) return;
 
-  _undoTask  = { ...tasks[idx] };
+  _undoTask = { ...tasks[idx] };
   _undoIndex = idx;
 
-  // Archive if done so stats preserve it
+  // Safely archive if task is done (ignore errors)
   if (tasks[idx].done && tasks[idx].completedAt) {
-    archiveCompletedTask(tasks[idx]);
+    try {
+      if (typeof archiveCompletedTask === 'function') {
+        archiveCompletedTask(tasks[idx]);
+      }
+    } catch (err) {
+      console.warn('Archive failed, but deletion continues:', err);
+    }
   }
 
   if (el) {
