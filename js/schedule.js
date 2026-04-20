@@ -181,6 +181,42 @@ function onSchedBlockClick(e, dKey, blockId) {
   renderSchedPopup();
 }
 
+// ── Block note tooltip ────────────────────────────────────────────────────────
+
+function _showSchedTooltip(e) {
+  const note = e.currentTarget.dataset.note;
+  if (!note) return;
+  let tip = document.getElementById('shTooltip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id        = 'shTooltip';
+    tip.className = 'sh-tooltip';
+    document.body.appendChild(tip);
+  }
+  tip.textContent   = note;
+  tip.style.display = 'block';
+  _moveSchedTooltip(e, tip);
+  e.currentTarget.addEventListener('mousemove', _onSchedTooltipMove);
+}
+
+function _onSchedTooltipMove(e) {
+  const tip = document.getElementById('shTooltip');
+  if (tip) _moveSchedTooltip(e, tip);
+}
+
+function _moveSchedTooltip(e, tip) {
+  const x = e.clientX + 14;
+  const y = e.clientY - 10;
+  tip.style.left = Math.min(x, window.innerWidth - tip.offsetWidth - 10) + 'px';
+  tip.style.top  = Math.max(8, y) + 'px';
+}
+
+function _hideSchedTooltip(e) {
+  e.currentTarget.removeEventListener('mousemove', _onSchedTooltipMove);
+  const tip = document.getElementById('shTooltip');
+  if (tip) tip.style.display = 'none';
+}
+
 // ── Popup ─────────────────────────────────────────────────────────────────────
 
 function renderSchedPopup() {
@@ -223,6 +259,14 @@ function renderSchedPopup() {
         value="${isEdit ? escHtml(block?.label || '') : ''}"
         onkeydown="if(event.key==='Enter')saveSchedPopup();else if(event.key==='Escape')closeSchedPopup()"
       />
+      <textarea
+        class="task-input sh-popup-notes"
+        id="shPopupNotes"
+        placeholder="notes (optional)..."
+        maxlength="200"
+        rows="2"
+        onkeydown="if(event.key==='Escape')closeSchedPopup()"
+      >${isEdit ? escHtml(block?.notes || '') : ''}</textarea>
       <div class="sh-popup-times">
         <select class="sched-time-select" id="shPopupStart">${hourOpts(startH)}</select>
         <span class="sched-time-sep">→</span>
@@ -269,6 +313,7 @@ function saveSchedPopup() {
   const label  = document.getElementById('shPopupLabel')?.value.trim();
   const startH = parseInt(document.getElementById('shPopupStart')?.value);
   const endH   = parseInt(document.getElementById('shPopupEnd')?.value);
+  const notes  = document.getElementById('shPopupNotes')?.value.trim() || '';
 
   if (!label) { document.getElementById('shPopupLabel')?.focus(); return; }
   if (endH <= startH) {
@@ -283,9 +328,9 @@ function saveSchedPopup() {
 
   if (_schedPopupState.mode === 'edit') {
     const idx = data[dKey].findIndex(b => b.id === _schedPopupState.blockId);
-    if (idx !== -1) data[dKey][idx] = { ...data[dKey][idx], label, startH, endH, color: _schedPopupState.color };
+    if (idx !== -1) data[dKey][idx] = { ...data[dKey][idx], label, startH, endH, color: _schedPopupState.color, notes };
   } else {
-    data[dKey].push({ id: Date.now(), label, startH, endH, color: _schedPopupState.color });
+    data[dKey].push({ id: Date.now(), label, startH, endH, color: _schedPopupState.color, notes });
   }
 
   saveScheduleData(data);
@@ -439,8 +484,14 @@ function renderScheduleBlocks() {
       `;
       block.innerHTML = `
         <div class="sh-block-label">${escHtml(b.label)}</div>
-        <div class="sh-block-time">${String(b.startH).padStart(2,'0')}:00 – ${String(b.endH).padStart(2,'0')}:00</div>`;
+        <div class="sh-block-time">${String(b.startH).padStart(2,'0')}:00 – ${String(b.endH).padStart(2,'0')}:00</div>
+        ${b.notes ? `<div class="sh-block-note-dot"></div>` : ''}`;
       block.onclick = e => onSchedBlockClick(e, dk, b.id);
+      if (b.notes) {
+        block.dataset.note = b.notes;
+        block.addEventListener('mouseenter', _showSchedTooltip);
+        block.addEventListener('mouseleave', _hideSchedTooltip);
+      }
       col.appendChild(block);
     });
   });

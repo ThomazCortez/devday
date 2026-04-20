@@ -429,3 +429,49 @@
 .sh-col-headers {
   padding-right: 15px; /* adjust if needed */
 }
+
+/* ── Notes textarea in popup ─────────────────────────────────────────────────── */
+
+.sh-popup-notes {
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ── Note indicator dot on block ─────────────────────────────────────────────── */
+
+.sh-block-note-dot {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+/* ── Hover tooltip ───────────────────────────────────────────────────────────── */
+
+.sh-tooltip {
+  position: fixed;
+  display: none;
+  z-index: 9999;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text);
+  max-width: 220px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+  pointer-events: none;
+  line-height: 1.5;
+}
