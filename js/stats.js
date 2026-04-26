@@ -515,13 +515,17 @@ function getStreakAlertMsg(streak) {
 let _streakAlertTimer = null;
 
 function showStreakAlert() {
-  const lastAlertDate = localStorage.getItem('devday_streak_alert_date');
   const today = todayStr();
-  if (lastAlertDate === today) return;
-  localStorage.setItem('devday_streak_alert_date', today);
+  const data  = getStreakData();
+
+  // lastAlertDate is stored in Firebase streakData so it syncs across devices
+  if (data.lastAlertDate === today) return;
 
   updateStreak();
-  const { currentStreak } = getStreakData();
+  const updatedData = getStreakData();
+  saveStreakData({ ...updatedData, lastAlertDate: today });
+
+  const { currentStreak } = updatedData;
   const [eyebrow, msg]    = getStreakAlertMsg(currentStreak);
 
   document.getElementById('streak-alert')?.remove();

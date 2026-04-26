@@ -53,5 +53,9 @@ function init() {
     if (currentView === 'kanban') renderKanban();
     updateCounts();
     renderSidebarLabels();
+
+    // Keep stats view in sync whenever tasks change
+    const _sv = document.getElementById('statsView');
+    if (_sv && _sv.style.display !== 'none') renderStats();
   });
 }
