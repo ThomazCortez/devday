@@ -85,10 +85,15 @@ function goToKbPage(status, p) {
 }
 
 function moveCard(id, newStatus) {
-  const t = tasks.find(t => t.id === id); if (!t) return;
-  const wasDone = t.status === 'done';
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+
+  const wasDone      = t.status === 'done';
+  const prevComplAt  = t.completedAt;
+
   t.status = newStatus;
   t.done   = newStatus === 'done';
+
   if (newStatus === 'done' && !wasDone) {
     t.completedAt = new Date().toISOString();
     updateStreak();
@@ -96,9 +101,17 @@ function moveCard(id, newStatus) {
   } else if (newStatus !== 'done') {
     t.completedAt = null;
   }
+
+  // Save + render first — archive/unarchive must never block UI
   save();
   renderKanban();
-  if (newStatus === 'done' && !wasDone) showCelebration(t.text);
+
+  if (newStatus === 'done' && !wasDone) {
+    showCelebration(t.text);
+    try { archiveCompletedTask(t); } catch (e) { console.warn('archive error:', e); }
+  } else if (newStatus !== 'done' && wasDone && prevComplAt) {
+    try { unarchiveCompletedTask(prevComplAt); } catch (e) { console.warn('unarchive error:', e); }
+  }
 }
 
 function deleteKbCard(id) {
@@ -187,7 +200,7 @@ function onCardMouseDown(e, id) {
     document.addEventListener('mouseup',   onDragMouseUp);
     document.addEventListener('touchmove', onDragMouseMove, { passive: false });
     document.addEventListener('touchend',  onDragMouseUp);
-  }, 250); // 250ms is fast enough to not feel sluggish, long enough for a dblclick
+  }, 250);
 }
 
 function onDragMouseMove(e) {
@@ -227,19 +240,30 @@ function onDragMouseUp() {
     clearTimeout(_dragStartTimer);
     _dragStartTimer = null;
   }
-  
+
   document.removeEventListener('mousemove', onDragMouseMove);
   document.removeEventListener('mouseup',   onDragMouseUp);
   document.removeEventListener('touchmove', onDragMouseMove);
   document.removeEventListener('touchend',  onDragMouseUp);
   document.querySelectorAll('.kb-drop-indicator').forEach(el => el.remove());
 
+  // Always clean up the drag clone immediately
+  if (_dragClone) {
+    try { document.body.removeChild(_dragClone); } catch (_) {}
+    _dragClone = null;
+  }
+  document.querySelectorAll('.kb-card').forEach(el => el.classList.remove('dragging'));
+  document.querySelectorAll('.kb-cards').forEach(el => el.classList.remove('drag-over'));
+
   if (_dragOverCol && dragId !== null) {
     const t = tasks.find(t => t.id === dragId);
     if (t) {
-      const wasDone = t.status === 'done';
+      const wasDone     = t.status === 'done';
+      const prevComplAt = t.completedAt;
+
       t.status = _dragOverCol;
       t.done   = _dragOverCol === 'done';
+
       if (_dragOverCol === 'done' && !wasDone) {
         t.completedAt = new Date().toISOString();
         updateStreak();
@@ -247,6 +271,7 @@ function onDragMouseUp() {
       } else if (_dragOverCol !== 'done') {
         t.completedAt = null;
       }
+
       const fromIdx = tasks.findIndex(t => t.id === dragId);
       tasks.splice(fromIdx, 1);
       if (_dragOverCardId !== null) {
@@ -256,14 +281,22 @@ function onDragMouseUp() {
         const lastIdx = tasks.reduce((acc, cur, i) => cur.status === _dragOverCol ? i : acc, -1);
         tasks.splice(lastIdx + 1, 0, t);
       }
+
+      // Save + render first — archive/unarchive must never block UI
       save();
-      if (_dragOverCol === 'done' && !wasDone) showCelebration(t.text);
+      renderKanban();
+
+      if (_dragOverCol === 'done' && !wasDone) {
+        showCelebration(t.text);
+        try { archiveCompletedTask(t); } catch (e) { console.warn('archive error:', e); }
+      } else if (_dragOverCol !== 'done' && wasDone && prevComplAt) {
+        try { unarchiveCompletedTask(prevComplAt); } catch (e) { console.warn('unarchive error:', e); }
+      }
     }
   }
 
-  if (_dragClone) { document.body.removeChild(_dragClone); _dragClone = null; }
-  document.querySelectorAll('.kb-card').forEach(el => el.classList.remove('dragging'));
-  document.querySelectorAll('.kb-cards').forEach(el => el.classList.remove('drag-over'));
   dragId = null; _dragOverCol = null; _dragOverCardId = null;
+
+  // Final safety render in case something was left dirty
   renderKanban();
 }

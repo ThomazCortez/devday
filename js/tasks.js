@@ -131,28 +131,30 @@ function toggleDone(id) {
     t.done        = true;
     t.status      = 'done';
     t.completedAt = new Date().toISOString();
-    archiveCompletedTask(t); // ← ADD THIS
     updateStreak();
     showStreakAlert();
     save();
     renderTasks();
     showCelebration(t.text);
+    archiveCompletedTask(t); // ← AFTER save/render
   } else {
+    const wasDone = t.done;
     t.done   = !t.done;
     t.status = t.done ? 'done' : 'todo';
     if (t.done) {
       t.completedAt = new Date().toISOString();
-      archiveCompletedTask(t); // ← ADD THIS
       updateStreak();
       showStreakAlert();
     } else {
-      // Un-checking — remove from history
-      if (t.completedAt) unarchiveCompletedTask(t.completedAt); // ← ADD THIS
+      if (t.completedAt) unarchiveCompletedTask(t.completedAt);
       t.completedAt = null;
     }
     save();
     renderTasks();
-    if (t.done) showCelebration(t.text);
+    if (t.done) {
+      showCelebration(t.text);
+      archiveCompletedTask(t); // ← AFTER save/render
+    }
   }
 }
 
@@ -162,21 +164,20 @@ function resetRecurringTasks() {
   console.log('tasks at reset time:', tasks.length, tasks);
   let changed = false;
   tasks.forEach(t => {
-    if (t.recur && t.done && t.completedAt) {
-      const completedDay = t.completedAt.slice(0, 10);
-      console.log(`task "${t.text}": completedDay=${completedDay}, today=${today}, should reset=${completedDay < today}`);
-      if (completedDay < today) {
-        archiveCompletedTask(t); // ← ADD THIS (before clearing completedAt)
-        t.done        = false;
-        t.status      = 'todo';
-        t.completedAt = null;
-        t.due         = nextDueDate(completedDay, t.recur);
-        changed       = true;
-      }
+  if (t.recur && t.done && t.completedAt) {
+    const completedDay = t.completedAt.slice(0, 10);
+    if (completedDay < today) {
+      const snapshot = { ...t }; // capture before clearing
+      t.done        = false;
+      t.status      = 'todo';
+      t.completedAt = null;
+      t.due         = nextDueDate(completedDay, t.recur);
+      changed       = true;
+      archiveCompletedTask(snapshot); // ← uses snapshot, after mutation
     }
-  });
-  console.log('changed:', changed);
-  if (changed) save();
+  }
+});
+if (changed) save();
 }
 
 let _undoTask      = null;
