@@ -131,6 +131,7 @@ function toggleDone(id) {
     t.done        = true;
     t.status      = 'done';
     t.completedAt = new Date().toISOString();
+    archiveCompletedTask(t); // ← ADD THIS
     updateStreak();
     showStreakAlert();
     save();
@@ -141,9 +142,12 @@ function toggleDone(id) {
     t.status = t.done ? 'done' : 'todo';
     if (t.done) {
       t.completedAt = new Date().toISOString();
+      archiveCompletedTask(t); // ← ADD THIS
       updateStreak();
       showStreakAlert();
     } else {
+      // Un-checking — remove from history
+      if (t.completedAt) unarchiveCompletedTask(t.completedAt); // ← ADD THIS
       t.completedAt = null;
     }
     save();
@@ -162,12 +166,12 @@ function resetRecurringTasks() {
       const completedDay = t.completedAt.slice(0, 10);
       console.log(`task "${t.text}": completedDay=${completedDay}, today=${today}, should reset=${completedDay < today}`);
       if (completedDay < today) {
+        archiveCompletedTask(t); // ← ADD THIS (before clearing completedAt)
         t.done        = false;
         t.status      = 'todo';
         t.completedAt = null;
         t.due         = nextDueDate(completedDay, t.recur);
         changed       = true;
-        console.log('✅ reset!', t);
       }
     }
   });
